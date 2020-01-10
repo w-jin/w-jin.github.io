@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <id>http://localhost:4000</id>
+    <id>https://w-jin.github.io</id>
     <title>Gridea</title>
-    <updated>2020-01-10T08:52:27.624Z</updated>
+    <updated>2020-01-10T08:55:51.753Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
-    <link rel="alternate" href="http://localhost:4000"/>
-    <link rel="self" href="http://localhost:4000/atom.xml"/>
+    <link rel="alternate" href="https://w-jin.github.io"/>
+    <link rel="self" href="https://w-jin.github.io/atom.xml"/>
     <subtitle>不怕风似快刀，不怕沙尘障路，少年汉莫低首，相伴同求道</subtitle>
-    <logo>http://localhost:4000/images/avatar.png</logo>
-    <icon>http://localhost:4000/favicon.ico</icon>
+    <logo>https://w-jin.github.io/images/avatar.png</logo>
+    <icon>https://w-jin.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Gridea</rights>
     <entry>
         <title type="html"><![CDATA[Hello Gridea]]></title>
-        <id>http://localhost:4000/post/hello-gridea</id>
-        <link href="http://localhost:4000/post/hello-gridea">
+        <id>https://w-jin.github.io/post/hello-gridea</id>
+        <link href="https://w-jin.github.io/post/hello-gridea">
         </link>
         <updated>2018-12-11T16:00:00.000Z</updated>
         <summary type="html"><![CDATA[<p>👏  欢迎使用 <strong>Gridea</strong> ！<br>
