@@ -9,7 +9,7 @@
 <meta name="description" content="不怕风似快刀，不怕沙尘障路，少年汉莫低首，相伴同求道">
 <meta name="theme-color" content="#000">
 <title>wjin</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1594110927752">
+<link rel="shortcut icon" href="/favicon.ico?v=1594114122389">
 <link rel="stylesheet" href="/media/css/pisces.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -184,19 +184,19 @@
     <div class="sidebar-item-box">
       <a href="/archives/">
         
-        <span class="site-item-stat-count">3</span>
+        <span class="site-item-stat-count">4</span>
         <span class="site-item-stat-name language" data-lan="article">文章</span>
       </a>
     </div>
     <div class="sidebar-item-box">
       <a href="">
-        <span class="site-item-stat-count">2</span>
+        <span class="site-item-stat-count">3</span>
         <span class="site-item-stat-name language" data-lan="category">分类</span>
       </a>
     </div>
     <div class="sidebar-item-box">
       <a href="/tags/">
-        <span class="site-item-stat-count">2</span>
+        <span class="site-item-stat-count">3</span>
         <span class="site-item-stat-name language" data-lan="tag">标签</span>
       </a>
     </div>
@@ -235,6 +235,10 @@
           <small class="language" data-lan="tag">标签</small>
         </h2>
       </div>
+      
+      
+      
+      
       
       
       
@@ -466,6 +470,863 @@
       <hr>
     </div>
     <div class="result" id="result">
+      
+      <div class="item">
+        <a class="result-title" style="opacity: 0;" href="https://w-jin.github.io/post/ping-heng-er-cha-shu/"" data-c="
+          &lt;h2 id=&#34;定义&#34;&gt;定义&lt;/h2&gt;
+&lt;p&gt;平衡二叉查找树简称平衡二叉树，则前苏联数学家Adelse-Velskill和Landis发明，所以又称AVL树。它满足：&lt;br&gt;
+1、为二叉查找树；&lt;br&gt;
+2、为空树；&lt;br&gt;
+3、如果不是空树，任意一个节点的左子树和右子树都是平衡二叉树，且高度之差不超过1。&lt;/p&gt;
+&lt;p&gt;平衡因子：某节点的平衡因子定义为其左右子树高度之差。在平衡二叉树，任意节点的平衡因子只能取-1、0和1。&lt;/p&gt;
+&lt;p&gt;平衡二叉树的节点定义为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;struct AVLNode {
+    int value;         // 节点值，使用更改为需要的类型或者使用模板
+    int depth;         // 深度，即以此节点为根节点的子树高度
+    int balance;       // 平衡因子，左子树高度减去右子树高度
+ 
+    AVLNode *parent;   // 父节点
+    AVLNode *left;     // 左孩子
+    AVLNode *right;    // 右孩子
+
+    explicit AVLNode(int value) : value(value) {
+        depth = 0;
+        balance = 0;
+        parent = left = right = nullptr;
+    }
+
+    ~AVLNode() {
+        delete left;
+        delete right;
+    }
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;平衡二叉树定义为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;class AVL {
+public:
+    AVL() : avl_root(nullptr) {}
+
+    ~AVL() {
+        delete avl_root;
+    }
+
+    // 查找数据。如果找到数据则返回数据所在节点的指针，如果没有找到则返回nullptr。
+    AVLNode *search(int data);
+
+    // 插入数据。如果data已存在，则什么也不做。
+    // 如果应用时为key-value组合可改为更新value
+    void insert(int data);
+
+    // 删除数据
+    void erase(int data);
+
+    // 删除节点
+    void erase(AVLNode *node);
+
+    AVLNode *getRoot() const { return avl_root; }
+
+private:
+    AVLNode *avl_root;
+
+    // 计算节点深度，假定其孩子节点的深度已经计算完毕
+    static int getDepth(AVLNode *root);
+
+    // 计算节点平衡因子，假定其孩子节点的深度已经计算完毕
+    static int getBalance(AVLNode *root);
+
+    // 左旋
+    void leftRotate(AVLNode *root);
+
+    // 右旋
+    void rightRotate(AVLNode *root);
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;查找数据&#34;&gt;查找数据&lt;/h2&gt;
+&lt;p&gt;平衡二叉树是一种查找二叉树，主要目的仍是为了快速查找数据，查找过程与普通的二叉查找树没有区别，代码描述如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// 对外接口
+public: AVLNode *search(int data) {
+    return search(avl_root, data);
+}
+
+// 递归实现(也可以用循环实现，不需要使用栈记录路径)
+private: AVLNode *AVL::search(AVLNode *root, int data) {
+    if (!root)
+        return nullptr;
+    if (root-&amp;gt;value == data)
+        return root;
+    else if (root-&amp;gt;value &amp;lt; data)
+        return search(root-&amp;gt;right, data);
+    else
+        return search(root-&amp;gt;left, data);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;如果找到数据则返回数据所在的节点指针，如果没有找到数据则返回nullptr;&lt;/p&gt;
+&lt;h2 id=&#34;辅助函数&#34;&gt;辅助函数&lt;/h2&gt;
+&lt;p&gt;在维护平衡二叉树过程中，需要从子树计算节点的深度和平衡因子而不能直接使用节点保存的信息，此处给出两个函数用于计算节点的深度和平衡因子，此处假定节点的孩子的深度已经计算好。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// 计算节点深度，假定其孩子节点的深度已经计算完毕
+int AVL::getDepth(AVLNode *root) {
+    if (!root)
+        return 0;
+    int left_depth = root-&amp;gt;left ? root-&amp;gt;left-&amp;gt;depth : 0;
+    int right_depth = root-&amp;gt;right ? root-&amp;gt;right-&amp;gt;depth : 0;
+    return (left_depth &amp;gt; right_depth ? left_depth : right_depth) + 1;
+}
+
+// 计算节点平衡因子，假定其孩子节点的深度已经计算完毕
+int AVL::getBalance(AVLNode *root) {
+    if (!root)
+        return 0;
+    int left_depth = root-&amp;gt;left ? root-&amp;gt;left-&amp;gt;depth : 0;
+    int right_depth = root-&amp;gt;right ? root-&amp;gt;right-&amp;gt;depth : 0;
+    return left_depth - right_depth;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;左旋&#34;&gt;左旋&lt;/h2&gt;
+&lt;p&gt;在插入节点到平衡二叉树时，或者从平衡二叉树删除节点时，可能破坏二叉树的平衡性，为了将这样的二叉树重新调整为平衡二叉树，一般使用旋转操作。旋转具体分为左旋与右旋。&lt;/p&gt;
+&lt;p&gt;左旋用于将一棵平衡因子为-2的二叉树旋转为平衡二叉树，即原树左子树的高度比右子树的高度小2，绕根节点旋转后左子树高度与右子树高度相同。左旋的一个示例如下：&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;1&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/avl/leftRotate.png&#34; alt=&#34;leftRotate&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;代码描述为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// 左旋
+void AVL::leftRotate(AVLNode *root) {
+    if (!root || !root-&amp;gt;right)
+        return;
+
+    // 右孩子变成根节点
+    AVLNode *new_root = root-&amp;gt;right;
+    AVLNode *parent = root-&amp;gt;parent;
+    new_root-&amp;gt;parent = parent;
+    if (parent) {
+        if (parent-&amp;gt;left == root)
+            parent-&amp;gt;left = new_root;
+        else
+            parent-&amp;gt;right = new_root;
+    } else {  // 整棵树都旋转了，根节点需要改变
+        avl_root = new_root;
+    }
+
+    // 右孩子的左子树变成root的右子树
+    root-&amp;gt;right = new_root-&amp;gt;left;
+    if (new_root-&amp;gt;left)
+        new_root-&amp;gt;left-&amp;gt;parent = root;
+
+    // root成为右孩子(原来的)的左子树
+    new_root-&amp;gt;left = root;
+    root-&amp;gt;parent = new_root;
+
+    // 更新深度信息
+    root-&amp;gt;depth = getDepth(root);
+    root-&amp;gt;balance = getBalance(root);
+    new_root-&amp;gt;depth = getDepth(new_root);
+    new_root-&amp;gt;balance = getBalance(new_root);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;右旋&#34;&gt;右旋&lt;/h2&gt;
+&lt;p&gt;右旋用于将一棵平衡因子为2的二叉树旋转为平衡二叉树，即原树的左子树比右子树的高度大2，绕根节点旋转后高度相同，如:&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;2&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/avl/rightRotate.png&#34; alt=&#34;rightRotate&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;代码描述为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// 右旋
+void AVL::rightRotate(AVLNode *root) {
+    if (!root || !root-&amp;gt;left)
+        return;
+
+    // 左孩子变成根节点
+    AVLNode *new_root = root-&amp;gt;left;
+    AVLNode *parent = root-&amp;gt;parent;
+    new_root-&amp;gt;parent = parent;
+    if (parent) {
+        if (parent-&amp;gt;left == root)
+            parent-&amp;gt;left = new_root;
+        else
+            parent-&amp;gt;right = new_root;
+    } else {  // 整棵树都旋转了，根节点需要改变
+        avl_root = new_root;
+    }
+
+    // 左孩子的右子树变成root的左子树
+    root-&amp;gt;left = new_root-&amp;gt;right;
+    if (new_root-&amp;gt;right)
+        new_root-&amp;gt;right-&amp;gt;parent = root;
+
+    // root成为其左孩子(原来)的右子树
+    new_root-&amp;gt;right = root;
+    root-&amp;gt;parent = new_root;
+
+    // 更新深度信息
+    root-&amp;gt;depth = getDepth(root);
+    root-&amp;gt;balance = getBalance(root);
+    new_root-&amp;gt;depth = getDepth(new_root);
+    new_root-&amp;gt;balance = getBalance(new_root);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;左旋和右旋的代码非常相似，主要考虑这几个步骤：1、改变根节点，可能需要改变整棵树的根节点；2、由原来的根节点收养旋转后由它占去的位置上的分支；3、原来的根节点成为新的根节点的子树；4、重新计算深度和平衡因子。&lt;/p&gt;
+&lt;h2 id=&#34;插入&#34;&gt;插入&lt;/h2&gt;
+&lt;p&gt;插入数据首先需要考虑是否为空树，如果是空树则直接插入为根节点即可。如果不是空树，则和查找的过程类似(不考虑已经数据的情况)：1、如果data &amp;lt; root-&amp;gt;value，则将它插入到root的左子树中，如果root没有左子树，则将它插入为root的左子树；2、如果data &amp;gt; root-&amp;gt;value，则将它插入到root的右子树中，如果root没有右子树，则将它插入为root的右子树。&lt;/p&gt;
+&lt;p&gt;插入节点之后，二叉树的平衡性可能被打破，此时可以通过旋转操作来重新使二叉树平衡。每次插入操作不需要对整个二叉树进行调整，只需要调整失衡的部分即可。从插入节点向上第一个平衡因子的绝对值大于1的节点为根的子树称为最小失衡树。平衡二叉树的失衡通过旋转最小失衡树来调整，哪边的子树较高，就把哪边的子树旋转上来。&lt;/p&gt;
+&lt;p&gt;根据引起失衡的节点在最小失衡树A中的插入位置，可以分为以下四种情况：&lt;/p&gt;
+&lt;p&gt;1、插入在A的左孩子的左子树中(LL)&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;3&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/avl/insert1.png&#34; alt=&#34;insert1&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;做一次右旋即可。&lt;/p&gt;
+&lt;p&gt;2、插入在A的右孩子的右子树中(RR)&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;4&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/avl/insert2.png&#34; alt=&#34;insert2&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;做一次左旋即可。&lt;/p&gt;
+&lt;p&gt;3、插入在A的左孩子的右子树中(LR)&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;5&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/avl/insert3.1.png&#34; alt=&#34;insert3.2&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;只做一次右旋仍然不能平衡，因此需要先对左子树做一次左旋变成第一种情况，然后再做一次右旋使二叉树平衡：&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;6&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/avl/insert3.2.png&#34; alt=&#34;insert3.2&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;4、插入在A的右孩子的左子树中(RL)&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;7&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/avl/insert4.1.png&#34; alt=&#34;insert4.1&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;一次左旋后仍然不能平衡，需要先对右子树做一次右旋变成第二种情况，然后再做一次左旋使二叉树平衡：&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;8&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/avl/insert4.2.png&#34; alt=&#34;insert4.2&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;在实际的插入过程中，插入之后，往上递归，先计算当前节点的平衡因子，如果平衡因子是2则表明左高右低，需要右旋，右旋之前再检查一下其左子树的平衡因子，如果平衡因子是0或者1就是第1种情况，如果平衡因子是-1则为第3种情况，需要先对左子树进行左旋。如果当前节点的平衡因子是-2则表明左低右高，需要左旋，左旋之前检查一下其右子树的平衡因子，如果是1则为第4种情况，需要先对右子树进行右旋。代码描述为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// 公共接口，插入数据。如果data已存在，则什么也不做。
+// 如果应用时为key-value组合可改为更新value
+public: void AVL::insert(int data) {
+    if (!avl_root) {
+        avl_root = new AVLNode(data);
+        return;
+    }
+    insert(avl_root, data);
+}
+
+// 递归插入数据。假定根节点不为空
+private: void AVL::insert(AVLNode *root, int data) {
+    // 要插入的数据小于根节点，往左边插入
+    if (data &amp;lt; root-&amp;gt;value) {
+        if (root-&amp;gt;left)
+            insert(root-&amp;gt;left, data);
+        else {
+            root-&amp;gt;left = new AVLNode(data);
+            root-&amp;gt;left-&amp;gt;parent = root;
+        }
+    }
+        // 要插入的数据大于根节点，往右边插入
+    else if (data &amp;gt; root-&amp;gt;value) {
+        if (root-&amp;gt;right)
+            insert(root-&amp;gt;right, data);
+        else {
+            root-&amp;gt;right = new AVLNode(data);
+            root-&amp;gt;right-&amp;gt;parent = root;
+        }
+    }
+        // data已经存在，什么也不做，如果为key-value组合可改为更新value
+    else {   // data == root-&amp;gt;value
+        return;
+    }
+
+    // 计算平衡因子
+    root-&amp;gt;balance = getBalance(root);
+
+    // 左子树比右子树高，应当右旋
+    if (root-&amp;gt;balance == 2) {
+        // 如果左子树的右子树比左子树的左子树高，直接右旋后仍然不平衡，必须先对左子树进行左旋
+        if (root-&amp;gt;left-&amp;gt;balance == -1)
+            leftRotate(root-&amp;gt;left);
+        rightRotate(root);
+    }
+        // 右子树比左子树高，应当左旋
+    else if (root-&amp;gt;balance == -2) {
+        // 如果右子树的左子树比右子树的右子树高，必须先对右子树右旋
+        if (root-&amp;gt;right-&amp;gt;balance == 1)
+            rightRotate(root-&amp;gt;right);
+        leftRotate(root);
+    }
+
+    // 更新深度，平衡因子已经计算过了，如果有旋转，则平衡因子在旋转的函数中更新，
+    // 而深度在这时重复计算
+    root-&amp;gt;depth = getDepth(root);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;插入节点之后从下往上维护平衡性，遇到的第一个不平衡的节点即为最小失衡树的根节点，通过旋转使最小失衡树使二叉树重新平衡。可以看出以上四种插入都不改变最小失衡树的高度，因此最小失衡树往上的节点的深度和平衡因子都不会改变，也不会失衡。所以插入操作最多需要两次旋转，时间复杂度为O(log n)。&lt;/p&gt;
+&lt;h2 id=&#34;删除节点&#34;&gt;删除节点&lt;/h2&gt;
+&lt;p&gt;平衡二叉树是一种二叉搜索树，删除节点之后必须保证节点的值满足二叉搜索树的要求，因此此处先给出二叉搜索树删除节点的思路。二叉搜索树删除节点时根据节点的子树情况来考虑：&lt;br&gt;
+1、被删除节点为叶子节点，直接删除即可，需要考虑此节点有根节点的情况；&lt;br&gt;
+2、被删除节点只有左孩子，或者只有右孩子。有两种思路：&lt;br&gt;
+(1) 无论是左子树还是右子树，它们的所有节点的值都是大于被删除节点的父节点的，因此可以直接将左子树或者右子树移动上来替换掉被删除节点；&lt;br&gt;
+(2) 只有左孩子则在左子树寻找拥有最大值的节点，只有右孩子则在右子树中寻找拥有最小值的节点，将它的值与被删除节点的值交换，然后递归删除找到的节点。这是一个递归的过程，比第一种思路复杂，后面从平衡二叉树中删除节点采用第1种思路。&lt;br&gt;
+3、被删除节点既有左孩子又有右孩子。可以从左子树中寻找拥有最大值的节点，或者从右子树中寻找拥有最小值的节点，将它的值与被删除节点交换，然后递归删除找到的节点。显然左子树中拥有最大值的节点不可能有右孩子，右子树中拥有最小值的节点不可能有左孩子，因此交换一次后，需要递归删除的节点必定是第2种情况。考虑到要使二叉搜索树左右子树的高度尽量接近，以提升查找的性能，此处可以选择左右子树高度较高的一边进行递归删除。&lt;/p&gt;
+&lt;p&gt;下面的图演示了如何从二叉搜索树删除节点。&lt;/p&gt;
+&lt;p&gt;1、二叉搜索树删除叶子节点&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;9&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/avl/erase1.png&#34; alt=&#34;erase1&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;2.1、二叉搜索树删除只有左孩子的节点&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;10&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/avl/erase2.1.png&#34; alt=&#34;erase2.1&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;2.2、递归删除只有左孩子的节点&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;11&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/avl/erase2.2.png&#34; alt=&#34;erase2.2&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;此处4和3交换之后4已经是叶子节点，直接删除即可，如果3还有左子树，则交换过后4仍然是只有左孩子的节点，重复此过程直到4为叶子节点即可。删除只有右孩子的节点与此类似，此处不再赘述。&lt;/p&gt;
+&lt;p&gt;3、删除既有左孩子又有右孩子的节点&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;12&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/avl/erase3.png&#34; alt=&#34;erase3&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;交换一次之后，3只有左子树而没有右子树，按2的情况处理即可。&lt;/p&gt;
+&lt;p&gt;二叉搜索树的删除比较简单，此处不再给出代码，接下来考虑如何从平衡二叉树中删除节点，即考虑二叉树删除节点之后如何调整使其重新平衡。比较简单的策略是从删除的节点开始向上更新深度和平衡因子，如果平衡因子为-2或者2则进行左旋或者右旋，一直到根节点。代码描述如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;void AVL::erase(AVLNode *node) {
+    // 空指针什么也不做
+    if (!node)
+        return;
+
+    AVLNode *parent = node-&amp;gt;parent;
+
+    // node既有左孩子又有右孩子
+    if (node-&amp;gt;left &amp;amp;&amp;amp; node-&amp;gt;right) {
+        AVLNode *replace_node = nullptr;
+        if (node-&amp;gt;left-&amp;gt;depth &amp;gt; node-&amp;gt;right-&amp;gt;depth) {  // 左树高，从左树选最大值替换
+            replace_node = node-&amp;gt;left;
+            while (replace_node-&amp;gt;right)
+                replace_node = replace_node-&amp;gt;right;
+        } else {  // 右树高，从右树选最小值替换
+            replace_node = node-&amp;gt;right;
+            while (replace_node-&amp;gt;left)
+                replace_node = replace_node-&amp;gt;left;
+        }
+
+        // 将replace_node的值移动上来，然后删除replace_node，它最多只有一个孩子
+        node-&amp;gt;value = replace_node-&amp;gt;value;   // 非内置类型可能需要移动语义
+        node = replace_node;
+    }
+
+    // 如果node只有左孩子或者只有右孩子或者没有孩子
+    if (!node-&amp;gt;left &amp;amp;&amp;amp; !node-&amp;gt;right) {  // 叶子节点
+        if (!parent) {  // 根节点
+            avl_root = nullptr;
+        } else {        // 非根节点
+            if (node == parent-&amp;gt;left)
+                parent-&amp;gt;left = nullptr;
+            else
+                parent-&amp;gt;right = nullptr;
+        }
+    } else if (node-&amp;gt;left &amp;amp;&amp;amp; !node-&amp;gt;right) {  // 只有左孩子
+        if (!parent) {  // 根节点
+            avl_root = node-&amp;gt;left;
+        } else {        // 非根节点
+            if (node == parent-&amp;gt;left)
+                parent-&amp;gt;left = node-&amp;gt;left;
+            else
+                parent-&amp;gt;right = node-&amp;gt;left;
+        }
+        node-&amp;gt;left = nullptr;
+    } else {  // 只有右孩子
+        if (!parent) {  // 根节点
+            avl_root = node-&amp;gt;right;
+        } else {        // 非根节点
+            if (node == parent-&amp;gt;left)
+                parent-&amp;gt;left = node-&amp;gt;right;
+            else
+                parent-&amp;gt;right = node-&amp;gt;right;
+        }
+        node-&amp;gt;right = nullptr;
+    }
+    delete node;
+
+    // 向上更新节点深度
+    while (parent) {
+        parent-&amp;gt;depth = getDepth(parent);
+        parent-&amp;gt;balance = getBalance(parent);
+
+        if (parent-&amp;gt;balance == -2) {
+            if (parent-&amp;gt;right-&amp;gt;balance == 1)
+                rightRotate(parent-&amp;gt;right);
+            leftRotate(parent);
+        } else if (parent-&amp;gt;balance == 2) {
+            if (parent-&amp;gt;left-&amp;gt;balance == -1)
+                leftRotate(parent-&amp;gt;left);
+            rightRotate(parent);
+        }
+
+        parent = parent-&amp;gt;parent;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这段代码和二叉搜索树删除节点的代码相比，只多了向上更新节点深度和平衡因子的代码，将这部分代码去掉即可得到二叉搜索树的删除节点代码。值得注意的是删除节点不能只通过调整最小失衡树来使二叉树重新平衡，最坏情况下需要回溯到根节点，进行多次旋转。&lt;/p&gt;
+&lt;p&gt;除上述函数之外，还需要一个根据给定数据查找并删除节点的函数，作简单的封装即可：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;void AVL::erase(int data) {
+    AVLNode *node = search(data);
+    erase(node);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;优化&#34;&gt;优化&lt;/h2&gt;
+&lt;p&gt;1、使用循环重写以上代码。查找数据不需要记录路径，不需要使用栈，而插入数据和删除数据时需要更新祖先节点的深度和平衡因子，可以使用栈来记录路径，也可以使用parent指针回溯。&lt;/p&gt;
+&lt;p&gt;2、插入更新时：如果当前节点的高度没有改变，则停止向上回溯父节点。&lt;/p&gt;
+&lt;p&gt;3、删除更新时：如果当前节点的高度没有改变，且平衡值在[-1, 1]区间则停止回溯。&lt;/p&gt;
+&lt;p&gt;查找函数的循环实现&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;AVLNode *AVL::search(int data) {
+    AVLNode *p = avl_root;
+    while (p &amp;amp;&amp;amp; p-&amp;gt;value != data) {
+        if (data &amp;lt; p-&amp;gt;value)
+            p = p-&amp;gt;left;
+        else
+            p = p-&amp;gt;right;
+    }
+    return p;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;当平衡二叉树为空时或者平衡二叉树中不存在data这个值时，循环将于p为nullptr时停止，然后返回nullptr表示没有找到。&lt;/p&gt;
+&lt;p&gt;插入函数的优化实现&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;void AVL::insert(int data) {
+    if (!avl_root) {
+        avl_root = new AVLNode(data);
+        return;
+    }
+
+    AVLNode *p = avl_root;
+    while (true) {
+        // 如果data在平衡二叉树中已经存在则什么也不做，
+        // 实际应用时如果是key-value的类型可以更新value
+        if (p-&amp;gt;value == data) {
+            return;
+        } else if (data &amp;lt; p-&amp;gt;value) {   // 插入到左子树中
+            if (p-&amp;gt;left) {
+                p = p-&amp;gt;left;
+            } else {
+                p-&amp;gt;left = new AVLNode(data);
+                p-&amp;gt;left-&amp;gt;parent = p;
+                break;
+            }
+        } else {  // 插入到右子树中
+            if (p-&amp;gt;right) {
+                p = p-&amp;gt;right;
+            } else {
+                p-&amp;gt;right = new AVLNode(data);
+                p-&amp;gt;right-&amp;gt;parent = p;
+                break;
+            }
+        }
+    }
+
+    // 向上更新节点深度和平衡因子
+    while (p) {
+        int depth_record = p-&amp;gt;depth;
+
+        p-&amp;gt;balance = getBalance(p);
+        if (p-&amp;gt;balance == -2) {   // 左旋
+            if (p-&amp;gt;right-&amp;gt;balance == 1)
+                rightRotate(p-&amp;gt;right);
+            leftRotate(p);
+        } else if (p-&amp;gt;balance == 2) {  // 右旋
+            if (p-&amp;gt;left-&amp;gt;balance == -1)
+                leftRotate(p-&amp;gt;left);
+            rightRotate(p);
+        }
+
+        // 如果p的深度不变，则p的祖先节点的深度和平衡因子都不变，无需继续回溯
+        p-&amp;gt;depth = getDepth(p);
+        if (depth_record == p-&amp;gt;depth)
+            return;
+
+        p = p-&amp;gt;parent;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;此处使用parent指针进行回溯，当某个节点的深度不变时不会再对其祖先节点造成影响，因此回溯可以提前终止。&lt;/p&gt;
+&lt;p&gt;删除节点函数的优化实现&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;void AVL::erase(AVLNode *node) {
+    // 空指针什么也不做
+    if (!node)
+        return;
+
+    AVLNode *parent = node-&amp;gt;parent;
+
+    // node既有左孩子又有右孩子
+    if (node-&amp;gt;left &amp;amp;&amp;amp; node-&amp;gt;right) {
+        AVLNode *replace_node = nullptr;
+        if (node-&amp;gt;left-&amp;gt;depth &amp;gt; node-&amp;gt;right-&amp;gt;depth) {  // 左树高，从左树选最大值替换
+            replace_node = node-&amp;gt;left;
+            while (replace_node-&amp;gt;right)
+                replace_node = replace_node-&amp;gt;right;
+        } else {  // 右树高，从右树选最小值替换
+            replace_node = node-&amp;gt;right;
+            while (replace_node-&amp;gt;left)
+                replace_node = replace_node-&amp;gt;left;
+        }
+
+        // 将replace_node的值移动上来，然后删除replace_node，它最多只有一个孩子
+        node-&amp;gt;value = replace_node-&amp;gt;value;   // 非内置类型可能需要移动语义
+        node = replace_node;
+    }
+
+    // 如果node只有左孩子或者只有右孩子或者没有孩子
+    if (!node-&amp;gt;left &amp;amp;&amp;amp; !node-&amp;gt;right) {  // 叶子节点
+        if (!parent) {  // 根节点
+            avl_root = nullptr;
+        } else {        // 非根节点
+            if (node == parent-&amp;gt;left)
+                parent-&amp;gt;left = nullptr;
+            else
+                parent-&amp;gt;right = nullptr;
+        }
+    } else if (node-&amp;gt;left &amp;amp;&amp;amp; !node-&amp;gt;right) {  // 只有左孩子
+        if (!parent) {  // 根节点
+            avl_root = node-&amp;gt;left;
+        } else {        // 非根节点
+            if (node == parent-&amp;gt;left)
+                parent-&amp;gt;left = node-&amp;gt;left;
+            else
+                parent-&amp;gt;right = node-&amp;gt;left;
+        }
+        node-&amp;gt;left = nullptr;
+    } else {  // 只有右孩子
+        if (!parent) {  // 根节点
+            avl_root = node-&amp;gt;right;
+        } else {        // 非根节点
+            if (node == parent-&amp;gt;left)
+                parent-&amp;gt;left = node-&amp;gt;right;
+            else
+                parent-&amp;gt;right = node-&amp;gt;right;
+        }
+        node-&amp;gt;right = nullptr;
+    }
+    delete node;
+
+    // 向上更新节点深度
+    while (parent) {
+        int depth_record = parent-&amp;gt;depth;
+
+        parent-&amp;gt;balance = getBalance(parent);
+        if (parent-&amp;gt;balance == -2) {
+            if (parent-&amp;gt;right-&amp;gt;balance == 1)
+                rightRotate(parent-&amp;gt;right);
+            leftRotate(parent);
+        } else if (parent-&amp;gt;balance == 2) {
+            if (parent-&amp;gt;left-&amp;gt;balance == -1)
+                leftRotate(parent-&amp;gt;left);
+            rightRotate(parent);
+        }
+
+        // 如果某个节点的深度不变，则无需继续向上回溯
+        parent-&amp;gt;depth = getDepth(parent);
+        if (depth_record == parent-&amp;gt;depth)
+            return;
+
+        parent = parent-&amp;gt;parent;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;erase函数和之前大同小异，和insert类似，仅增加了判断节点深度是否变化的逻辑。&lt;/p&gt;
+&lt;p&gt;此外，可以看到insert和erase中向上更新节点深度和平衡因子的代码是完全一样的，可以将其单独拿出来作为一个函数：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;void siftup(AVLNode *p) {
+    while (p) {
+        int depth_record = p-&amp;gt;depth;
+
+        p-&amp;gt;balance = getBalance(p);
+        if (p-&amp;gt;balance == -2) {   // 左旋
+            if (p-&amp;gt;right-&amp;gt;balance == 1)
+                rightRotate(p-&amp;gt;right);
+            leftRotate(p);
+        } else if (p-&amp;gt;balance == 2) {  // 右旋
+            if (p-&amp;gt;left-&amp;gt;balance == -1)
+                leftRotate(p-&amp;gt;left);
+            rightRotate(p);
+        }
+
+        // 如果p的深度不变，则p的祖先节点的深度和平衡因子都不变，无需继续回溯
+        p-&amp;gt;depth = getDepth(p);
+        if (depth_record == p-&amp;gt;depth)
+            return;
+
+        p = p-&amp;gt;parent;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;完整参考代码&#34;&gt;完整参考代码&lt;/h2&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;struct AVLNode {
+    int value;         // 节点值，使用更改为需要的类型或者使用模板
+    int depth;         // 深度，即以此节点为根节点的子树高度
+    int balance;       // 平衡因子，左子树高度减去右子树高度
+
+    AVLNode *parent;   // 父节点
+    AVLNode *left;     // 左孩子
+    AVLNode *right;    // 右孩子
+
+    explicit AVLNode(int value) : value(value) {
+        depth = 1;
+        balance = 0;
+        parent = left = right = nullptr;
+    }
+
+    // 析构函数，递归删除二叉树，这样只需要删除根节点即可删除整个二叉树
+    ~AVLNode() {
+        delete left;
+        delete right;
+    }
+};
+
+class AVL {
+public:
+    AVL() : avl_root(nullptr) {}
+
+    ~AVL() {
+        delete avl_root;
+    }
+
+    // 查找数据。如果找到数据则返回数据所在节点的指针，如果没有找到则返回nullptr。
+    AVLNode *search(int data);
+
+    // 插入数据。如果data已存在，则什么也不做。
+    // 如果应用时为key-value组合可改为更新value
+    void insert(int data);
+
+    // 删除数据
+    void erase(int data);
+
+    // 删除节点
+    void erase(AVLNode *node);
+
+    AVLNode *getRoot() const { return avl_root; }
+
+private:
+    AVLNode *avl_root;
+
+    // 计算节点深度，假定其孩子节点的深度已经计算完毕
+    static int getDepth(AVLNode *root);
+
+    // 计算节点平衡因子，假定其孩子节点的深度已经计算完毕
+    static int getBalance(AVLNode *root);
+
+    // 左旋
+    void leftRotate(AVLNode *root);
+
+    // 右旋
+    void rightRotate(AVLNode *root);
+};
+
+int AVL::getDepth(AVLNode *root) {
+    if (!root)
+        return 0;
+    int left_depth = root-&amp;gt;left ? root-&amp;gt;left-&amp;gt;depth : 0;
+    int right_depth = root-&amp;gt;right ? root-&amp;gt;right-&amp;gt;depth : 0;
+    return (left_depth &amp;gt; right_depth ? left_depth : right_depth) + 1;
+}
+
+int AVL::getBalance(AVLNode *root) {
+    if (!root)
+        return 0;
+    int left_depth = root-&amp;gt;left ? root-&amp;gt;left-&amp;gt;depth : 0;
+    int right_depth = root-&amp;gt;right ? root-&amp;gt;right-&amp;gt;depth : 0;
+    return left_depth - right_depth;
+}
+
+void AVL::leftRotate(AVLNode *root) {
+    if (!root || !root-&amp;gt;right)
+        return;
+
+    // 右孩子变成根节点
+    AVLNode *new_root = root-&amp;gt;right;
+    AVLNode *parent = root-&amp;gt;parent;
+    new_root-&amp;gt;parent = parent;
+    if (parent) {
+        if (parent-&amp;gt;left == root)
+            parent-&amp;gt;left = new_root;
+        else
+            parent-&amp;gt;right = new_root;
+    } else {  // 整棵树都旋转了，根节点需要改变
+        avl_root = new_root;
+    }
+
+    // 右孩子的左子树变成root的右子树
+    root-&amp;gt;right = new_root-&amp;gt;left;
+    if (new_root-&amp;gt;left)
+        new_root-&amp;gt;left-&amp;gt;parent = root;
+
+    // root成为右孩子(原来的)的左子树
+    new_root-&amp;gt;left = root;
+    root-&amp;gt;parent = new_root;
+
+    // 更新深度信息
+    root-&amp;gt;depth = getDepth(root);
+    root-&amp;gt;balance = getBalance(root);
+    new_root-&amp;gt;depth = getDepth(new_root);
+    new_root-&amp;gt;balance = getBalance(new_root);
+}
+
+void AVL::rightRotate(AVLNode *root) {
+    if (!root || !root-&amp;gt;left)
+        return;
+
+    // 左孩子变成根节点
+    AVLNode *new_root = root-&amp;gt;left;
+    AVLNode *parent = root-&amp;gt;parent;
+    new_root-&amp;gt;parent = parent;
+    if (parent) {
+        if (parent-&amp;gt;left == root)
+            parent-&amp;gt;left = new_root;
+        else
+            parent-&amp;gt;right = new_root;
+    } else {  // 整棵树都旋转了，根节点需要改变
+        avl_root = new_root;
+    }
+
+    // 左孩子的右子树变成root的左子树
+    root-&amp;gt;left = new_root-&amp;gt;right;
+    if (new_root-&amp;gt;right)
+        new_root-&amp;gt;right-&amp;gt;parent = root;
+
+    // root成为其左孩子(原来)的右子树
+    new_root-&amp;gt;right = root;
+    root-&amp;gt;parent = new_root;
+
+    // 更新深度信息
+    root-&amp;gt;depth = getDepth(root);
+    root-&amp;gt;balance = getBalance(root);
+    new_root-&amp;gt;depth = getDepth(new_root);
+    new_root-&amp;gt;balance = getBalance(new_root);
+}
+
+AVLNode *AVL::search(int data) {
+    AVLNode *p = avl_root;
+    while (p &amp;amp;&amp;amp; p-&amp;gt;value != data) {
+        if (data &amp;lt; p-&amp;gt;value)
+            p = p-&amp;gt;left;
+        else
+            p = p-&amp;gt;right;
+    }
+    return p;
+}
+
+void AVL::insert(int data) {
+    if (!avl_root) {
+        avl_root = new AVLNode(data);
+        return;
+    }
+
+    AVLNode *p = avl_root;
+    while (true) {
+        // 如果data在平衡二叉树中已经存在则什么也不做，
+        // 实际应用时如果是key-value的类型可以更新value
+        if (p-&amp;gt;value == data) {
+            return;
+        } else if (data &amp;lt; p-&amp;gt;value) {   // 插入到左子树中
+            if (p-&amp;gt;left) {
+                p = p-&amp;gt;left;
+            } else {
+                p-&amp;gt;left = new AVLNode(data);
+                p-&amp;gt;left-&amp;gt;parent = p;
+                break;
+            }
+        } else {  // 插入到右子树中
+            if (p-&amp;gt;right) {
+                p = p-&amp;gt;right;
+            } else {
+                p-&amp;gt;right = new AVLNode(data);
+                p-&amp;gt;right-&amp;gt;parent = p;
+                break;
+            }
+        }
+    }
+
+    // 向上更新节点深度和平衡因子
+    while (p) {
+        int depth_record = p-&amp;gt;depth;
+
+        p-&amp;gt;balance = getBalance(p);
+        if (p-&amp;gt;balance == -2) {   // 左旋
+            if (p-&amp;gt;right-&amp;gt;balance == 1)
+                rightRotate(p-&amp;gt;right);
+            leftRotate(p);
+        } else if (p-&amp;gt;balance == 2) {  // 右旋
+            if (p-&amp;gt;left-&amp;gt;balance == -1)
+                leftRotate(p-&amp;gt;left);
+            rightRotate(p);
+        }
+
+        // 如果p的深度不变，则p的祖先节点的深度和平衡因子都不变，无需继续回溯
+        p-&amp;gt;depth = getDepth(p);
+        if (depth_record == p-&amp;gt;depth)
+            return;
+
+        p = p-&amp;gt;parent;
+    }
+}
+
+void AVL::erase(AVLNode *node) {
+    // 空指针什么也不做
+    if (!node)
+        return;
+
+    AVLNode *parent = node-&amp;gt;parent;
+
+    // node既有左孩子又有右孩子
+    if (node-&amp;gt;left &amp;amp;&amp;amp; node-&amp;gt;right) {
+        AVLNode *replace_node = nullptr;
+        if (node-&amp;gt;left-&amp;gt;depth &amp;gt; node-&amp;gt;right-&amp;gt;depth) {  // 左树高，从左树选最大值替换
+            replace_node = node-&amp;gt;left;
+            while (replace_node-&amp;gt;right)
+                replace_node = replace_node-&amp;gt;right;
+        } else {  // 右树高，从右树选最小值替换
+            replace_node = node-&amp;gt;right;
+            while (replace_node-&amp;gt;left)
+                replace_node = replace_node-&amp;gt;left;
+        }
+
+        // 将replace_node的值移动上来，然后删除replace_node，它最多只有一个孩子
+        node-&amp;gt;value = replace_node-&amp;gt;value;   // 非内置类型可能需要移动语义
+        node = replace_node;
+    }
+
+    // 如果node只有左孩子或者只有右孩子或者没有孩子
+    if (!node-&amp;gt;left &amp;amp;&amp;amp; !node-&amp;gt;right) {  // 叶子节点
+        if (!parent) {  // 根节点
+            avl_root = nullptr;
+        } else {        // 非根节点
+            if (node == parent-&amp;gt;left)
+                parent-&amp;gt;left = nullptr;
+            else
+                parent-&amp;gt;right = nullptr;
+        }
+    } else if (node-&amp;gt;left &amp;amp;&amp;amp; !node-&amp;gt;right) {  // 只有左孩子
+        if (!parent) {  // 根节点
+            avl_root = node-&amp;gt;left;
+        } else {        // 非根节点
+            if (node == parent-&amp;gt;left)
+                parent-&amp;gt;left = node-&amp;gt;left;
+            else
+                parent-&amp;gt;right = node-&amp;gt;left;
+        }
+        node-&amp;gt;left = nullptr;
+    } else {  // 只有右孩子
+        if (!parent) {  // 根节点
+            avl_root = node-&amp;gt;right;
+        } else {        // 非根节点
+            if (node == parent-&amp;gt;left)
+                parent-&amp;gt;left = node-&amp;gt;right;
+            else
+                parent-&amp;gt;right = node-&amp;gt;right;
+        }
+        node-&amp;gt;right = nullptr;
+    }
+    delete node;
+
+    // 向上更新节点深度
+    while (parent) {
+        int depth_record = parent-&amp;gt;depth;
+
+        parent-&amp;gt;balance = getBalance(parent);
+        if (parent-&amp;gt;balance == -2) {
+            if (parent-&amp;gt;right-&amp;gt;balance == 1)
+                rightRotate(parent-&amp;gt;right);
+            leftRotate(parent);
+        } else if (parent-&amp;gt;balance == 2) {
+            if (parent-&amp;gt;left-&amp;gt;balance == -1)
+                leftRotate(parent-&amp;gt;left);
+            rightRotate(parent);
+        }
+
+        // 如果某个节点的深度不变，则无需继续向上回溯
+        parent-&amp;gt;depth = getDepth(parent);
+        if (depth_record == parent-&amp;gt;depth)
+            return;
+
+        parent = parent-&amp;gt;parent;
+    }
+}
+
+void AVL::erase(int data) {
+    AVLNode *node = search(data);
+    erase(node);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;参考&#34;&gt;参考&lt;/h2&gt;
+&lt;p&gt;[1] https://zhuanlan.zhihu.com/p/56066942.&lt;/p&gt;
+&lt;p&gt;[2] https://zhuanlan.zhihu.com/p/94130997.&lt;/p&gt;
+&lt;p&gt;[3] 数据结构 二叉查找树. https://blog.csdn.net/wenqian1991/article/details/18228309.&lt;/p&gt;
+&lt;p&gt;[4] 平衡二叉树 AVL树(二) —— 删除. https://blog.csdn.net/yeswenqian/article/details/22291675.&lt;/p&gt;
+">平衡二叉树</a>
+      </div>
       
       <div class="item">
         <a class="result-title" style="opacity: 0;" href="https://w-jin.github.io/post/gong-shi-ce-shi/"" data-c="
