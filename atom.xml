@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://w-jin.github.io</id>
     <title>wjin</title>
-    <updated>2020-07-07T12:09:19.697Z</updated>
+    <updated>2020-07-08T11:53:18.917Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://w-jin.github.io"/>
     <link rel="self" href="https://w-jin.github.io/atom.xml"/>
@@ -10,6 +10,689 @@
     <logo>https://w-jin.github.io/images/avatar.png</logo>
     <icon>https://w-jin.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, wjin</rights>
+    <entry>
+        <title type="html"><![CDATA[红黑树]]></title>
+        <id>https://w-jin.github.io/post/hong-hei-shu/</id>
+        <link href="https://w-jin.github.io/post/hong-hei-shu/">
+        </link>
+        <updated>2020-07-08T11:47:16.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="定义">定义</h2>
+<p>红黑树是一种自平衡的二叉搜索树，除满足二叉搜索树的要求外，还满足<br>
+1、节点是黑色或者红色的；<br>
+2、根节点是黑色的；<br>
+3、叶子节点是黑色的；<br>
+4、每个红色节点有两个黑色的孩子节点；<br>
+5、从任意一个节点出发，到达其叶子节点的路径上黑色节点个数相同。</p>
+<p>这些约束保证了红黑树的关键特性：从根节点出发到叶子节点的最长可能路径不超过最短可能路径的两倍长，所以红黑树大致是平衡的。这是因为4保证相邻的两个节点一定不都是红色的，而5保证最短的可能路径上必定全是黑色节点，而最长可能路径上必是红黑相间，且两者黑色节点个数相等，所以最长可能路径的长度最多为最短可能路径长度的2倍。</p>
+<p>下图所示是一棵典型的红黑树，此处叶子节点不保存数据，所以省略了所有叶子节点。在二叉树中，一个节点可能只有一个子节点，而叶子保存数据，这样也可以实现红黑树，但算法比较复杂。因此本文中所有叶子节点都不保存数据，省略不画，实现中不为它分配内存，即使用nullptr表示叶子节点，而不是使用左右孩子都为nullptr指针的节点表示叶子节点。这样，一个显而易见的结论是所有节点都有两个子节点，不过其中的一个或两个为空。为方便起见，本文称呼nullptr为空节点，及称呼左右孩子都为nullptr的节点为叶子节点。</p>
+<figure data-type="image" tabindex="1"><img src="https://w-jin.github.io/post-images/rbtree/example.png" alt="example" loading="lazy"></figure>
+<p>红黑树的节点定义为</p>
+<pre><code class="language-cpp">struct RBNode {
+    enum Color {
+        RED, BLACK
+    };
+
+    int value;
+    Color color;
+    RBNode *left;
+    RBNode *right;
+    RBNode *parent;
+
+    explicit RBNode(int value = 0) : value(value), color(RED),
+            left(nullptr), right(nullptr), parent(nullptr) {}
+};
+</code></pre>
+<p>为方便后续代码的表达，此处再定义一组返回周围节点的操作：</p>
+<pre><code class="language-cpp">struct RBNode {
+    enum Color {
+        RED, BLACK
+    };
+
+    int value;
+    Color color;
+    RBNode *left;
+    RBNode *right;
+    RBNode *parent;
+
+    explicit RBNode(int value = 0) : value(value), color(RED),
+            left(nullptr), right(nullptr), parent(nullptr) {}
+
+    // 返回父节点的父节点
+    RBNode *grandparent() const {
+        if (!parent)
+            return nullptr;
+        return parent-&gt;parent;
+    }
+
+    // 返回父节点的兄弟
+    RBNode *uncle() const {
+        if (!grandparent())
+            return nullptr;
+        if (parent == grandparent()-&gt;right)
+            return grandparent()-&gt;left;
+        else
+            return grandparent()-&gt;right;
+    }
+
+    // 返回自己的兄弟
+    RBNode *sibling() const {
+        if (!parent)
+            return nullptr;
+        if (parent-&gt;left == this)
+            return parent-&gt;right;
+        else
+            return parent-&gt;left;
+    }
+};
+</code></pre>
+<h2 id="插入节点">插入节点</h2>
+<p>首先我们以二叉搜索树插入节点的方法(参考平衡二叉树的插入一节)来插入一个节点并标记它为红色。之所以标记为红色是因为如果标记为黑色，则此路径上多了一个黑色节点，这一点难以调整，而标记为红色只可能导致连续出现两个红色节点的冲突，可以通过旋转和染色来解决。</p>
+<p>在下面的示意图中，将要调整的节点(初始为刚插入的节点，可能向上递归)标记为N，N的父节点为P，N的祖父节点标记为G，N的叔父节点标记为U。红黑树插入节点分为以下几种情况：<br>
+1、要调整的节点N为树的根节点，没有父节点。将它重绘为黑色即可。<br>
+2、要调整的节点的父节点P为黑色，此时未破坏红黑树的性质，什么也不用做；<br>
+3、要调整的节点的父节点P和叔父节点U都为红色，此时祖父节点G必为黑色。调整方法为将P和U重绘为黑色，G重绘为红色，这样通过G的任意一条路径的黑色节点个数和原来一样，但如果G是根节点则违反性质2，或者如果G的父节点是红色则违反性质4。因此需要再调整节点G。示意图如下(实际情况中，N可能为P的右孩子，P也可能为G的右孩子)：</p>
+<figure data-type="image" tabindex="2"><img src="https://w-jin.github.io/post-images/rbtree/insert3.png" alt="insert3" loading="lazy"></figure>
+<p>4、要调整的节点的父节点P为红色而叔父节点U不存在或者为黑色，且N为P的左孩子，而P为G的左孩子，或者与此对称地，N为P的右孩子，而p为G的右孩子。此时祖父节点G必为黑色节点，将G重绘为红色节点，将P重绘为黑色节点，然后右旋节点G，或者与此对称地，左旋节点G。示意图如下：</p>
+<figure data-type="image" tabindex="3"><img src="https://w-jin.github.io/post-images/rbtree/insert4.png" alt="insert4" loading="lazy"></figure>
+<p>如果N是新插入的节点，则P到nullptr的路径上只有一个黑色节点(nullptr本身)，所以P的右子树必为空，U必为nullptr。但如果是第3种情况向上递归时遇到的第5种情况则不一定了，此时N可能有子树，所以P也可能有右子树，而U不为空，即上图所画的情况。<br>
+5、要调整的节点的父节点P为红色而叔父节点U不存在或者为黑色，且N为P的右孩子，而P为G的左孩子，或者与此对称地，N为P的左孩子，而P为G的右孩子。前者左旋节点P，后者右旋节点P，然后按第4种情况调整节点P。示意图如下：</p>
+<figure data-type="image" tabindex="4"><img src="https://w-jin.github.io/post-images/rbtree/insert5.png" alt="insert5" loading="lazy"></figure>
+<p>如果N是新插入的节点，则P到nullptr的路径上只有一个黑色节点(nullptr本身)，因此P的左子树必为空，U必为nullptr。但是如果是第3种情况向上递归时遇到的第5种情况则不一定了，此时N可能有子树，即上图所画的情况。</p>
+<p>代码描述为：</p>
+<pre><code class="language-cpp">// 插入数据。如果data已存在，则什么也不做。
+void RBTree::insert(int data) {
+    // 空树插入为根节点，并绘制为黑色
+    if (!rb_root) {
+        rb_root = new RBNode(data);
+        rb_root-&gt;color = RBNode::BLACK;
+        return;
+    }
+
+    RBNode *p = rb_root;
+    while (true) {
+        if (data == p-&gt;value)  // 值已经存在什么也不做
+            return;
+        else if (data &lt; p-&gt;value) {
+            if (p-&gt;left) {
+                p = p-&gt;left;
+            } else {
+                p-&gt;left = new RBNode(data);
+                p-&gt;left-&gt;parent = p;
+                return insertionAdjust(p-&gt;left);
+            }
+        } else {
+            if (p-&gt;right) {
+                p = p-&gt;right;
+            } else {
+                p-&gt;right = new RBNode(data);
+                p-&gt;right-&gt;parent = p;
+                return insertionAdjust(p-&gt;right);
+            }
+        }
+    }
+}
+
+void RBTree::insertionAdjust(RBNode *p) {
+    if (!p-&gt;parent) {  // 要调整的节点是根节点，重绘成黑色即可
+        rb_root = p;
+        rb_root-&gt;color = RBNode::BLACK;
+        return;
+    } else if (p-&gt;parent-&gt;color == RBNode::RED) {
+        // 父节点为黑色时什么也不用做，只考虑父节点为红色的情况，此时父节点不可能
+        // 是根节点，即祖父节点必然存在
+        if (p-&gt;uncle() &amp;&amp; p-&gt;uncle()-&gt;color == RBNode::RED) {
+            // 叔父节点存在且为红色，将父节点和叔父节点重绘为黑色，祖父节点重绘为
+            // 红色，然后递归处理祖父节点
+            p-&gt;parent-&gt;color = RBNode::BLACK;
+            p-&gt;uncle()-&gt;color = RBNode::BLACK;
+            p-&gt;grandparent()-&gt;color = RBNode::RED;
+            insertionAdjust(p-&gt;grandparent());
+        } else { // 叔父节点不存在或者为黑色
+            if (p == p-&gt;parent-&gt;left &amp;&amp; p-&gt;parent == p-&gt;grandparent()-&gt;left) {
+                p-&gt;parent-&gt;color = RBNode::BLACK;
+                p-&gt;grandparent()-&gt;color = RBNode::RED;
+                rightRotate(p-&gt;grandparent());
+            } else if (p == p-&gt;parent-&gt;right &amp;&amp; p-&gt;parent == p-&gt;grandparent()-&gt;right) {
+                p-&gt;parent-&gt;color = RBNode::BLACK;
+                p-&gt;grandparent()-&gt;color = RBNode::RED;
+                leftRotate(p-&gt;grandparent());
+            } else if (p == p-&gt;parent-&gt;right &amp;&amp; p-&gt;parent == p-&gt;grandparent()-&gt;left) {
+                leftRotate(p-&gt;parent);
+                p-&gt;color = RBNode::BLACK;
+                p-&gt;parent-&gt;color = RBNode::RED;
+                rightRotate(p-&gt;parent);
+            } else { // p == p-&gt;parent-&gt;left &amp;&amp; p-&gt;parent == p-&gt;grandparent()-&gt;right
+                rightRotate(p-&gt;parent);
+                p-&gt;color = RBNode::BLACK;
+                p-&gt;parent-&gt;color = RBNode::RED;
+                leftRotate(p-&gt;parent);
+            }
+        }
+    }
+}
+</code></pre>
+<p>要注意insertionAdjust函数中，也不能少了判断p为根节点的情况，表面上这种情况在insert函数中已经单独处理了，但由第3种递归处理时也可能得到这种情况。</p>
+<h2 id="删除节点">删除节点</h2>
+<p>首先参考二叉搜索树删除节点的方法，如果待删除的节点有两个孩子，则从右子树中选择具有最小值的节点，即后继节点，交换它们的值，然后删除后继节点。由于后继节点必为叶子节点或者只有右孩子，所以删除节点的问题只需要考虑删除最多只有一个孩子的节点的问题，以下仅考虑这一种情况。</p>
+<p>首先看三种基本情况：</p>
+<p>1、如果待删除节点为红色，删除它后不会影响红黑树的性质，直接删除即可。</p>
+<p>2、如果待删除节点为黑色，但它有一个红色的孩子节点，则以此节点代替它并重绘为黑色即可。</p>
+<p>3、如果待删除节点为黑色，且孩子节点是黑色节点。由于它最多只有一个孩子节点，如果这个孩子节点存在且为黑色，则此路径比另一路径多一个黑色节点，所以待删除节点必定没有孩子节点。但这种情况只会出现在删除某个节点第一次调用调整函数时，由于调整函数有递归，递归时情况可能会变复杂，此时不去考虑被调整节点的孩子即可。</p>
+<p>这三种基本情况中，第3种比较复杂，后面再讨论，先考虑第1、2两种情况，代码描述如下：</p>
+<pre><code class="language-cpp">// 删除节点
+void RBTree::erase(RBNode *node) {
+    if (!node)   // 空指针什么也不做
+        return;
+
+    // node既有左孩子又有右孩子，从右子树中选择最小的节点，交换它和node的值，
+    // 然后删除它
+    if (node-&gt;left &amp;&amp; node-&gt;right) {
+        RBNode *p = node-&gt;right;
+        while (p-&gt;left)
+            p = p-&gt;left;
+        node-&gt;value = p-&gt;value;   // 如果不是内置类型考虑使用移动语义
+        node = p;
+    }
+
+    // node至多只有一个孩子，根据周围的节点情况调整。几种使用孩子节点替换的情况不在
+    // erasionAdjust中，必须单独考虑
+    RBNode *parent = node-&gt;parent;
+    if (RBNode::RED == node-&gt;color) {
+        // 红色节点直接删除，其它什么也不做
+    } else if (node-&gt;left &amp;&amp; RBNode::RED == node-&gt;left-&gt;color) {
+        // 待删除节点为黑色，左孩子存在且为红色。以左孩子替代它并重绘为黑色
+        node-&gt;left-&gt;color = RBNode::BLACK;
+    } else if (node-&gt;right &amp;&amp; RBNode::RED == node-&gt;right-&gt;color) {
+        // 待删除节点为黑色，右孩子存在且为红色。以右孩子替代它并重绘为黑色
+        node-&gt;right-&gt;color = RBNode::BLACK;
+    } else {
+        erasionAdjust(node);   // 第3种基本情况
+    }
+
+    // 把node从红黑树中摘下来并删除
+    if (!parent) {
+        if (node-&gt;left)
+            rb_root = node-&gt;left;
+        else
+            rb_root = node-&gt;right;
+    } else {
+        if (node == parent-&gt;left) {
+            if (node-&gt;left)
+                parent-&gt;left = node-&gt;left;
+            else
+                parent-&gt;left = node-&gt;right;
+        } else {
+            if (node-&gt;left)
+                parent-&gt;right = node-&gt;left;
+            else
+                parent-&gt;right = node-&gt;right;
+        }
+    }
+    node-&gt;left = nullptr;
+    node-&gt;right = nullptr;
+    delete node;
+}
+</code></pre>
+<p>现在来考虑第3种基本情况，由于存在递归，递归过程中的待调整节点不是待删除节点，因此以待调整节点来称呼即将被删除的节点。记待调整节点为D，其父节点为P，兄弟节点为S，兄弟节点的两个子树为Sl和Sr。</p>
+<p>根据待调整节点D周围的情况，可以分为以下6种情况：</p>
+<p>1、待调整节点为根节点。如果随后要删除这个节点，则整棵树只有这一个节点，删除之后为空树；如果随后不删除这个节点，则必然是由情况6递归而来，此时这个节点已经是黑色，不用做任何调整。因此这种情况直接返回即可。</p>
+<p>待调整节点不为根节点时，其父节点存在，由于待调整节点为黑色，因此其兄弟节点必定存在，否则待调整节点所在路径多一个黑色节点。</p>
+<p>2、兄弟节点为红色，此时父节点必为黑色。交换P和S的颜色，然后对P做左旋，此时D的兄弟节点变成黑色，为3、4、5三种情况中的任意一种(Sl为子树，其根节点为黑色但可能还有红色子节点，因此不一定为情况5)，接着处理即可。示意图如下：</p>
+<figure data-type="image" tabindex="5"><img src="https://w-jin.github.io/post-images/rbtree/erase2.1.png" alt="erase2.1" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://w-jin.github.io/post-images/rbtree/erase2.2.png" alt="erase2.2" loading="lazy"></figure>
+<p>3、兄弟节点为黑色，远侄子节点存在且为红色，此时父节点可黑可红，而近侄子节点可空可红。交换P和S的颜色，然后对P左旋，把远侄子重绘为黑色，调整即完成，随后即可删除节点D。示意图如下：</p>
+<figure data-type="image" tabindex="7"><img src="https://w-jin.github.io/post-images/rbtree/erase3.1.png" alt="erase3.1" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://w-jin.github.io/post-images/rbtree/erase3.2.png" alt="erase3.2" loading="lazy"></figure>
+<p>4、兄弟节点为黑色，远侄子节点不存在或者为黑色，近侄子节点为红色。此时父节点可黑可红，如果D是待删除节点，将在调整完成后删除，则远侄子节点必定不存在，否则从P出发经过它的两个孩子的路径长度不一致。但如果是从情况6递归而来，则远侄子节点可能存在且为黑色，此时近侄子变有黑色孩子(图中未画出，旋转时某一个孩子由S收养)。调整方法为旋转节点S，并交换近侄子和S的颜色，然后按情况3调整近侄子节点。当D在左子树时，右旋S，当D在右子树时，左旋S。示意图如下：</p>
+<figure data-type="image" tabindex="9"><img src="https://w-jin.github.io/post-images/rbtree/erase4.1.png" alt="erase4.1" loading="lazy"></figure>
+<figure data-type="image" tabindex="10"><img src="https://w-jin.github.io/post-images/rbtree/erase4.2.png" alt="erase4.2" loading="lazy"></figure>
+<p>5、兄弟节点为黑色，侄子节点都不存在或者为黑色，父节点为红色。如果D是待删除节点，将在调整完成后删除，则兄弟节点必为叶子节点，但如果是从情况6递归而来，则侄子节点可能存在并为黑色。调整方法为将P重绘为黑色，S重绘为红色，调整即完成，随后可删除节点D。示意图如下：</p>
+<figure data-type="image" tabindex="11"><img src="https://w-jin.github.io/post-images/rbtree/erase5.1.png" alt="erase5.1" loading="lazy"></figure>
+<figure data-type="image" tabindex="12"><img src="https://w-jin.github.io/post-images/rbtree/erase5.2.png" alt="erase5.2" loading="lazy"></figure>
+<p>6、兄弟节点为黑色，侄子节点不存在或者为黑色，父节点为黑色。调整方法为将S重绘为红色，这样删除D后经过P的路径黑色节点个数减少1，因此必须继续调整节点P。在继续调整节点P时，由于之后不会删除P，因此以孩子节点顶替待调整节点的情况不能考虑在内，也就是递归调整只在基本情况3内递归，这是把基本情况的1和2单独列出来的原因。示意图如下：</p>
+<figure data-type="image" tabindex="13"><img src="https://w-jin.github.io/post-images/rbtree/erase6.1.png" alt="erase6.1" loading="lazy"></figure>
+<figure data-type="image" tabindex="14"><img src="https://w-jin.github.io/post-images/rbtree/erase6.2.png" alt="erase6.2" loading="lazy"></figure>
+<p>综合以上6种情况，可得到基本情况3的处理方法，代码描述为：</p>
+<pre><code class="language-cpp">void RBTree::erasionAdjust(RBNode *node) {
+    // 黑色节点可能为根节点
+    if (node == rb_root)
+        return;
+
+    // 待删除节点不为根节点，则兄弟节点必然存在
+    RBNode *parent = node-&gt;parent;
+    RBNode *sibling = node-&gt;sibling();
+
+    if (RBNode::RED == sibling-&gt;color) {
+        // 兄弟节点为红色，此时父节点必为黑色。旋转父节点，交换父节点和兄弟节点
+        // 的颜色，然后按其它情况处理。
+        parent-&gt;color = RBNode::RED;
+        sibling-&gt;color = RBNode::BLACK;
+
+        if (node == parent-&gt;left)
+            leftRotate(parent);
+        else
+            rightRotate(parent);
+
+        // 旋转后兄弟节点变成了sibling的孩子，此节点和sibling的另一个孩子必存在
+        // 且为黑色
+        sibling = node-&gt;sibling();
+    }
+
+    // sibling-&gt;color == RBNode::BLACK必然成立，即兄弟节点必为黑色
+    if (node == parent-&gt;left &amp;&amp;
+        sibling-&gt;right &amp;&amp; RBNode::RED == sibling-&gt;right-&gt;color) {
+        // 待删除节点位于左子树，远侄子节点存在且为红色。此时父节点颜色不定，可黑可红。
+        // 交换父节点和兄弟节点颜色，父节点左旋，远侄子重绘为黑色
+        sibling-&gt;color = parent-&gt;color;
+        parent-&gt;color = RBNode::BLACK;
+        sibling-&gt;right-&gt;color = RBNode::BLACK;
+        leftRotate(parent);
+    } else if (node == parent-&gt;right &amp;&amp;
+               sibling-&gt;left &amp;&amp; RBNode::RED == sibling-&gt;left-&gt;color) {
+        // 待删除节点位于右子树，远侄子节点存在且为红色。此时父节点颜色不定，可黑可红。
+        // 交换父节点和兄弟节点的颜色，父节点右旋，远侄子重绘为黑色
+        sibling-&gt;color = parent-&gt;color;
+        parent-&gt;color = RBNode::BLACK;
+        sibling-&gt;left-&gt;color = RBNode::BLACK;
+        rightRotate(parent);
+    } else if (node == parent-&gt;left &amp;&amp;
+               sibling-&gt;left &amp;&amp; RBNode::RED == sibling-&gt;left-&gt;color) {
+        // 待删除节点位于左子树，远侄子节点不存在，近侄子节点存在且为红色。此时父节点
+        // 颜色不定，可黑可红。交换兄弟和近侄子颜色，兄弟节点右旋，然后按远侄子为红色
+        // 的情况处理
+        sibling-&gt;left-&gt;color = parent-&gt;color;
+        parent-&gt;color = RBNode::BLACK;
+        rightRotate(sibling);
+        leftRotate(parent);
+    } else if (node == parent-&gt;right &amp;&amp;
+               sibling-&gt;right &amp;&amp; RBNode::RED == sibling-&gt;right-&gt;color) {
+        // 待删除节点位于右子树，远侄子节点不存在，近侄子节点存在且为红色。此时父节点
+        // 颜色不定，可黑可红。交换兄弟和近侄子颜色，兄弟节点左旋，然后按远侄子为红色
+        // 的情况处理
+        sibling-&gt;right-&gt;color = parent-&gt;color;
+        parent-&gt;color = RBNode::BLACK;
+        leftRotate(sibling);
+        rightRotate(parent);
+    } else if (RBNode::RED == parent-&gt;color) {
+        // 侄子节点不存在或者全为黑色，父节点为红色。交换父节点和兄弟节点颜色
+        parent-&gt;color = RBNode::BLACK;
+        sibling-&gt;color = RBNode::RED;
+    } else {
+        // 侄子节点不存在或者全为黑色，父节点为黑色。兄弟节点重绘成红色，然后调整父节点
+        sibling-&gt;color = RBNode::RED;
+        erasionAdjust(parent);
+    }
+}
+</code></pre>
+<h2 id="完整的参考代码">完整的参考代码</h2>
+<pre><code class="language-cpp">struct RBNode {
+    enum Color {
+        RED, BLACK
+    };
+
+    int value;
+    Color color;
+    RBNode *left;
+    RBNode *right;
+    RBNode *parent;
+
+    explicit RBNode(int data = 0) {
+        value = data;
+        color = RED;
+        left = nullptr;
+        right = nullptr;
+        parent = nullptr;
+    }
+
+    ~RBNode() {
+        delete left;
+        delete right;
+    }
+
+    // 返回父节点的父节点
+    RBNode *grandparent() const {
+        if (!parent)
+            return nullptr;
+        return parent-&gt;parent;
+    }
+
+    // 返回父节点的兄弟
+    RBNode *uncle() const {
+        if (!grandparent())
+            return nullptr;
+        if (parent == grandparent()-&gt;right)
+            return grandparent()-&gt;left;
+        else
+            return grandparent()-&gt;right;
+    }
+
+    // 返回自己的兄弟
+    RBNode *sibling() const {
+        if (!parent)
+            return nullptr;
+        if (parent-&gt;left == this)
+            return parent-&gt;right;
+        else
+            return parent-&gt;left;
+    }
+};
+
+class RBTree {
+public:
+    RBTree() : rb_root(nullptr) {}
+
+    ~RBTree() { delete rb_root; }
+
+    RBNode *getRoot() const { return rb_root; }
+
+    // 查找数据。如果找到数据则返回数据所在节点的指针，如果没有找到则返回nullptr。
+    RBNode *search(int data);
+
+    // 插入数据。如果data已存在，则什么也不做。
+    // 如果应用时为key-value组合可改为更新value
+    void insert(int data);
+
+    // 删除数据
+    void erase(int data);
+
+    // 删除节点
+    void erase(RBNode *node);
+
+private:
+    RBNode *rb_root;
+
+    // 左旋
+    void leftRotate(RBNode *root);
+
+    // 右旋
+    void rightRotate(RBNode *root);
+
+    // 插入节点的调整
+    void insertionAdjust(RBNode *p);
+
+    void erasionAdjust(RBNode *node);
+};
+
+// 左旋
+void RBTree::leftRotate(RBNode *root) {
+    if (!root || !root-&gt;right)
+        return;
+
+    // 右孩子变成新的根节点
+    RBNode *new_root = root-&gt;right;
+    RBNode *parent = root-&gt;parent;
+    new_root-&gt;parent = parent;
+    if (!parent) {
+        rb_root = new_root;
+    } else {
+        if (parent-&gt;left == root)
+            parent-&gt;left = new_root;
+        else
+            parent-&gt;right = new_root;
+    }
+
+    // 新的根节点的左孩子由原来的根节点收养为右孩子
+    root-&gt;right = new_root-&gt;left;
+    if (new_root-&gt;left)
+        new_root-&gt;left-&gt;parent = root;
+
+    // 原来的根节点变成新的根节点的左孩子
+    new_root-&gt;left = root;
+    root-&gt;parent = new_root;
+}
+
+// 右旋
+void RBTree::rightRotate(RBNode *root) {
+    if (!root || !root-&gt;left)
+        return;
+
+    // 左孩子变成新的根节点
+    RBNode *new_root = root-&gt;left;
+    RBNode *parent = root-&gt;parent;
+    new_root-&gt;parent = parent;
+    if (!parent) {
+        rb_root = new_root;
+    } else {
+        if (parent-&gt;left == root)
+            parent-&gt;left = new_root;
+        else
+            parent-&gt;right = new_root;
+    }
+
+    // 新的根节点的右孩子由原来的根节点收养为左孩子
+    root-&gt;left = new_root-&gt;right;
+    if (new_root-&gt;right)
+        new_root-&gt;right = root;
+
+    // 原来的根节点变成新的根节点的右孩子
+    new_root-&gt;right = root;
+    root-&gt;parent = new_root;
+}
+
+// 查找数据。
+RBNode *RBTree::search(int data) {
+    RBNode *p = rb_root;
+    while (p &amp;&amp; p-&gt;value != data) {
+        if (data &lt; p-&gt;value)
+            p = p-&gt;left;
+        else
+            p = p-&gt;right;
+    }
+    return p;
+}
+
+// 插入数据。如果data已存在，则什么也不做。
+void RBTree::insert(int data) {
+    // 空树插入为根节点，并绘制为黑色
+    if (!rb_root) {
+        rb_root = new RBNode(data);
+        rb_root-&gt;color = RBNode::BLACK;
+        return;
+    }
+
+    RBNode *p = rb_root;
+    while (true) {
+        if (data == p-&gt;value)  // 值已经存在什么也不做
+            return;
+        else if (data &lt; p-&gt;value) {
+            if (p-&gt;left) {
+                p = p-&gt;left;
+            } else {
+                p-&gt;left = new RBNode(data);
+                p-&gt;left-&gt;parent = p;
+                return insertionAdjust(p-&gt;left);
+            }
+        } else {
+            if (p-&gt;right) {
+                p = p-&gt;right;
+            } else {
+                p-&gt;right = new RBNode(data);
+                p-&gt;right-&gt;parent = p;
+                return insertionAdjust(p-&gt;right);
+            }
+        }
+    }
+}
+
+void RBTree::insertionAdjust(RBNode *p) {
+    if (!p-&gt;parent) {  // 要调整的节点是根节点，重绘成黑色即可
+        rb_root = p;
+        rb_root-&gt;color = RBNode::BLACK;
+        return;
+    } else if (p-&gt;parent-&gt;color == RBNode::RED) {
+        // 父节点为黑色时什么也不用做，只考虑父节点为红色的情况，此时父节点不可能是
+        // 根节点，即祖父节点必然存在
+        if (p-&gt;uncle() &amp;&amp; p-&gt;uncle()-&gt;color == RBNode::RED) {
+            // 叔父节点存在且为红色，将父节点和叔父节点重绘为黑色，祖父节点重绘为红色，
+            // 然后递归处理祖父节点
+            p-&gt;parent-&gt;color = RBNode::BLACK;
+            p-&gt;uncle()-&gt;color = RBNode::BLACK;
+            p-&gt;grandparent()-&gt;color = RBNode::RED;
+            insertionAdjust(p-&gt;grandparent());
+        } else { // 叔父节点不存在或者为黑色
+            if (p == p-&gt;parent-&gt;left &amp;&amp; p-&gt;parent == p-&gt;grandparent()-&gt;left) {
+                p-&gt;parent-&gt;color = RBNode::BLACK;
+                p-&gt;grandparent()-&gt;color = RBNode::RED;
+                rightRotate(p-&gt;grandparent());
+            } else if (p == p-&gt;parent-&gt;right &amp;&amp; p-&gt;parent == p-&gt;grandparent()-&gt;right) {
+                p-&gt;parent-&gt;color = RBNode::BLACK;
+                p-&gt;grandparent()-&gt;color = RBNode::RED;
+                leftRotate(p-&gt;grandparent());
+            } else if (p == p-&gt;parent-&gt;right &amp;&amp; p-&gt;parent == p-&gt;grandparent()-&gt;left) {
+                leftRotate(p-&gt;parent);
+                p-&gt;color = RBNode::BLACK;
+                p-&gt;parent-&gt;color = RBNode::RED;
+                rightRotate(p-&gt;parent);
+            } else { // p == p-&gt;parent-&gt;left &amp;&amp; p-&gt;parent == p-&gt;grandparent()-&gt;right
+                rightRotate(p-&gt;parent);
+                p-&gt;color = RBNode::BLACK;
+                p-&gt;parent-&gt;color = RBNode::RED;
+                leftRotate(p-&gt;parent);
+            }
+        }
+    }
+}
+
+// 删除节点
+void RBTree::erase(RBNode *node) {
+    if (!node)   // 空指针什么也不做
+        return;
+
+    // node既有左孩子又有右孩子，从右子树中选择最小的节点，交换它和node的值，然后删除它
+    if (node-&gt;left &amp;&amp; node-&gt;right) {
+        RBNode *p = node-&gt;right;
+        while (p-&gt;left)
+            p = p-&gt;left;
+        node-&gt;value = p-&gt;value;   // 如果不是内置类型考虑使用移动语义
+        node = p;
+    }
+
+    // node至多只有一个孩子，根据周围的节点情况调整。几种使用孩子节点替换的情况不在
+    // erasionAdjust中，必须单独考虑
+    RBNode *parent = node-&gt;parent;
+    if (RBNode::RED == node-&gt;color) {
+        // 红色节点直接删除，其它什么也不做
+    } else if (node-&gt;left &amp;&amp; RBNode::RED == node-&gt;left-&gt;color) {
+        // 待删除节点为黑色，左孩子存在且为红色。以左孩子替代它并重绘为黑色
+        node-&gt;left-&gt;color = RBNode::BLACK;
+    } else if (node-&gt;right &amp;&amp; RBNode::RED == node-&gt;right-&gt;color) {
+        // 待删除节点为黑色，右孩子存在且为红色。以右孩子替代它并重绘为黑色
+        node-&gt;right-&gt;color = RBNode::BLACK;
+    } else {
+        erasionAdjust(node);
+    }
+
+    // 把node从红黑树中摘下来并删除
+    if (!parent) {
+        if (node-&gt;left)
+            rb_root = node-&gt;left;
+        else
+            rb_root = node-&gt;right;
+    } else {
+        if (node == parent-&gt;left) {
+            if (node-&gt;left)
+                parent-&gt;left = node-&gt;left;
+            else
+                parent-&gt;left = node-&gt;right;
+        } else {
+            if (node-&gt;left)
+                parent-&gt;right = node-&gt;left;
+            else
+                parent-&gt;right = node-&gt;right;
+        }
+    }
+    node-&gt;left = nullptr;
+    node-&gt;right = nullptr;
+    delete node;
+}
+
+// 调整待删除节点周围的节点以满足红黑树的定义。被调整的节点不一定是将要被删除的节点，
+// 有一种情况需要递归调整父节点，因此不能包含几种使用孩子节点替换的情况。
+void RBTree::erasionAdjust(RBNode *node) {
+    // 待删除节点为黑色，且孩子不为红色，此时如果左孩子或者右孩子存在且为黑色，则一条
+    // 路径比另一条多一个黑色节点，所以左右孩子必定都不存在，待删除节点为叶子节点，此
+    // 时如果待删除节点不是根节点则其兄弟节点必定存在，否则待删除节点所在路径多一个黑
+    // 色节点。
+    if (node == rb_root)  // 黑色节点可能为根节点，整棵树只有这一个节点，删除即可
+        return;
+
+    // 待删除节点不为根节点，则兄弟节点必然存在
+    RBNode *parent = node-&gt;parent;
+    RBNode *sibling = node-&gt;sibling();
+
+    if (RBNode::RED == sibling-&gt;color) {
+        // 兄弟节点为红色，此时父节点必为黑色。旋转父节点，交换父节点和兄弟节点的颜色，
+        // 然后按其它情况处理。
+        parent-&gt;color = RBNode::RED;
+        sibling-&gt;color = RBNode::BLACK;
+
+        if (node == parent-&gt;left)
+            leftRotate(parent);
+        else
+            rightRotate(parent);
+
+        // 旋转后兄弟节点变成了sibling的孩子，此节点和sibling的另一个孩子必存在且为黑色
+        sibling = node-&gt;sibling();
+    }
+
+    // sibling-&gt;color == RBNode::BLACK必然成立，即兄弟节点必为黑色
+    if (node == parent-&gt;left &amp;&amp;
+        sibling-&gt;right &amp;&amp; RBNode::RED == sibling-&gt;right-&gt;color) {
+        // 待删除节点位于左子树，远侄子节点存在且为红色。此时父节点颜色不定，可黑可红。
+        // 交换父节点和兄弟节点颜色，父节点左旋，远侄子重绘为黑色
+        sibling-&gt;color = parent-&gt;color;
+        parent-&gt;color = RBNode::BLACK;
+        sibling-&gt;right-&gt;color = RBNode::BLACK;
+        leftRotate(parent);
+    } else if (node == parent-&gt;right &amp;&amp;
+               sibling-&gt;left &amp;&amp; RBNode::RED == sibling-&gt;left-&gt;color) {
+        // 待删除节点位于右子树，远侄子节点存在且为红色。此时父节点颜色不定，可黑可红。
+        // 交换父节点和兄弟节点的颜色，父节点右旋，远侄子重绘为黑色
+        sibling-&gt;color = parent-&gt;color;
+        parent-&gt;color = RBNode::BLACK;
+        sibling-&gt;left-&gt;color = RBNode::BLACK;
+        rightRotate(parent);
+    } else if (node == parent-&gt;left &amp;&amp;
+               sibling-&gt;left &amp;&amp; RBNode::RED == sibling-&gt;left-&gt;color) {
+        // 待删除节点位于左子树，远侄子节点不存在，近侄子节点存在且为红色。此时父节
+        // 点颜色不定，可黑可红。交换兄弟和近侄子颜色，兄弟节点右旋，然后按远侄子为
+        // 红色的情况处理
+        sibling-&gt;left-&gt;color = parent-&gt;color;
+        parent-&gt;color = RBNode::BLACK;
+        rightRotate(sibling);
+        leftRotate(parent);
+    } else if (node == parent-&gt;right &amp;&amp;
+               sibling-&gt;right &amp;&amp; RBNode::RED == sibling-&gt;right-&gt;color) {
+        // 待删除节点位于右子树，远侄子节点不存在，近侄子节点存在且为红色。此时父节
+        // 点颜色不定，可黑可红。交换兄弟和近侄子颜色，兄弟节点左旋，然后按远侄子为
+        // 红色的情况处理
+        sibling-&gt;right-&gt;color = parent-&gt;color;
+        parent-&gt;color = RBNode::BLACK;
+        leftRotate(sibling);
+        rightRotate(parent);
+    } else if (RBNode::RED == parent-&gt;color) {
+        // 侄子节点不存在或者全为黑色，父节点为红色。交换父节点和兄弟节点颜色
+        parent-&gt;color = RBNode::BLACK;
+        sibling-&gt;color = RBNode::RED;
+    } else {
+        // 侄子节点不存在或者全为黑色，父节点为黑色。兄弟节点重绘成红色，然后调整父节点
+        sibling-&gt;color = RBNode::RED;
+        erasionAdjust(parent);
+    }
+}
+
+// 删除数据
+void RBTree::erase(int data) {
+    RBNode *node = search(data);
+    erase(node);
+}
+</code></pre>
+<p>参考<br>
+[1] https://www.jianshu.com/p/e136ec79235c.<br>
+[2] https://zh.wikipedia.org/wiki/%E7%BA%A2%E9%BB%91%E6%A0%91.<br>
+[3] https://www.cnblogs.com/qingergege/p/7351659.html.</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[平衡二叉树]]></title>
         <id>https://w-jin.github.io/post/ping-heng-er-cha-shu/</id>
