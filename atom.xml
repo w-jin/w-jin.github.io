@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://w-jin.github.io</id>
     <title>wjin</title>
-    <updated>2020-07-12T12:39:04.741Z</updated>
+    <updated>2020-07-12T12:41:05.320Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://w-jin.github.io"/>
     <link rel="self" href="https://w-jin.github.io/atom.xml"/>
@@ -16,8 +16,7 @@
         <link href="https://w-jin.github.io/post/dui/">
         </link>
         <updated>2020-07-12T12:17:44.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="堆">堆</h1>
-<h2 id="定义">定义</h2>
+        <content type="html"><![CDATA[<h2 id="定义">定义</h2>
 <p>堆是一种数据结构，一般组织为树或者森林，具有以下性质：任意一个节点的值大于或者等于其孩子节点。常见的堆有二叉堆、二项堆、斐波拉契堆，不指明是何种堆一般为二叉堆。本文只描写二叉堆，以下简称为堆。</p>
 <p>堆组织成完全二叉树，存储结构为顺序表，更具体地，堆是按层序存储于数组中的完全二叉树，且满足性质：任意一个节点的值大于或者等于其左右孩子的值。以下为一个堆(小顶堆，而非文中所用大顶堆，用于示范下标的关系)的存储情况的典型案例：</p>
 <pre><code class="language-bash">0
