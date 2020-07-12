@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://w-jin.github.io</id>
     <title>wjin</title>
-    <updated>2020-07-08T11:53:18.917Z</updated>
+    <updated>2020-07-12T11:01:26.995Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://w-jin.github.io"/>
     <link rel="self" href="https://w-jin.github.io/atom.xml"/>
@@ -25,7 +25,7 @@
 5、从任意一个节点出发，到达其叶子节点的路径上黑色节点个数相同。</p>
 <p>这些约束保证了红黑树的关键特性：从根节点出发到叶子节点的最长可能路径不超过最短可能路径的两倍长，所以红黑树大致是平衡的。这是因为4保证相邻的两个节点一定不都是红色的，而5保证最短的可能路径上必定全是黑色节点，而最长可能路径上必是红黑相间，且两者黑色节点个数相等，所以最长可能路径的长度最多为最短可能路径长度的2倍。</p>
 <p>下图所示是一棵典型的红黑树，此处叶子节点不保存数据，所以省略了所有叶子节点。在二叉树中，一个节点可能只有一个子节点，而叶子保存数据，这样也可以实现红黑树，但算法比较复杂。因此本文中所有叶子节点都不保存数据，省略不画，实现中不为它分配内存，即使用nullptr表示叶子节点，而不是使用左右孩子都为nullptr指针的节点表示叶子节点。这样，一个显而易见的结论是所有节点都有两个子节点，不过其中的一个或两个为空。为方便起见，本文称呼nullptr为空节点，及称呼左右孩子都为nullptr的节点为叶子节点。</p>
-<figure data-type="image" tabindex="1"><img src="https://w-jin.github.io/post-images/rbtree/example.png" alt="example" loading="lazy"></figure>
+<figure data-type="image" tabindex="1"><img src="https://w-jin.github.io/post-images/rbtree/example.jpg" alt="example" loading="lazy"></figure>
 <p>红黑树的节点定义为</p>
 <pre><code class="language-cpp">struct RBNode {
     enum Color {
