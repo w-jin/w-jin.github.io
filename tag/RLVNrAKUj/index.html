@@ -9,7 +9,7 @@
 <meta name="description" content="不怕风似快刀，不怕沙尘障路，少年汉莫低首，相伴同求道">
 <meta name="theme-color" content="#000">
 <title>wjin</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1595162444322">
+<link rel="shortcut icon" href="/favicon.ico?v=1595949324211">
 <link rel="stylesheet" href="/media/css/pisces.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -184,19 +184,19 @@
     <div class="sidebar-item-box">
       <a href="/archives/">
         
-        <span class="site-item-stat-count">4</span>
+        <span class="site-item-stat-count">7</span>
         <span class="site-item-stat-name language" data-lan="article">文章</span>
       </a>
     </div>
     <div class="sidebar-item-box">
       <a href="">
-        <span class="site-item-stat-count">3</span>
+        <span class="site-item-stat-count">7</span>
         <span class="site-item-stat-name language" data-lan="category">分类</span>
       </a>
     </div>
     <div class="sidebar-item-box">
       <a href="/tags/">
-        <span class="site-item-stat-count">3</span>
+        <span class="site-item-stat-count">7</span>
         <span class="site-item-stat-name language" data-lan="tag">标签</span>
       </a>
     </div>
@@ -235,6 +235,24 @@
           <small class="language" data-lan="tag">标签</small>
         </h2>
       </div>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       
       
       
@@ -478,6 +496,1166 @@
       <hr>
     </div>
     <div class="result" id="result">
+      
+      <div class="item">
+        <a class="result-title" style="opacity: 0;" href="https://w-jin.github.io/post/mpi-jiao-cheng-1/"" data-c="
+          &lt;h2 id=&#34;mpi&#34;&gt;MPI&lt;/h2&gt;
+&lt;p&gt;MPI(Message Passing Interface，消息传递编程接口)是由全世界工业、科研和政府部门联合建立的一个消息传递编程标准，其目的是为基于消息传递的并行程序设计提供一个高效的、可扩展的、统一的编程环境。MPI标准定义了一组c和fortran函数接口，用于进程间的消息传递，这组函数的具体实现由各厂商实现。流行的实现有mpich和OpenMPI等，本节代码运行于mpich下，且只介绍c语言接口。&lt;/p&gt;
+&lt;h3 id=&#34;mpi运行模式&#34;&gt;MPI运行模式&lt;/h3&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;1&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/mpi/mpi_mode.png&#34; alt=&#34;mpi_mode&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;h3 id=&#34;安装&#34;&gt;安装&lt;/h3&gt;
+&lt;p&gt;流行的Linux版本可以直接从软件仓库安装，如&lt;/p&gt;
+&lt;p&gt;ubuntu: sudo apt install mpich&lt;/p&gt;
+&lt;p&gt;centos: sudo yum list mpich*, sudo yum install mpichX&lt;/p&gt;
+&lt;p&gt;mpich等主流mpi实现都不支持windows，在windows上使用mpi，需要安装ms-mpi，从https://github.com/microsoft/Microsoft-MPI/releases下载文件msmpisdk.msi和msmpisetup.exe安装即可。&lt;/p&gt;
+&lt;p&gt;如果因为某些原因不得不从源代码安装，可以遵循以下流程进行安装(假设无root权限)。&lt;/p&gt;
+&lt;p&gt;1、从mpich网站下载源代码并传至服务器&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ wget https://www.mpich.org/static/downloads/3.0.4/mpich-3.0.4.tar.gz
+$ scp mpich-3.0.4.tar.gz user@remote_ip:/home/user/mpich-3.0.4.tar.gz -P 22
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;更多版本可以在https://www.mpich.org/downloads/和https://www.mpich.org/static/downloads/找到。&lt;/p&gt;
+&lt;p&gt;2、解压缩&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ tar -xf mpich-3.0.4.tar.gz
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;3、编译&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ mkdir mpich
+$ cd mpich-3.0.4
+$ ./configure --prefix=/home/user/mpich/ 2&amp;gt;&amp;amp;1 | tee c.log
+$ make 2&amp;gt;&amp;amp;1 | tee m.log
+$ make install 2&amp;gt;&amp;amp;1 | tee mi.log
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;4、加入环境变量。编辑~/.bashrc，修改或者添加以下行：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;export PATH=&amp;quot;/home/user/mpich/bin:$PATH&amp;quot;
+export LD_LIBRARY_PATH=&amp;quot;/home/user/mpich/lib:$LD_LIBRARY_PATH&amp;quot;
+export C_INCLUDE_PATH=&amp;quot;/home/user/mpich/include:$C_INCLUDE_PATH&amp;quot;
+export CPLUS_INCLUDE_PATH=&amp;quot;/home/user/mpich/include:$CPLUS_INCLUDE_PATH&amp;quot;
+export LIBRARY_PATH=&amp;quot;/home/user/mpich/lib:$LIBRARY_PATH&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;编译过程可以参考：https://www.mpich.org/static/downloads/3.3.2/mpich-3.3.2-installguide.pdf.&lt;/p&gt;
+&lt;h3 id=&#34;集群配置&#34;&gt;集群配置&lt;/h3&gt;
+&lt;h4 id=&#34;节点情况&#34;&gt;节点情况&lt;/h4&gt;
+&lt;p&gt;假定一个集群中有4个节点，每个节点配置一个内部通信用的静态ip地址，且每个节点至少有一个别名。/etc/hosts文件如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;127.0.0.1	localhost
+
+21.21.21.1       node1  gpunode1
+21.21.21.2       node2  gpunode2
+21.21.21.3       node3  gpunode3
+21.21.21.4       node4  gpunode4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;各个节点之前是否互通可以通过ping来测试：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ ping node2 -c 4
+PING node2 (21.21.21.2) 56(84) bytes of data.
+64 bytes from node2 (21.21.21.2): icmp_seq=1 ttl=64 time=0.181 ms
+64 bytes from node2 (21.21.21.2): icmp_seq=2 ttl=64 time=0.181 ms
+64 bytes from node2 (21.21.21.2): icmp_seq=3 ttl=64 time=0.162 ms
+64 bytes from node2 (21.21.21.2): icmp_seq=4 ttl=64 time=0.185 ms
+
+--- node2 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 2999ms
+rtt min/avg/max/mdev = 0.162/0.177/0.185/0.013 ms
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;首先每个节点都需要有自己能访问的用户，此处假定4个节点上的用户名都为user。&lt;/p&gt;
+&lt;h4 id=&#34;免密登录&#34;&gt;免密登录&lt;/h4&gt;
+&lt;p&gt;切换节点可以用ssh登录：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;user@node1:~$ ssh node2
+user@node2&#39;s password:
+Last login: Tue Jul 21 23:31:08 2020 from node1
+user@node2:~$
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;mpi可以通过ssh进行通信，但必须配置免密登录。ssh的免密登录通过公钥/密钥认证实现。以下介绍步骤。&lt;/p&gt;
+&lt;p&gt;1、在node1上生成公钥和密钥&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;user@node1:~$ ssh-keygen -t rsa
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/user/.ssh/id_rsa): 
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/user/.ssh/id_rsa.
+Your public key has been saved in /home/iser/.ssh/id_rsa.pub.
+The key fingerprint is:
+dc:da:09:df:08:d5:bf:e4:30:22:c1:00:24:20:f9:24 user@node1
+The key&#39;s randomart image is:
++--[ RSA 2048]----+
+|oo..o..          |
+|E ..   o   .     |
+| +      o . .    |
+|  .    . +   .   |
+|        S o o o  |
+|         B = = . |
+|        . = . o  |
+|                 |
+|                 |
++-----------------+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;中途询问路径和密码直接回车即可。生成的公钥和密钥分别存放在文件/home/user/.ssh/id_rsa.pub和/home/user/.ssh/id_rsa中。&lt;/p&gt;
+&lt;p&gt;2、将node1生成的公钥加入node2、node3、node4的authorized_keys中：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;user@node2:~$ mkdir ~/.ssh
+user@node2:~$ scp node1:/home/user/.ssh/id_rsa.pub ~/.ssh/authorized_keys
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;3、更改权限&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;user@node2:~$ chmod 700 ~/.ssh
+user@node2:~$ chmod 600 ~/.ssh/authorized_keys
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;此时从node1登录node2、node3、node4不再需要输入密码了。如果仍然不能登录，则检查node2、node3、node4的ssh配置文件/etc/ssh/sshd_config中以下几个选项是否正确：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;RSAAuthentication yes                    # 启用 RSA 认证
+PubkeyAuthentication yes                 # 启用公钥私钥配对认证方式
+AuthorizedKeysFile .ssh/authorized_keys  # 公钥文件路径
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;如果不是上述配置则改成上述配置然后重启ssh服务：service ssh restart&lt;/p&gt;
+&lt;p&gt;如果要从node2等节点免密登录其它节点，按上述流程操作即可。&lt;/p&gt;
+&lt;h4 id=&#34;共享目录&#34;&gt;共享目录&lt;/h4&gt;
+&lt;p&gt;我们只在一个节点上编译了mpich，其它节点上也需要安装mpich并配置环境变量，可以将它拷贝过去:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;user@node1:~$ scp -r .bashrc mpich node2:/home/user/mpich
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;除mpich需要每个节点一份以外，每次编译好的可执行文件也需要每个节点都有一份且路径相同，为简单起见，此处使用共享目录进行同步。&lt;/p&gt;
+&lt;p&gt;注意：设置共享目录必须有root权限！&lt;/p&gt;
+&lt;p&gt;假定各个节点已经安装了nfs-utils，需要同步的目录为/home/user/workspace，此目录仅存储于node1的磁盘上，遵循以下步骤操作可将此目录挂载至node2、node3、node4：&lt;/p&gt;
+&lt;p&gt;1、首先编辑node1的/etc/export文件，加入一行：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/home/user/workspace *(rw,sync,root_squash)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;其中，&lt;/p&gt;
+&lt;p&gt;*()：所有主机都可挂载；&lt;/p&gt;
+&lt;p&gt;rw：read-write，可读写；&lt;/p&gt;
+&lt;p&gt;sync：同步写入(文件同时写入硬盘和内存)，适用在通信比较频繁且实时性比较高的场合；&lt;/p&gt;
+&lt;p&gt;root_squash：把客户端root身份的UID/GID(0/0)对应到服务端的nobody用户去，即服务端使用nobody用户来操作共享目录。&lt;/p&gt;
+&lt;p&gt;2、然后在node1上执行：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;root@node1:~# exportfs -rav
+exporting *:/home/user/workspace
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;3、然后在node2、node3、node4上分别执行：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;root@node2:~# mkdir /home/user/workspace
+root@node2:~# mount -t nfs -o nfsvers=3 node1:/home/user/workspace /home/wangjin/workspace
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;4、如果node2、node3、node4上未见到共享目录的内容，可以重启nfs服务：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;root@node2:~# service nfs restart
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4 id=&#34;进程数量控制&#34;&gt;进程数量控制&lt;/h4&gt;
+&lt;p&gt;假设编译出来的可执行文件为/home/user/workspace/a.out。在/home/user/workspace下新建一个名为servers的文本文件，内容如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;node1:1
+node2:1
+node3:1
+node4:1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;然后执行：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;user@node1:~/workspace$ mpiexec -f servers ./a.out
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;以上操作在任意一个节点上进行都可以，只要此节点可以免密登录其余节点。&lt;/p&gt;
+&lt;h3 id=&#34;进程特点&#34;&gt;进程特点&lt;/h3&gt;
+&lt;p&gt;1、进程与程序相联，程序一旦在操作系统中运行即成为进程。&lt;/p&gt;
+&lt;p&gt;2、进程拥有独立的执行环境，内存空间彼此不相交。&lt;/p&gt;
+&lt;p&gt;3、进程间可以相互交换信息。例如数据交换、同步等待，消息是这些交换信息的基本单位，消息传递是实现进程间通信的唯一方式。&lt;/p&gt;
+&lt;h3 id=&#34;mpi重要概念&#34;&gt;MPI重要概念&lt;/h3&gt;
+&lt;p&gt;1、进程组(process group)：MPI程序的全部进程集合的一个有序子集，且进程组中每个进程被赋于一个在该组中唯一的序号(rank)，用于在该组中标识该进程。序号的取值范围是[0, 进程数-1]。&lt;/p&gt;
+&lt;p&gt;2、通信器(communicator)：一类进程的集合即一个进程组，且在该进程组，进程间可以相互通信。任何MPI通信函数均必须在某个通信器内发生。MPI系统提供省缺的通信器MPI_COMM_WORLD，所有启动的MPI进程通过调用函数MPI_Init()包含在该通信器内；各进程通过函数MPI_Comm_size()获取通信器包含的(初始启动)的MPI进程个数。&lt;/p&gt;
+&lt;p&gt;3、进程序号(rank)：用来在一个进程组或通信器中标识一个进程。MPI程序中进程在进程组内有唯一序号，不同进程组内的同一进程可以有不同的序号。&lt;/p&gt;
+&lt;p&gt;4、消息(message)：分为数据(data)和包装(envelope)两个部分。包装由接收进程序号/发送进程序号、消息标号和通信器三部分组成，数据是用户将要传递的内容。&lt;/p&gt;
+&lt;p&gt;5、MPI对象：MPI系统内部定义的数据结构，包括数据类型(如MPI_INT)、通信器(MPI_Comm)、通信请求(MPI_Request)等。&lt;/p&gt;
+&lt;p&gt;6、MPI联接器(handles)：联接MPI对象的具体变量，用户可以通过它访问和参与相应MPI对象的具体操作。例如，MPI系统内部提供的通信器MPI_COMM_WORLD。&lt;/p&gt;
+&lt;h3 id=&#34;mpi函数形式&#34;&gt;MPI函数形式&lt;/h3&gt;
+&lt;p&gt;MPI的函数名称以MPI_开头，一般形式为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;int MPI_Xxxx(parameters_list);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;除MPI_Wtick和MPI_Wtime外，其它函数的返回值都是整型错误编码，如全局归约函数声明为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;int MPI_Reduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype,
+               MPI_Op op, int root, MPI_Comm comm);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;返回值可能为：MPI_SUCCESS、MPI_ERR_COMM、MPI_ERR_COUNT、MPI_ERR_TYPE、MPI_ERR_BUFFER。标识了MPI_Reduce函数调用过程中可能发生的错误。&lt;/p&gt;
+&lt;h3 id=&#34;mpi数据类型&#34;&gt;MPI数据类型&lt;/h3&gt;
+&lt;p&gt;MPI的许多函数调用时，需要指定传递的数据类型，MPI的数据类型定义为结构体MPI_Datatype，内置类型见下表:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;MPI_Datatype&lt;/th&gt;
+&lt;th&gt;对应c语言类型&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_CHAR&lt;/td&gt;
+&lt;td&gt;char&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_SHORT&lt;/td&gt;
+&lt;td&gt;short&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_INT&lt;/td&gt;
+&lt;td&gt;int&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_LONG&lt;/td&gt;
+&lt;td&gt;long&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_FLOAT&lt;/td&gt;
+&lt;td&gt;float&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_DOUBLE&lt;/td&gt;
+&lt;td&gt;double&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_UNSIGNED_CHAR&lt;/td&gt;
+&lt;td&gt;unsigned char&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_UNSIGNED_SHORT&lt;/td&gt;
+&lt;td&gt;unsigned short&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_UNSIGNED&lt;/td&gt;
+&lt;td&gt;unsigned int&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_UNSIGNED_LONG&lt;/td&gt;
+&lt;td&gt;unsigned long&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_LONG_LONG_INT&lt;/td&gt;
+&lt;td&gt;long long&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_LONG_DOUBLE&lt;/td&gt;
+&lt;td&gt;long double&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;需要注意的是MPI_DOUBLE这样的类型不是真正的类型，而是对象，目的是用来告知MPI操作数的类型，声明变量仍然只能使用对应的c语言类型。&lt;/p&gt;
+&lt;p&gt;除了这些内置类型，MPI还支持自定义类型，这个功能在后面介绍。&lt;/p&gt;
+&lt;h3 id=&#34;mpi程序结构&#34;&gt;MPI程序结构&lt;/h3&gt;
+&lt;p&gt;下面是MPI程序的典型结构：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;mpi.h&amp;gt;
+// ...
+int main(int argc, char *argv[]) {
+    // 定义变量
+    int rank = 0;
+    int nprocs = 0;
+    
+    // 并行区域
+    MPI_Init(&amp;amp;argc, &amp;amp;argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &amp;amp;nprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &amp;amp;rank);
+    
+    // ...
+    
+    // 结束并行
+    MPI_Finalize();
+    
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;函数MPI_Init用于初始化MPI系统，在调用其它MPI函数(除MPI_Initialized外)之前必须先调用譔函数。在许多MPI系统中，第一个进程通过MPI_Init来启动其它进程。注意要将命令行参数的地址传递给MPI_Init，因为MPI程序启动时一些初始化参数是通过命令行传递给进程的，这些参数被添加在命令行参数列表中，MPI_Init通过它可以得到MPI程序运行的相关信息。&lt;/p&gt;
+&lt;p&gt;函数MPI_Comm_size和MPI_Comm_rank分别返回指定通信器中进程的数目和本进程的编号。&lt;/p&gt;
+&lt;p&gt;函数MPI_Finalize用于退出MPI系统，调用MPI_Finalize之后不能再调用其它MPI函数。&lt;/p&gt;
+&lt;p&gt;要注意即使是MPI_Init之前的代码，也会被所有进程执行，只是无法使用MPI进行通信，因此要注意资源的分配和数据的一致性。&lt;/p&gt;
+&lt;h3 id=&#34;例1-计算pi的值-全局归约&#34;&gt;例1、计算&lt;span class=&#34;katex&#34;&gt;&lt;span class=&#34;katex-mathml&#34;&gt;&lt;math&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mi&gt;π&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding=&#34;application/x-tex&#34;&gt;\pi&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=&#34;katex-html&#34; aria-hidden=&#34;true&#34;&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:0.43056em;vertical-align:0em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34; style=&#34;margin-right:0.03588em;&#34;&gt;π&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;的值--全局归约&lt;/h3&gt;
+&lt;p&gt;通过近似计算定积分&lt;span class=&#34;katex&#34;&gt;&lt;span class=&#34;katex-mathml&#34;&gt;&lt;math&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msubsup&gt;&lt;mo&gt;∫&lt;/mo&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/msubsup&gt;&lt;mfrac&gt;&lt;mn&gt;4&lt;/mn&gt;&lt;mrow&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msup&gt;&lt;/mrow&gt;&lt;/mfrac&gt;&lt;mi&gt;d&lt;/mi&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding=&#34;application/x-tex&#34;&gt;\int_0^1\cfrac{4}{1 + x^2}dx&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=&#34;katex-html&#34; aria-hidden=&#34;true&#34;&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:2.35933em;vertical-align:-0.7693300000000001em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mop&#34;&gt;&lt;span class=&#34;mop op-symbol small-op&#34; style=&#34;margin-right:0.19445em;position:relative;top:-0.0005599999999999772em;&#34;&gt;∫&lt;/span&gt;&lt;span class=&#34;msupsub&#34;&gt;&lt;span class=&#34;vlist-t vlist-t2&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:1.0090080000000001em;&#34;&gt;&lt;span style=&#34;top:-2.34418em;margin-left:-0.19445em;margin-right:0.05em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mtight&#34;&gt;0&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;top:-3.2579000000000002em;margin-right:0.05em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mtight&#34;&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-s&#34;&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.35582em;&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.16666666666666666em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mopen nulldelimiter&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mfrac&#34;&gt;&lt;span class=&#34;vlist-t vlist-t2&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:1.5899999999999999em;&#34;&gt;&lt;span style=&#34;top:-2.314em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:3em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mord&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2222222222222222em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mbin&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2222222222222222em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;msupsub&#34;&gt;&lt;span class=&#34;vlist-t&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.740108em;&#34;&gt;&lt;span style=&#34;top:-2.9890000000000003em;margin-right:0.05em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mtight&#34;&gt;2&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;top:-3.23em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:3em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;frac-line&#34; style=&#34;border-bottom-width:0.04em;&#34;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;top:-3.74em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:3em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mord&#34;&gt;4&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-s&#34;&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.7693300000000001em;&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;d&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;x&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;来计算&lt;span class=&#34;katex&#34;&gt;&lt;span class=&#34;katex-mathml&#34;&gt;&lt;math&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mi&gt;π&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding=&#34;application/x-tex&#34;&gt;\pi&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=&#34;katex-html&#34; aria-hidden=&#34;true&#34;&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:0.43056em;vertical-align:0em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34; style=&#34;margin-right:0.03588em;&#34;&gt;π&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;。根据定积分的定义，有：&lt;/p&gt;
+&lt;p class=&#39;katex-block&#39;&gt;&lt;span class=&#34;katex-display&#34;&gt;&lt;span class=&#34;katex&#34;&gt;&lt;span class=&#34;katex-mathml&#34;&gt;&lt;math&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msubsup&gt;&lt;mo&gt;∫&lt;/mo&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/msubsup&gt;&lt;mfrac&gt;&lt;mn&gt;4&lt;/mn&gt;&lt;mrow&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msup&gt;&lt;/mrow&gt;&lt;/mfrac&gt;&lt;mi&gt;d&lt;/mi&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;munder&gt;&lt;mi&gt;lim&lt;/mi&gt;&lt;mo&gt;⁡&lt;/mo&gt;&lt;mrow&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;mo&gt;→&lt;/mo&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mi mathvariant=&#34;normal&#34;&gt;∞&lt;/mi&gt;&lt;/mrow&gt;&lt;/munder&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;munderover&gt;&lt;mo&gt;∑&lt;/mo&gt;&lt;mrow&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn&gt;0&lt;/mn&gt;&lt;/mrow&gt;&lt;mrow&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;mo&gt;−&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;/mrow&gt;&lt;/munderover&gt;&lt;mi&gt;f&lt;/mi&gt;&lt;mo&gt;(&lt;/mo&gt;&lt;msub&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;)&lt;/mo&gt;&lt;/mrow&gt;&lt;annotation encoding=&#34;application/x-tex&#34;&gt;\int_0^1\cfrac{4}{1 + x^2}dx = \lim_{n \rightarrow +\infty} h\sum_{i=0}^{n-1} f(x_i)
+&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=&#34;katex-html&#34; aria-hidden=&#34;true&#34;&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:2.50195em;vertical-align:-0.9119499999999999em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mop&#34;&gt;&lt;span class=&#34;mop op-symbol large-op&#34; style=&#34;margin-right:0.44445em;position:relative;top:-0.0011249999999999316em;&#34;&gt;∫&lt;/span&gt;&lt;span class=&#34;msupsub&#34;&gt;&lt;span class=&#34;vlist-t vlist-t2&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:1.5640080000000003em;&#34;&gt;&lt;span style=&#34;top:-1.7880500000000001em;margin-left:-0.44445em;margin-right:0.05em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mtight&#34;&gt;0&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;top:-3.8129000000000004em;margin-right:0.05em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mtight&#34;&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-s&#34;&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.9119499999999999em;&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.16666666666666666em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mopen nulldelimiter&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mfrac&#34;&gt;&lt;span class=&#34;vlist-t vlist-t2&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:1.5899999999999999em;&#34;&gt;&lt;span style=&#34;top:-2.314em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:3em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mord&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2222222222222222em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mbin&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2222222222222222em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;msupsub&#34;&gt;&lt;span class=&#34;vlist-t&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.740108em;&#34;&gt;&lt;span style=&#34;top:-2.9890000000000003em;margin-right:0.05em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mtight&#34;&gt;2&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;top:-3.23em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:3em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;frac-line&#34; style=&#34;border-bottom-width:0.04em;&#34;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;top:-3.74em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:3em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mord&#34;&gt;4&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-s&#34;&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.7693300000000001em;&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;d&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2777777777777778em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mrel&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2777777777777778em;&#34;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:3.0787820000000004em;vertical-align:-1.277669em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mop op-limits&#34;&gt;&lt;span class=&#34;vlist-t vlist-t2&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.69444em;&#34;&gt;&lt;span style=&#34;top:-2.1em;margin-left:0em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mtight&#34;&gt;&lt;span class=&#34;mord mathdefault mtight&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;mrel mtight&#34;&gt;→&lt;/span&gt;&lt;span class=&#34;mord mtight&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;mord mtight&#34;&gt;∞&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;top:-2.7em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span&gt;&lt;span class=&#34;mop&#34;&gt;lim&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-s&#34;&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.758331em;&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.16666666666666666em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;h&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.16666666666666666em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mop op-limits&#34;&gt;&lt;span class=&#34;vlist-t vlist-t2&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:1.8011130000000004em;&#34;&gt;&lt;span style=&#34;top:-1.872331em;margin-left:0em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:3.05em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mtight&#34;&gt;&lt;span class=&#34;mord mathdefault mtight&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;mrel mtight&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;mord mtight&#34;&gt;0&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;top:-3.050005em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:3.05em;&#34;&gt;&lt;/span&gt;&lt;span&gt;&lt;span class=&#34;mop op-symbol large-op&#34;&gt;∑&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;top:-4.300005em;margin-left:0em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:3.05em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mtight&#34;&gt;&lt;span class=&#34;mord mathdefault mtight&#34;&gt;n&lt;/span&gt;&lt;span class=&#34;mbin mtight&#34;&gt;−&lt;/span&gt;&lt;span class=&#34;mord mtight&#34;&gt;1&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-s&#34;&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:1.277669em;&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.16666666666666666em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34; style=&#34;margin-right:0.10764em;&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;mopen&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;msupsub&#34;&gt;&lt;span class=&#34;vlist-t vlist-t2&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.31166399999999994em;&#34;&gt;&lt;span style=&#34;top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mathdefault mtight&#34;&gt;i&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-s&#34;&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.15em;&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;mclose&#34;&gt;)&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;其中&lt;span class=&#34;katex&#34;&gt;&lt;span class=&#34;katex-mathml&#34;&gt;&lt;math&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mi mathvariant=&#34;normal&#34;&gt;/&lt;/mi&gt;&lt;mi&gt;n&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding=&#34;application/x-tex&#34;&gt;h=1/n&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=&#34;katex-html&#34; aria-hidden=&#34;true&#34;&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:0.69444em;vertical-align:0em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;h&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2777777777777778em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mrel&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2777777777777778em;&#34;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:1em;vertical-align:-0.25em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;/&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;n&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;为积分步长；&lt;span class=&#34;katex&#34;&gt;&lt;span class=&#34;katex-mathml&#34;&gt;&lt;math&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;msub&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;/msub&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mo&gt;(&lt;/mo&gt;&lt;mi&gt;i&lt;/mi&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;mn&gt;0.5&lt;/mn&gt;&lt;mo&gt;)&lt;/mo&gt;&lt;mi&gt;h&lt;/mi&gt;&lt;/mrow&gt;&lt;annotation encoding=&#34;application/x-tex&#34;&gt;x_i=(i+0.5)h&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=&#34;katex-html&#34; aria-hidden=&#34;true&#34;&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:0.58056em;vertical-align:-0.15em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;msupsub&#34;&gt;&lt;span class=&#34;vlist-t vlist-t2&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.31166399999999994em;&#34;&gt;&lt;span style=&#34;top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mathdefault mtight&#34;&gt;i&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-s&#34;&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.15em;&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2777777777777778em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mrel&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2777777777777778em;&#34;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:1em;vertical-align:-0.25em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mopen&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2222222222222222em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mbin&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2222222222222222em;&#34;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:1em;vertical-align:-0.25em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;5&lt;/span&gt;&lt;span class=&#34;mclose&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;h&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;为区间中点；&lt;span class=&#34;katex&#34;&gt;&lt;span class=&#34;katex-mathml&#34;&gt;&lt;math&gt;&lt;semantics&gt;&lt;mrow&gt;&lt;mi&gt;f&lt;/mi&gt;&lt;mo&gt;(&lt;/mo&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mo&gt;)&lt;/mo&gt;&lt;mo&gt;=&lt;/mo&gt;&lt;mfrac&gt;&lt;mn&gt;4&lt;/mn&gt;&lt;mrow&gt;&lt;mn&gt;1&lt;/mn&gt;&lt;mo&gt;+&lt;/mo&gt;&lt;msup&gt;&lt;mi&gt;x&lt;/mi&gt;&lt;mn&gt;2&lt;/mn&gt;&lt;/msup&gt;&lt;/mrow&gt;&lt;/mfrac&gt;&lt;/mrow&gt;&lt;annotation encoding=&#34;application/x-tex&#34;&gt;f(x)=\cfrac{4}{1 + x^2}&lt;/annotation&gt;&lt;/semantics&gt;&lt;/math&gt;&lt;/span&gt;&lt;span class=&#34;katex-html&#34; aria-hidden=&#34;true&#34;&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:1em;vertical-align:-0.25em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34; style=&#34;margin-right:0.10764em;&#34;&gt;f&lt;/span&gt;&lt;span class=&#34;mopen&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;mclose&#34;&gt;)&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2777777777777778em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mrel&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2777777777777778em;&#34;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;base&#34;&gt;&lt;span class=&#34;strut&#34; style=&#34;height:2.35933em;vertical-align:-0.7693300000000001em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mopen nulldelimiter&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mfrac&#34;&gt;&lt;span class=&#34;vlist-t vlist-t2&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:1.5899999999999999em;&#34;&gt;&lt;span style=&#34;top:-2.314em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:3em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mord&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2222222222222222em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mbin&#34;&gt;+&lt;/span&gt;&lt;span class=&#34;mspace&#34; style=&#34;margin-right:0.2222222222222222em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mord mathdefault&#34;&gt;x&lt;/span&gt;&lt;span class=&#34;msupsub&#34;&gt;&lt;span class=&#34;vlist-t&#34;&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.740108em;&#34;&gt;&lt;span style=&#34;top:-2.9890000000000003em;margin-right:0.05em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:2.7em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;sizing reset-size6 size3 mtight&#34;&gt;&lt;span class=&#34;mord mtight&#34;&gt;2&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;top:-3.23em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:3em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;frac-line&#34; style=&#34;border-bottom-width:0.04em;&#34;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;top:-3.74em;&#34;&gt;&lt;span class=&#34;pstrut&#34; style=&#34;height:3em;&#34;&gt;&lt;/span&gt;&lt;span class=&#34;mord&#34;&gt;&lt;span class=&#34;mord&#34;&gt;4&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-s&#34;&gt;​&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;vlist-r&#34;&gt;&lt;span class=&#34;vlist&#34; style=&#34;height:0.7693300000000001em;&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;为被积函数。&lt;/p&gt;
+&lt;p&gt;每个进程计算一部分和，然后进行归约。&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// 文件名：pi.cpp
+#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;mpi.h&amp;gt;
+
+double f(double x) {
+    return 4.0 / (1.0 + x * x);
+}
+
+int main(int argc, char *argv[]) {
+    MPI_Init(&amp;amp;argc, &amp;amp;argv);
+
+    int np = 0, id = 0;
+    MPI_Comm_size(MPI_COMM_WORLD, &amp;amp;np);  // 获取进程数量
+    MPI_Comm_rank(MPI_COMM_WORLD, &amp;amp;id);  // 获取进程id
+
+    const int n = 100000;    // 分成100000段来计算
+    const double h = 1.0 / n;
+    double sum = 0;
+
+    // 0号进程统计时间
+    double start_time = 0, end_time = 0;
+    if (0 == id)
+        start_time = MPI_Wtime();
+
+    for (int i = id; i &amp;lt; n; i += np)
+        sum += f(h * (i + 0.5));
+    sum *= h;
+
+    double pi = 0;
+    MPI_Reduce(&amp;amp;sum, &amp;amp;pi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    // 0号进程输出结果
+    if (0 == id) {
+        end_time = MPI_Wtime();
+        std::cout.precision(10);
+        std::cout &amp;lt;&amp;lt; &amp;quot;pi is &amp;quot; &amp;lt;&amp;lt; pi &amp;lt;&amp;lt; &amp;quot;\n&amp;quot;;
+        std::cout &amp;lt;&amp;lt; &amp;quot;the time cost is &amp;quot; &amp;lt;&amp;lt; end_time - start_time &amp;lt;&amp;lt; &amp;quot;\n&amp;quot;;
+    }
+
+    MPI_Finalize();
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;编译：&lt;code&gt;mpicxx pi.cpp -o pi.out&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;一个进程执行：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ ./pi.out
+pi is 3.141592654
+the time cost is 0.001555681229
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;多个进程执行：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ mpiexec -n 4 ./pi.out
+pi is 3.141592654
+the time cost is 0.0006926059723
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;此段代码主要用到的函数为MPI_Reduce，签名为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;int MPI_Reduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype,
+               MPI_Op op, int root, MPI_Comm comm);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;此函数的功能可由下图描述：&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;2&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/mpi/MPI_Reduce.png&#34; alt=&#34;MPI_Reduce&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;MPI_Op为归约操作的二元运算，此处需要将各个进程的结果求和，因此指定为MPI_SUM。可用的操作见下表：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;MPI_Op&lt;/th&gt;
+&lt;th&gt;描述&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_MAX&lt;/td&gt;
+&lt;td&gt;两个操作数中较大的一个&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_MIN&lt;/td&gt;
+&lt;td&gt;两个操作数中较小的一个&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_SUM&lt;/td&gt;
+&lt;td&gt;两个操作数之和&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_PROD&lt;/td&gt;
+&lt;td&gt;两个操作数之积&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_LAND&lt;/td&gt;
+&lt;td&gt;两个操作数的逻辑与(logical and)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_BAND&lt;/td&gt;
+&lt;td&gt;两个操作数的按位与(bitwise and)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_LOR&lt;/td&gt;
+&lt;td&gt;两个操作数的逻辑或(logical or)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_BOR&lt;/td&gt;
+&lt;td&gt;两个操作数的按位或(bitwise or)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_LXOR&lt;/td&gt;
+&lt;td&gt;两个操作数的逻辑异或(logical xor)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_BXOR&lt;/td&gt;
+&lt;td&gt;两个操作数的按位异或(bitwise xor)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_MAXLOC&lt;/td&gt;
+&lt;td&gt;两对操作数的最大值和最大值的位置(u,i)op(v,j)=(max(u,v),k)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;MPI_MINLOC&lt;/td&gt;
+&lt;td&gt;两对操作数的最小值和最小值的位置(u,i)op(v,j)=(min(u,v),k)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;如果需要的操作没有预定义的MPI_Op，可以通过MPI_Op_create函数定义合适的函数。&lt;/p&gt;
+&lt;p&gt;count指定数组长度，datatype指定数组的元素类型，root和comm分别指示归约到哪个进程和在哪个进程组内归约。&lt;/p&gt;
+&lt;h3 id=&#34;未完待续&#34;&gt;未完待续&lt;/h3&gt;
+&lt;p&gt;............&lt;/p&gt;
+&lt;h3 id=&#34;文档&#34;&gt;文档&lt;/h3&gt;
+&lt;p&gt;[1] https://www.open-mpi.org/doc/current/.&lt;/p&gt;
+&lt;p&gt;[2] https://www.mpich.org/static/docs/latest/.&lt;/p&gt;
+&lt;p&gt;[3] https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf.&lt;/p&gt;
+">MPI教程1</a>
+      </div>
+      
+      <div class="item">
+        <a class="result-title" style="opacity: 0;" href="https://w-jin.github.io/post/chan-shu-shi-bian-cheng-ru-men-yu-tbb-jiao-cheng/"" data-c="
+          &lt;h2 id=&#34;c函数式编程&#34;&gt;c++函数式编程&lt;/h2&gt;
+&lt;h3 id=&#34;函数对象&#34;&gt;函数对象&lt;/h3&gt;
+&lt;p&gt;c++可以重载绝大多数运算符，其中包含函数调用操作符&lt;code&gt;()&lt;/code&gt;。当一个类重载了函数调用操作符后，此类型的对象可以像普通函数一样调用，这种对象称为函数对象。如：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;template&amp;lt;typename T&amp;gt;
+struct greater {
+    bool operator()(const T &amp;amp;lhs, const T &amp;amp;rhs) const {
+        return lhs &amp;gt; rhs;
+    }
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;使用方式为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;greater&amp;lt;int&amp;gt; g;
+if (g(1, 2))
+    // ...
+
+std::vector&amp;lt;int&amp;gt; A;
+std::sort(A.begin(), A.end(), greater&amp;lt;int&amp;gt;{});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;函数对象的类型就是普通的自定义类型，可以有成员变量、构造函数和析构函数等，语法没有区别。和普通函数相比，函数对象有两个优点：1、编译器可以内联执行函数对象的调用；2、函数对象内部可以保持状态，这使得函数对象可以捕获外部变量的值并保存下来，这是c++实现闭包的关键。&lt;/p&gt;
+&lt;h4 id=&#34;随机数生成&#34;&gt;随机数生成&lt;/h4&gt;
+&lt;p&gt;在之前已经接触过三个函数对象：&lt;code&gt;default_random_engine&lt;/code&gt;、&lt;code&gt;uniform_real_distribution&amp;lt;T&amp;gt;&lt;/code&gt;和&lt;code&gt;random_device&lt;/code&gt;。它们都定义于头文件&lt;code&gt;&amp;lt;random&amp;gt;&lt;/code&gt;，和标准命名空间&lt;code&gt;std&lt;/code&gt;。其中&lt;code&gt;default_random_engine&lt;/code&gt;为实现定义的随机数生成器，c++标准规定必须实现的算法有：&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;1&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/tbb/random_engine.png&#34; alt=&#34;random_engine&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;&lt;code&gt;random_device&lt;/code&gt;是使用硬件熵源的非确定随机数生成器。一般用于上表中随机数生成器的初始化。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;uniform_real_distribution&lt;/code&gt;是随机数分布算法，用于将随机数生成器的结果按一定的统计概率密度函数分布。c++标准规定的随机数分布有：&lt;/p&gt;
+&lt;figure data-type=&#34;image&#34; tabindex=&#34;2&#34;&gt;&lt;img src=&#34;https://w-jin.github.io/post-images/tbb/distribution.png&#34; alt=&#34;distribution&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
+&lt;p&gt;&lt;code&gt;default_random_engine&lt;/code&gt;和&lt;code&gt;random_device&lt;/code&gt;的函数调用操作符的签名为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;result_type operator()();
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;而&lt;code&gt;uniform_real_distribution&lt;/code&gt;的签名为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;template&amp;lt; class Generator &amp;gt;
+result_type operator()(Generator &amp;amp;g);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;因此生成均匀分布的随机数的方法为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;std::random_device rd;
+std::default_random_engine re{rd()}
+std::uniform_real_distribution&amp;lt;double&amp;gt; dist{0, 10};
+
+for (int i = 0; i &amp;lt; 10; i++)
+        A[i] = dist(re);    // 由dist.operator()来调用re()生成随机数，再映射至区间[0, 10]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&#34;函数包装器&#34;&gt;函数包装器&lt;/h3&gt;
+&lt;p&gt;c++中除普通函数外，可以调用的对象还有函数对象、成员函数和lambda表达式，它们具有不同的类型和属性。为统一c++中所有具有函数行为的对象类型，c++11引入了函数包装器，使函数成为可以像变量一样，具有创建、赋值、返回等操作的一等公民(first class)。函数包装器定义于头文件&lt;code&gt;functional&lt;/code&gt;，定义为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// functional
+template &amp;lt;class R, class... Args&amp;gt;
+class function&amp;lt;R(Args...)&amp;gt;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;使用：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;functional&amp;gt;
+
+// 普通函数
+int getOne() { return 1; }
+
+// 函数对象
+struct getTwo {
+    int operator()() { return 2; }
+};
+
+// 成员函数
+struct getNumber {
+    // 非static成员函数
+    int getThree() { return 3; }
+    // static成员函数
+    static int getFour() { return 4; }
+};
+
+int main() {
+    std::function&amp;lt;int()&amp;gt; getNumber1{getOne};
+    std::function&amp;lt;int()&amp;gt; getNumber2{getTwo{}};
+    std::function&amp;lt;int(class getNumber *)&amp;gt; getNumber3{&amp;amp;getNumber::getThree};
+    std::function&amp;lt;int()&amp;gt; getNumber4{&amp;amp;getNumber::getFour};
+    std::function&amp;lt;int()&amp;gt; getNumber5 = []{ return 5; };
+    
+    getNumber get_number;
+    std::cout &amp;lt;&amp;lt; getNumber1() &amp;lt;&amp;lt; &amp;quot;, &amp;quot;
+              &amp;lt;&amp;lt; getNumber2() &amp;lt;&amp;lt; &amp;quot;, &amp;quot;
+              &amp;lt;&amp;lt; getNumber3(&amp;amp;get_number) &amp;lt;&amp;lt; &amp;quot;, &amp;quot;   // 非static成员函数行为略有不同
+              &amp;lt;&amp;lt; getNumber4() &amp;lt;&amp;lt; &amp;quot;, &amp;quot;
+              &amp;lt;&amp;lt; getNumber5() &amp;lt;&amp;lt; &amp;quot;\n&amp;quot;;
+    
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;执行效果：&lt;code&gt;1, 2, 3, 4, 5&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;std::function&lt;/code&gt;具有变量的行为，如上面的&lt;code&gt;getNumber1&lt;/code&gt;、&lt;code&gt;getNumber2&lt;/code&gt;和&lt;code&gt;getNumber4&lt;/code&gt;可相互赋值，也可以传参和返回：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;std::function&amp;lt;int()&amp;gt; f(std::function&amp;lt;int()&amp;gt; g) { return g; }
+
+getNumber1 = getNumber2;
+getNumber2 = f(getNumber4);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4 id=&#34;题外话&#34;&gt;题外话&lt;/h4&gt;
+&lt;p&gt;有一个值得注意的地方是&lt;code&gt;getNumber2&lt;/code&gt;的初始化歧义。在传统的c++中，对象的初始化语法使用圆括号包围参数，如：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;getTwo get_two();   // 默认初始化
+std::function&amp;lt;int()&amp;gt; getNumber2(getTwo());  // 先构造临时对象，再将它作为参数传递
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;很不幸，这两条语句都被c++编译器当作函数声明。这是比较容易看出来出错的，还有一些比较复杂的情况，如：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;std::ifstream file(&amp;quot;data.txt&amp;quot;);
+std::string str(std::istream_iterator&amp;lt;char&amp;gt;(file), std::istream_iterator&amp;lt;char&amp;gt;());
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;c++标准规定：在直接初始化的变量声明和函数声明有歧义的情况下，c++编译器始终选择函数声明。&lt;/p&gt;
+&lt;p&gt;为解决这个问题，c++11标准引入直接初始化列表，即以大括号包围初始化参数，以下三个都为变量声明：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;getTwo get_two{};
+std::function&amp;lt;int()&amp;gt; getNumber2{getTwo{}};
+std::string str{std::istream_iterator&amp;lt;char&amp;gt;{file}, std::istream_iterator&amp;lt;char&amp;gt;{}};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;但要注意这个方法也不是十全十美的，如：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;std::vector&amp;lt;int&amp;gt; vec(10, 1);
+std::vector&amp;lt;int&amp;gt; vec{10, 1};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;如果&lt;code&gt;{}&lt;/code&gt;内的变量类型全部一致则可能被当成&lt;code&gt;std::initializer_list&amp;lt;T&amp;gt;&lt;/code&gt;，如果存在以&lt;code&gt;std::initializer_list&amp;lt;T&amp;gt;&lt;/code&gt;为参数的构造函数则优先采用。&lt;/p&gt;
+&lt;h3 id=&#34;lambda表达式&#34;&gt;lambda表达式&lt;/h3&gt;
+&lt;p&gt;lambda表达式即闭包，或称为匿名函数。在c++中，lamdba表达式是能够捕获作用域中的变量的无名函数对象。语法为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;[捕获列表](形参列表) 说明符 -&amp;gt; 返回类型 { 函数体 }
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;其中形参列表、说明符和返回类型都是可选的。&lt;/p&gt;
+&lt;p&gt;简单直观起见，此处使用两个实例来说明lambda表达式和函数对象的对应关系：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;int a;
+std::vector&amp;lt;int&amp;gt; vec;
+
+[a, &amp;amp;vec](int c, const std::vector&amp;lt;int&amp;gt; &amp;amp;d) mutable -&amp;gt; void {
+    a = c;
+    vec = d;
+};
+
+class ClosureType {
+    int a;                  // 复制捕获
+    std::vector&amp;lt;int&amp;gt; &amp;amp;vec;  // 引用捕获
+public:
+   	ClosureType(int a, std::vector&amp;lt;int&amp;gt; &amp;amp;vec) : a{a}, vec{vec} {}
+    
+    void operator()(int c, std::vector&amp;lt;int&amp;gt; &amp;amp;d) {
+        a = c;
+        vec = d;
+    }
+};
+
+
+[a](int b) -&amp;gt; bool { return b &amp;lt; a; };
+
+class ClosureType {
+    int a;
+public:
+    ClosureType(int a) : a{a} {}
+    
+    bool operator()(int b) const {
+        return b &amp;lt; a;
+    }
+};
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;可见，捕获列表中的变量成为函数对象的成员变量，根据复制捕获或者引用捕获的方式来决定成员变量是否为引用类型。参数列表和返回类型分别成为&lt;code&gt;operator()&lt;/code&gt;的参数列表和返回类型。说明符可选&lt;code&gt;mutable&lt;/code&gt;，如果lambda表达式省略&lt;code&gt;mutable&lt;/code&gt;，则&lt;code&gt;operator()&lt;/code&gt;声明为const成员函数，不可更改捕获列表中的变量。&lt;/p&gt;
+&lt;p&gt;lambda的捕获列表除了可以将变量一一列出之外，还可以使用&lt;code&gt;=&lt;/code&gt;和&lt;code&gt;&amp;amp;&lt;/code&gt;捕获当前上下文的所有变量：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;[&amp;amp;]() {};            // 以引用方式捕获所有变量
+[=]() {};            // 以复制方式捕获所有变量
+[&amp;amp;, i]() {};         // i以复制方式捕获，其它变量以引用方式捕获
+[=, &amp;amp;i]() {};        // i以引用方式捕获，其它变量以复制方式捕获
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;如果lambda表达式不接受参数，可以不写参数列表。如果lambda表达式没有返回语句或者只有一条返回语句，可以不写返回类型。&lt;/p&gt;
+&lt;p&gt;例：创建一个自定义比较函数的优先队列&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;queue&amp;gt;
+auto cmp = [](int left, int right) { return left &amp;gt; right; };
+std::priority_queue&amp;lt;int, std::vector&amp;lt;int&amp;gt;, decltype(cmp)&amp;gt; q(cmp);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;例：递归函数&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;std::vector&amp;lt;std::vector&amp;lt;int&amp;gt;&amp;gt; mat(M, std::vector&amp;lt;int&amp;gt;(N));  // MxN的矩阵
+
+std::function&amp;lt;int(int, int)&amp;gt; f;
+f = [&amp;amp;f, &amp;amp;mat, M, N](int i, int j) -&amp;gt; int {
+    int length = 0;
+    if (i &amp;gt; 0 &amp;amp;&amp;amp; mat[i - 1][j] &amp;gt; mat[i][j])
+        length = std::max(length, f(i - 1, j));
+    if (i &amp;lt; M &amp;amp;&amp;amp; mat[i + 1][j] &amp;gt; mat[i][j])
+        length = std::max(length, f(i + 1, j));
+    if (j &amp;gt; 0 &amp;amp;&amp;amp; mat[i][j - 1] &amp;gt; mat[i][j])
+        length = std::max(length, f(i, j - 1));
+    if (j &amp;lt; N &amp;amp;&amp;amp; mat[i][j + 1] &amp;gt; mat[i][j])
+        length = std::max(length, f(i, j + 1));
+    return length + 1;
+};
+
+int max_length = 0;
+for (int i = 0; i &amp;lt; M; ++i) {
+    for (int j = 0; j &amp;lt; N; ++j)
+        max_length = std::max(max_length, f(i, j));
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;需要注意，lambda表达式的类型是闭包类型(&lt;code&gt;ClosureType&lt;/code&gt;)，不是&lt;code&gt;std::function&lt;/code&gt;，因此不能赋值：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;auto cmp = [](int left, int right) { return left &amp;gt; right; };
+cmp = [](int left, int right) { return left &amp;lt; right; };   // error
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&#34;柯里化&#34;&gt;柯里化&lt;/h3&gt;
+&lt;p&gt;柯里化(currying)是将接受多个参数和函数变换成接受一个参数，而返回接受剩余参数的新函数的技术。通俗理解就是对参数列表进行切片：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;int add(int a, int b, int c) {
+    return a + b + c;
+}
+
+std::function&amp;lt;int(int, int)&amp;gt; curried_add(int a) {
+    return [a](int b, int c) { return a + b + c; };
+}
+
+// curried_add只接受一个参数，但需要调用两次
+int c = curried_add(1)(2, 3);  // 6
+
+// 也可以固定某些参数，生成新的函数
+auto add1 = curried_add(1);
+int c = add1(2, 3);            // 6
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在许多时候，我们不想写上面的curried_add这样的函数，而是希望直接将函数的部分参数固定，以得到像add1这样的函数。c++11之前使用bind1st和bind2nd来绑定一个二元函数的参数，c++11之后使用bind来绑定任意函数的任意多个参数，对于未绑定的那些参数，使用占位符替换。&lt;/p&gt;
+&lt;p&gt;bind声明于头文件&lt;code&gt;&amp;lt;functional&amp;gt;&lt;/code&gt;，声明为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;template&amp;lt; class F, class... Args &amp;gt;
+/*unspecified*/ bind( F&amp;amp;&amp;amp; f, Args&amp;amp;&amp;amp;... args );
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;使用方法为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;functional&amp;gt;
+
+int add(int a, int b, int c) {
+    return a + b + c;
+}
+
+auto add1 = std::bind(add, 1, std::placeholders::_1, std::placeholders::_2);
+auto add2 = std::bind(add, std::placeholders::_1, 2, std::placeholders::_2);
+auto add3 = std::bind(add, std::placeholders::_1, std::placeholders::_2, 3);
+
+add1(2, 3);  // 6
+add2(1, 3);  // 6
+add3(1, 2);  // 6
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;通过使用相同的占位符，还可以将两个参数绑定在一起却又不固定：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;auto add1 = std::bind(add, 1, std::placeholders::_1, std::placeholders::_1);
+add1(2);  // 1+2+2=5
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;需要注意，bind的返回类型是实现定义的，不是std::function，但可以转换为std::function：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;std::function&amp;lt;int(int,int)&amp;gt; add1 = std::bind(add, 1, std::placeholders::_1,
+                                             std::placeholders::_2);
+std::function&amp;lt;int(int)&amp;gt; add2 = std::bind(add, 1, std::placeholders::_1,
+                                         std::placeholders::_1);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;例：生成随机数&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;std::function&amp;lt;int(void)&amp;gt; random_function = std::bind(
+        std::uniform_int_distribution&amp;lt;int&amp;gt;(0, 10),
+        std::default_random_engine{std::random_device{}()});
+for (int i = 0; i &amp;lt; 10; ++i)
+    A[i] = random_function();
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2 id=&#34;tbb&#34;&gt;TBB&lt;/h2&gt;
+&lt;p&gt;与OpenMP类似的框架还有微软的PPL(Parallel Patterns Library)和英特尔的TBB(Thread Building Blocks)，PPL和TBB以库的方式提供，不需要其它厂商的额外支持。PPL只能支持visual studio，而TBB是开源软件，可以支持大多数常见的平台和编译器，此处简单介绍TBB库。&lt;/p&gt;
+&lt;h3 id=&#34;例1-向量加法&#34;&gt;例1、向量加法&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// 文件：vector_add_tbb.cpp
+#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;vector&amp;gt;
+#include &amp;lt;tbb/blocked_range.h&amp;gt;
+#include &amp;lt;tbb/parallel_for.h&amp;gt;
+
+int main() {
+    const int n = 10;
+    std::vector&amp;lt;int&amp;gt; v1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector&amp;lt;int&amp;gt; v2 = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+    std::vector&amp;lt;int&amp;gt; v3(n);
+
+    tbb::parallel_for(tbb::blocked_range&amp;lt;int&amp;gt;(0, n),
+            [&amp;amp;v1, &amp;amp;v2, &amp;amp;v3](const tbb::blocked_range&amp;lt;int&amp;gt; &amp;amp;range) {
+                for (int i = range.begin(); i != range.end(); ++i)
+                    v3[i] = v1[i] + v2[i];
+            }
+    );
+
+    for (int i = 0; i &amp;lt; n; ++i)
+        std::cout &amp;lt;&amp;lt; v3[i] &amp;lt;&amp;lt; &amp;quot; &amp;quot;;
+    std::cout &amp;lt;&amp;lt; std::endl;
+
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;编译命令：&lt;code&gt;g++ -std=c++11 vector_add_tbb.cpp -o vector_add_tbb -ltbb&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;执行：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ ./vector_add_tbb
+11 11 11 11 11 11 11 11 11 11
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&#34;例2-向量内积&#34;&gt;例2、向量内积&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// 文件：vector_dot_tbb.cpp
+#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;vector&amp;gt;
+#include &amp;lt;tbb/blocked_range.h&amp;gt;
+#include &amp;lt;tbb/parallel_reduce.h&amp;gt;
+
+int main() {
+    const int n = 10;
+    std::vector&amp;lt;int&amp;gt; v1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector&amp;lt;int&amp;gt; v2 = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+
+    int sum = tbb::parallel_reduce(tbb::blocked_range&amp;lt;int&amp;gt;(0, n), 0,
+            [&amp;amp;v1, &amp;amp;v2](const tbb::blocked_range&amp;lt;int&amp;gt; &amp;amp;range, int s) -&amp;gt; int {
+                for (int i = range.begin(); i != range.end(); ++i)
+                    s += v1[i] * v2[i];
+                return s;
+            },
+            [](int s1, int s2) -&amp;gt; int { return s1 + s2; }
+    );
+
+    std::cout &amp;lt;&amp;lt; sum &amp;lt;&amp;lt; std::endl;
+
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;编译：&lt;code&gt;g++ -std=c++11 vector_dot_tbb.cpp -o vector_dot_tbb -ltbb&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;执行：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ ./vector_dot_tbb
+220
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&#34;例3-求最大值&#34;&gt;例3、求最大值&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;vector&amp;gt;
+#include &amp;lt;algorithm&amp;gt;
+#include &amp;lt;random&amp;gt;
+#include &amp;lt;limits&amp;gt;
+#include &amp;lt;functional&amp;gt;
+#include &amp;lt;tbb/blocked_range.h&amp;gt;
+#include &amp;lt;tbb/parallel_reduce.h&amp;gt;
+
+std::ostream &amp;amp;operator&amp;lt;&amp;lt;(std::ostream &amp;amp;out, const std::vector&amp;lt;int&amp;gt; &amp;amp;vec) {
+    if (vec.empty())
+        return out;
+    for (int i = 0; i + 1 &amp;lt; vec.size(); ++i)
+        out &amp;lt;&amp;lt; vec[i] &amp;lt;&amp;lt; &amp;quot;, &amp;quot;;
+    return out &amp;lt;&amp;lt; vec.back();
+}
+
+int main() {
+    const int N = 16;
+    std::vector&amp;lt;int&amp;gt; nums(N);
+
+    std::function&amp;lt;int(void)&amp;gt; random_function = std::bind(
+        std::uniform_int_distribution&amp;lt;int&amp;gt;(0, 100),
+        std::default_random_engine{std::random_device{}()});
+
+    std::generate(nums.begin(), nums.end(), random_function);
+    std::cout &amp;lt;&amp;lt; &amp;quot;numbers: &amp;quot; &amp;lt;&amp;lt; nums &amp;lt;&amp;lt; std::endl;
+
+    int max_value = tbb::parallel_reduce(
+        tbb::blocked_range&amp;lt;int&amp;gt;(0, nums.size()),
+        std::numeric_limits&amp;lt;int&amp;gt;::min(),
+        [&amp;amp;nums](const tbb::blocked_range&amp;lt;int&amp;gt; &amp;amp;range, int max_value) -&amp;gt; int {
+            for (int i = range.begin(); i != range.end(); ++i)
+                max_value = std::max(max_value, nums[i]);
+            return max_value;
+        },
+        [](int a, int b) -&amp;gt; int {
+            return a &amp;gt; b ? a : b;
+        }
+    );
+
+    std::cout &amp;lt;&amp;lt; &amp;quot;max value: &amp;quot; &amp;lt;&amp;lt; max_value &amp;lt;&amp;lt; std::endl;
+
+    // return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;执行结果：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;numbers: 50, 36, 20, 81, 98, 55, 62, 98, 39, 2, 1, 26, 45, 25, 48, 93
+max value: 98
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;TBB比OpenMP的抽象层次更高，更适合c++程序设计，除parallel_for和parallel_reduce以外，还提供了parallel_pipline、parallel_sort、parallel_scan、concurrent_unordered_map、concurrent_queue和concurrent_vector等并行算法或并发容器，可以大大节省程序员的精力。对于一些精细控制的任务，TBB不合适的，可以搭配OpenMP使用。&lt;/p&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;p&gt;[1] TBB文档：https://software.intel.com/content/www/us/en/develop/documentation/tbb-documentation/top.html.&lt;/p&gt;
+">c++函数式编程与TBB教程</a>
+      </div>
+      
+      <div class="item">
+        <a class="result-title" style="opacity: 0;" href="https://w-jin.github.io/post/openmp-jiao-cheng/"" data-c="
+          &lt;h2 id=&#34;openmp&#34;&gt;OpenMP&lt;/h2&gt;
+&lt;p&gt;OpenMP (Open Multi-Processing)是一套支持跨平台共享内存方式的多线程并发的编程API，使用C,C++和Fortran语言，可以在大多数的处理器体系和操作系统中运行。OpenMP包括一套编译器指令、库和一些能够影响运行行为的环境变量。OpenMP采用#pragma omp来控制线程，即使用c/c++标准留给编译器厂商的实现定义行为控制语法来实现，因此OpenMP标准针对的是编译器厂商。要确定某个平台是否支持OpenMP，只需要看是否有支持OpenMP的编译器，如windows的visual studio编译器只支持OpenMP 2.0，而最新版的OpenMP标准为OpenMP5.0，因此windows平台对OpenMP的支持不太友好。&lt;/p&gt;
+&lt;h3 id=&#34;例1-向量加法&#34;&gt;例1、向量加法&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// 文件：vector_add_omp.cpp
+#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;vector&amp;gt;
+
+int main() {
+    const int n = 10;
+    std::vector&amp;lt;int&amp;gt; v1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector&amp;lt;int&amp;gt; v2 = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+    std::vector&amp;lt;int&amp;gt; v3(n);
+
+    #pragma omp parallel for
+    for (int i = 0; i &amp;lt; n; ++i)
+        v3[i] = v1[i] + v2[i];
+
+    for (int i = 0; i &amp;lt; n; ++i)
+        std::cout &amp;lt;&amp;lt; v3[i] &amp;lt;&amp;lt; &amp;quot; &amp;quot;;
+    std::cout &amp;lt;&amp;lt; std::endl;
+
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;编译：&lt;code&gt;g++ -fopenmp vector_add_omp.cpp -o vector_add_omp&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;执行：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ ./vector_add_omp
+11 11 11 11 11 11 11 11 11 11
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;OpenMP采用fork/join并行模式，程序开始时只有一个主线程，程序中的串行部分由主线程执行，并行部分派生其它线程共同执行，所有线程执行完毕后才会退出并行区域，因此在输出v3时可以确保已经计算完成。&lt;/p&gt;
+&lt;p&gt;parallel for中循环小括号内的语句必须按照一定的规范书写才能并行：&lt;/p&gt;
+&lt;p&gt;(1) 第一条语句是循环变量初始化的语句，必须写成&amp;quot;变量=初值&amp;quot;的形式。如i=0。&lt;/p&gt;
+&lt;p&gt;(2) 第二条语句是循环限制语句，必须为这4种形式之一：&lt;code&gt;i &amp;lt; n、 i &amp;lt;= n、 i &amp;gt; n、 i&amp;gt;= n&lt;/code&gt;。需要注意循环中不能有影响循环次数的语句，如break语句或者改变循环变量的语句。&lt;/p&gt;
+&lt;p&gt;(3) 第三条语句改变循环变量，必须写成这9种形式之一：&lt;code&gt;i++、++i、i--、--i、i += inc、i -= inc、i = i + inc、i = i - inc、i = inc + i&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;此外，还需要注意的是，程序中的变量有共享和线程私有之分，在parallel for中，凡是for循环中声明的变量都是线程私有的，每个线程都有一份，而for循环外声明的为所有线程共享的。&lt;/p&gt;
+&lt;h3 id=&#34;例2-向量内积&#34;&gt;例2、向量内积&lt;/h3&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// 文件：vector_dot_omp.cpp
+#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;vector&amp;gt;
+
+int main() {
+    const int n = 10;
+    std::vector&amp;lt;int&amp;gt; v1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector&amp;lt;int&amp;gt; v2 = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+
+    int sum = 0;
+
+    #pragma omp parallel for reduction(+:sum)
+    for (int i = 0; i &amp;lt; n; ++i)
+        sum += v1[i] * v2[i];
+
+    std::cout &amp;lt;&amp;lt; sum &amp;lt;&amp;lt; std::endl;
+
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;编译：&lt;code&gt;g++ -fopenmp vector_dot_omp.cpp -o vector_dot_omp&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;执行：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ ./vector_dot_omp
+220
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;reduction对一个或多个变量指定一个操作符，每个线程将创建变量的一个私有拷贝，在区域结束处，用指定的操作符将私有拷贝的值进行归约，然后用归约的结果更新原来的变量。如vector_dot_omp.cpp中，每个线程中都有自己的局部变量sum，然后计算一部分和，最后将所有的部分和相加，更新共享的变量sum。&lt;/p&gt;
+&lt;p&gt;reduction支持8种操作符，创建私有变量时使用的初始值依赖于操作符，如下表所示：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;操作符&lt;/th&gt;
+&lt;th&gt;+&lt;/th&gt;
+&lt;th&gt;-&lt;/th&gt;
+&lt;th&gt;*&lt;/th&gt;
+&lt;th&gt;&amp;amp;&lt;/th&gt;
+&lt;th&gt;|&lt;/th&gt;
+&lt;th&gt;^&lt;/th&gt;
+&lt;th&gt;&amp;amp;&amp;amp;&lt;/th&gt;
+&lt;th&gt;||&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;初始值&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;~0&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;td&gt;1&lt;/td&gt;
+&lt;td&gt;0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;显然，分段后的计算结果要与串行结果相同，使用的运算必须满足交换率和结合率，减法是不满足这两条性质的，而上表却出现了减法，这是因为此处的减法和加法的效果基本相同，使用场合为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#pragma omp parallel for reduction(-:sum)
+for (int i = 0; i &amp;lt; n; ++i)
+    sum -= v1[i] * v2[i];
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;它和下面的代码计算结果实际上是相同的：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#pragma omp parallel for reduction(+:sum)
+for (int i = 0; i &amp;lt; n; ++i)
+    sum -= v1[i] * v2[i];
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&#34;openmp指令&#34;&gt;OpenMP指令&lt;/h3&gt;
+&lt;p&gt;在c/c++中，OpenMP的基本使用方法为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#pragma omp directives [clause[[,] clause] ... ]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;OpenMP的指令有：&lt;code&gt;parallel, for, sections, critical&lt;/code&gt;等。&lt;/p&gt;
+&lt;h4 id=&#34;parallel指令&#34;&gt;parallel指令&lt;/h4&gt;
+&lt;p&gt;parallel指令用于定义一个并行执行的代码块。如：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;cstdio&amp;gt;
+#include &amp;lt;omp.h&amp;gt;
+
+int main() {
+    #pragma omp parallel
+    {
+        int i = omp_get_thread_num();
+        
+        // 连续cout不是线程安全的，只能使用printf
+        // std::cout &amp;lt;&amp;lt; &amp;quot;Hello from thread &amp;quot; &amp;lt;&amp;lt; i &amp;lt;&amp;lt; &amp;quot;\n&amp;quot;;
+        printf(&amp;quot;Hello from thread %d\n&amp;quot;, i);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;执行结果：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;Hello from thread 6
+Hello from thread 3
+Hello from thread 4
+Hello from thread 1
+Hello from thread 0
+Hello from thread 5
+Hello from thread 7
+Hello from thread 2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4 id=&#34;for指令&#34;&gt;for指令&lt;/h4&gt;
+&lt;p&gt;for指令的语法为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#pragma omp [parallel] for [clauses]
+for_statement
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;如果不加parallel，后面所跟的for循环只在某一个线程内运行，而如果出现在parallel声明的块内则相当于parallel for。如：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;cstdio&amp;gt;
+#include &amp;lt;vector&amp;gt;
+
+int main() {
+    #pragma omp for
+    for (int i = 0; i &amp;lt; 4; ++i)
+        printf(&amp;quot;%d &amp;quot;, i);
+    printf(&amp;quot;\n&amp;quot;);
+
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for (int i = 0; i &amp;lt; 4; ++i)
+            printf(&amp;quot;%d &amp;quot;, i);
+    }
+    printf(&amp;quot;\n&amp;quot;);
+
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;执行结果为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;0 1 2 3 
+0 3 1 2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4 id=&#34;sections指令&#34;&gt;sections指令&lt;/h4&gt;
+&lt;p&gt;sections指令用于指定分别在多个线程内执行的代码块，语法为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#pragma omp [parallel] sections [clauses]
+{
+    #pragma omp section
+    {
+        code_block
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;cstdio&amp;gt;
+#include &amp;lt;omp.h&amp;gt;
+
+int main() {
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        printf(&amp;quot;section1, thread id is %d\n&amp;quot;, omp_get_thread_num());
+
+        #pragma omp section
+        printf(&amp;quot;section2, thread id is %d\n&amp;quot;, omp_get_thread_num());
+
+        #pragma omp section
+        printf(&amp;quot;section3, thread id is %d\n&amp;quot;, omp_get_thread_num());
+
+        #pragma omp section
+        printf(&amp;quot;section4, thread id is %d\n&amp;quot;, omp_get_thread_num());
+    }
+
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;执行结果为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;section 3, thread id is 5
+section 1, thread id is 6
+section 2, thread id is 1
+section 4, thread id is 7
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;可见的确是在不同的线程中执行的。&lt;/p&gt;
+&lt;h4 id=&#34;critical指令&#34;&gt;critical指令&lt;/h4&gt;
+&lt;p&gt;critical指令用于指定一个代码块为临界区。语法为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#pragma omp critical [(name)]
+{
+    code_block
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;vector&amp;gt;
+
+int main() {
+    std::vector&amp;lt;int&amp;gt; nums = {2, 3, 12, 43, 4, 21, 54, 35, 34, 5, 2435, 3425, 34, 5};
+
+    int max = nums[0];
+
+    #pragma omp parallel for
+    for (int i = 1; i &amp;lt; nums.size(); ++i) {
+        if (nums[i] &amp;gt; max) {
+            #pragma omp critical
+            {
+                if (nums[i] &amp;gt; max)
+                    max = nums[i];
+            }
+        }
+    }
+
+    std::cout &amp;lt;&amp;lt; max &amp;lt;&amp;lt; std::endl;
+
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;执行结果为：3425&lt;/p&gt;
+&lt;p&gt;这个程序设计得不好，求最大值或者最小值显然是满足交换率和结合率的，应当使用归约来求。&lt;/p&gt;
+&lt;h3 id=&#34;openmp子句&#34;&gt;OpenMP子句&lt;/h3&gt;
+&lt;p&gt;在c/c++中，OpenMP的基本使用方法为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#pragma omp directives [clause[[,] clause] ... ]
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;OpenMP子句有：&lt;code&gt;if, num_threads, private, reduction&lt;/code&gt;等。&lt;/p&gt;
+&lt;h4 id=&#34;if子句&#34;&gt;if子句&lt;/h4&gt;
+&lt;p&gt;if子句用于指定接下来的代码块是否并行，可以出现在parallel、for和sections后面。如：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;std::vector&amp;lt;int&amp;gt; add(const std::vector&amp;lt;int&amp;gt; &amp;amp;v1,
+                     const std::vector&amp;lt;int&amp;gt; &amp;amp;v2,
+                     bool parallel = true) {
+    std::vector&amp;lt;int&amp;gt; v3(v1.size());
+    
+    #pragma omp parallel for if (parallel)
+    for (int i = 0; i &amp;lt; v1.size(); ++i)
+        v3[i] = v1[i] + v2[i];
+    
+    return v3;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;当传入的参数parallel为false时两个向量执行串行加法。&lt;/p&gt;
+&lt;h4 id=&#34;num_threads子句&#34;&gt;num_threads子句&lt;/h4&gt;
+&lt;p&gt;num_threads子句用于指定并行的线程数量，可以出现在parallel、for和sections后面。如sections指令一节的示例程序输出结果的线程编号不是预期的0, 1, 2, 3的排列，这是因为默认使用8个线程进行并行，将其改成4个线程：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#pragma omp parallel sections num_threads(4)
+{
+    #pragma omp section
+    printf(&amp;quot;section1, thread id is %d\n&amp;quot;, omp_get_thread_num());
+    
+    #pragma omp section
+    printf(&amp;quot;section2, thread id is %d\n&amp;quot;, omp_get_thread_num());
+    
+    #pragma omp section
+    printf(&amp;quot;section3, thread id is %d\n&amp;quot;, omp_get_thread_num());
+    
+    #pragma omp section
+    printf(&amp;quot;section4, thread id is %d\n&amp;quot;, omp_get_thread_num());
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;执行结果为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;section4, thread id is 3
+section3, thread id is 2
+section2, thread id is 0
+section1, thread id is 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4 id=&#34;private子句&#34;&gt;private子句&lt;/h4&gt;
+&lt;p&gt;private子句用于将一个或多个变量声明成线程私有的变量，线程间无法相互访问这个变量，也无法访问并行区域外的同名共享变量。例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;int n = 1;
+#pragma omp parallel for private(n)
+for (n = 8; n &amp;lt; 12; ++n)
+    printf(&amp;quot;%d\n&amp;quot;, n);
+printf(&amp;quot;%d\n&amp;quot;, n);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;执行结果为：&lt;code&gt;8 11 10 9 1&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;因此以private声明的变量和并行区域外的同名变量没有任何联系。&lt;/p&gt;
+&lt;h4 id=&#34;reduction子句&#34;&gt;reduction子句&lt;/h4&gt;
+&lt;p&gt;reduction的功能如例2所述，可以出现在parallel、for和sections之后。&lt;/p&gt;
+&lt;h3 id=&#34;openmp函数&#34;&gt;OpenMP函数&lt;/h3&gt;
+&lt;p&gt;在c/c++中，使用OpenMP的函数需要包含头文件&amp;lt;omp.h&amp;gt;。以下为一个简单的函数列表：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// 设置并行区域线程数
+void omp_set_num_threads(int _Num_threads);
+
+// 返回当前线程数目，在串行代码中调用将返回1
+int omp_get_num_threads(void);
+
+// 返回程序的最大可用线程数量
+int omp_get_max_threads(void);
+
+// 返回当前线程id，从0开始编号
+int omp_get_thread_num(void);
+
+// 返回程序可用的处理器数
+int omp_get_num_procs(void);
+
+// 启用或禁用可用线程数的动态调整(缺省情况下启用动态调整)。
+void omp_set_dynamic(int _Dynamic_threads);
+
+// 确定在程序中此处是否启用了动态线程调整。
+int omp_get_dynamic(void);
+
+// 确定线程是否在并行区域的动态范围内执行
+int omp_in_parallel(void);
+
+// 启用或禁用嵌套并行操作
+void omp_set_nested(int _Nested);
+
+// 确定在程序中此处是否启用了嵌套并行操作
+int omp_get_nested(void);
+
+
+// 初始化一个（嵌套）互斥锁
+void omp_init_lock(omp_lock_t * _Lock);
+void omp_init_nest_lock(omp_nest_lock_t * _Lock);
+
+// 销毁一个（嵌套）互斥锁并释放内存
+void omp_destroy_lock(omp_lock_t * _Lock);
+void omp_destroy_nest_lock(omp_nest_lock_t * _Lock);
+
+// 获得一个（嵌套）互斥锁
+void omp_set_lock(omp_lock_t * _Lock);
+void omp_set_nest_lock(omp_nest_lock_t * _Lock);
+
+// 释放一个（嵌套）互斥锁
+void omp_unset_lock(omp_lock_t * _Lock);
+void omp_unset_nest_lock(omp_nest_lock_t * _Lock);
+
+// 试图获得一个（嵌套）互斥锁，并在成功时放回真，失败时返回假
+int omp_test_lock(omp_lock_t * _Lock);
+int omp_test_nest_lock(omp_nest_lock_t * _Lock);
+
+// 从过去的某一时刻经历的时间，一般用于成对出现，进行时间比较
+double omp_get_wtime(void);
+
+// 得到clock ticks的秒数
+double omp_get_wtick(void);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;例：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;#include &amp;lt;iostream&amp;gt;
+#include &amp;lt;vector&amp;gt;
+#include &amp;lt;random&amp;gt;
+#include &amp;lt;omp.h&amp;gt;
+
+int main() {
+    const int N = 100000000;   // 一亿
+    std::vector&amp;lt;double&amp;gt; A(N);
+
+    std::uniform_real_distribution&amp;lt;double&amp;gt; dist(0, 10);
+    std::random_device rd;
+
+    double start = 0;
+    double end = 0;
+    double elapsed = 0;
+
+    // 串行
+    start = omp_get_wtime();
+    std::default_random_engine re{rd()};
+    for (int i = 0; i &amp;lt; N; i++)
+        A[i] = dist(re);
+    end = omp_get_wtime();
+    elapsed = end - start;
+    std::cout &amp;lt;&amp;lt; &amp;quot;generate &amp;quot; &amp;lt;&amp;lt; N &amp;lt;&amp;lt; &amp;quot; numbers in series elapsed: &amp;quot;
+              &amp;lt;&amp;lt; elapsed &amp;lt;&amp;lt; &amp;quot; s&amp;quot; &amp;lt;&amp;lt; std::endl;
+
+    // 并行
+    start = omp_get_wtime();        
+    #pragma omp parallel
+    {
+        int num_threads = omp_get_num_threads(); 
+        std::default_random_engine re{rd()};
+        for (int i = omp_get_thread_num(); i &amp;lt; N; i += num_threads)
+            A[i] = dist(re);
+    }
+    end = omp_get_wtime();
+    elapsed = end - start;
+    std::cout &amp;lt;&amp;lt; &amp;quot;generate &amp;quot; &amp;lt;&amp;lt; N &amp;lt;&amp;lt; &amp;quot; numbers in parallel elapsed: &amp;quot;
+              &amp;lt;&amp;lt; elapsed &amp;lt;&amp;lt; &amp;quot; s&amp;quot; &amp;lt;&amp;lt; std::endl;
+    
+    return 0;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;执行结果为：&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;generate 100000000 numbers in series elapsed: 6.45648 s
+generate 100000000 numbers in parallel elapsed: 1.18125 s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&#34;参考&#34;&gt;参考&lt;/h3&gt;
+&lt;p&gt;[1] OpenMP标准：https://www.openmp.org/wp-content/uploads/OpenMP-API-Specification-5.0.pdf.&lt;/p&gt;
+">OpenMP教程</a>
+      </div>
       
       <div class="item">
         <a class="result-title" style="opacity: 0;" href="https://w-jin.github.io/post/dui/"" data-c="

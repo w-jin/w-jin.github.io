@@ -8,7 +8,7 @@
 <meta name="keywords" content="Gridea静态个人博客">
 <meta name="description" content="不怕风似快刀，不怕沙尘障路，少年汉莫低首，相伴同求道">
 <meta name="theme-color" content="#000">
-<title>wjin</title>
+<title>c++函数式编程与TBB教程 | wjin</title>
 <link rel="shortcut icon" href="/favicon.ico?v=1595949324211">
 <link rel="stylesheet" href="/media/css/pisces.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
@@ -38,6 +38,8 @@
 
 
 
+  <meta name="description" content="c++函数式编程与TBB教程" />
+  <meta name="keywords" content="TBB,并行计算" />
 </head>
 
 <body>
@@ -170,10 +172,26 @@
   <div class="main-continer">
     
     <div
-      class="section-layout  pisces">
+      class="section-layout pisces ">
       <div class="section-layout-wrapper">
-        <div id="sidebarMeta" class="sidebar">
-    
+        
+
+<div class="sidebar">
+  
+    <div class="sidebar-box box-shadow-wrapper bg-color right-motion" id="sidebar">
+      
+        <div class="post-list-sidebar">
+          <div class="sidebar-title">
+            <span id="tocSideBar" class="sidebar-title-item sidebar-title-active language" data-lan="index">文章目录</span>
+            <span id="metaSideBar" class="sidebar-title-item language" data-lan="preview">站点概览</span>
+          </div>
+        </div>
+      
+      <div class="sidebar-body pisces" id="sidebar_body">
+        
+          
+            <div class="post-side-meta" id="post_side_meta">
+              
 <div class="sidebar-wrapper box-shadow-wrapper bg-color">
   <div class="sidebar-item">
     <img class="site-author-image right-motion" src="/images/avatar.png"/>
@@ -209,90 +227,811 @@
 
 
 </div>
+            </div>
+            <div class="post-toc sidebar-body-active" id="post_toc" style="opacity: 1;">
+              <div class="toc-box right-motion">
+  <div class="toc-wrapper auto-number auto"
+    id="toc_wrapper">
+    <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#c%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B">c++函数式编程</a>
+<ul>
+<li><a href="#%E5%87%BD%E6%95%B0%E5%AF%B9%E8%B1%A1">函数对象</a>
+<ul>
+<li><a href="#%E9%9A%8F%E6%9C%BA%E6%95%B0%E7%94%9F%E6%88%90">随机数生成</a></li>
+</ul>
+</li>
+<li><a href="#%E5%87%BD%E6%95%B0%E5%8C%85%E8%A3%85%E5%99%A8">函数包装器</a>
+<ul>
+<li><a href="#%E9%A2%98%E5%A4%96%E8%AF%9D">题外话</a></li>
+</ul>
+</li>
+<li><a href="#lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F">lambda表达式</a></li>
+<li><a href="#%E6%9F%AF%E9%87%8C%E5%8C%96">柯里化</a></li>
+</ul>
+</li>
+<li><a href="#tbb">TBB</a>
+<ul>
+<li><a href="#%E4%BE%8B1-%E5%90%91%E9%87%8F%E5%8A%A0%E6%B3%95">例1、向量加法</a></li>
+<li><a href="#%E4%BE%8B2-%E5%90%91%E9%87%8F%E5%86%85%E7%A7%AF">例2、向量内积</a></li>
+<li><a href="#%E4%BE%8B3-%E6%B1%82%E6%9C%80%E5%A4%A7%E5%80%BC">例3、求最大值</a></li>
+<li><a href="#%E5%8F%82%E8%80%83">参考</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
 </div>
+
 <script>
-  let sidebarMeta = document.querySelector('#sidebarMeta');
-  let scheme = 'pisces';
-  let sidebarWrapper = document.querySelector('.sidebar-wrapper');
-  if (sidebarMeta && (scheme === 'pisces' || scheme === 'gemini')) {
-    document.addEventListener('scroll', function(e) {
-      if (document.scrollingElement.scrollTop > parseInt(sidebarMeta.style.marginTop) + 10) {
-        sidebarWrapper.classList.add('home-sidebar-fixed')
-      } else {
-        sidebarWrapper.classList.remove('home-sidebar-fixed')
+
+  let lastTop = 0, lList = [], hList = [], postBody, lastIndex = -1;
+  let active = 'active-show', activeClass = 'active-current';
+  let tocWrapper = document.querySelector('#toc_wrapper');
+  let tocContent = tocWrapper.children[0];
+  let autoNumber = tocWrapper && tocWrapper.classList.contains('auto-number');
+
+  function addTocNumber(elem, deep) {
+    if (!elem) {
+      return;
+    }
+    let prop = elem.__proto__;
+
+    if (prop === HTMLUListElement.prototype) {
+      for (let i = 0; i < elem.children.length; i++) {
+        addTocNumber(elem.children[i], deep + (i + 1) + '.');
       }
+    } else if (prop === HTMLLIElement.prototype) {
+      // 保存li元素
+      if (elem.children[0] && elem.children[0].__proto__ === HTMLAnchorElement.prototype) {
+        lList.push(elem);
+      }
+      for (let i = 0; i < elem.children.length; i++) {
+        let cur = elem.children[i];
+        if (cur.__proto__ === HTMLAnchorElement.prototype) {
+          if (autoNumber) {
+            cur.text = deep + ' ' + cur.text;
+          }
+        } else if (cur.__proto__ === HTMLUListElement.prototype) {
+          addTocNumber(cur, deep);
+        }
+      }
+    }
+  }
+
+  function removeParentActiveClass() {
+    let parents = tocContent.querySelectorAll('.' + active)
+    parents.forEach(function (elem) {
+      elem.classList.remove(active);
     });
   }
-  </script>
-        <div class="section-box tag-line box-shadow-wrapper">
-          <section class="section tags-section posts-expand bg-color">
-            <div class="padding-wrapper">
-  <div class="tag-timeline-box">
-    <div class="tag-timeline-wrapper">
-      <div class="tag-timeline-title">
-        <h2>
-          algorithm
-          <small class="language" data-lan="tag">标签</small>
-        </h2>
+
+  function addActiveClass(index) {
+    if (index >= 0 && index < hList.length) {
+      lList[index].classList.add(activeClass);
+    }
+  }
+
+  function removeActiveClass(index) {
+    if (index >= 0 && index < hList.length) {
+      lList[index].classList.remove(activeClass);
+    }
+  }
+
+  function addActiveLiElemment(elem, parent) {
+    if (!elem || elem === parent) {
+      return;
+    } else {
+      if (elem.__proto__ === HTMLLIElement.prototype) {
+        elem.classList.add(active);
+      }
+      addActiveLiElemment(elem.parentElement, parent);
+    }
+  }
+
+  function showToc() {
+    if (tocWrapper) {
+      postBody = document.querySelector('#post_body');
+      for (let i = 0; i < postBody.children.length; i++) {
+        if (postBody.children[i].__proto__ === HTMLHeadingElement.prototype) {
+          hList.push(postBody.children[i]);
+        }
+      }
+      if (tocWrapper.classList.contains('compress')) {
+        tocContent.classList.add('closed');
+      } else if (tocWrapper.classList.contains('no_compress')) {
+        tocContent.classList.add('expanded');
+      } else {
+        if (hList.length > 10) {
+          active = 'active-hidden'
+          tocContent.classList.add('closed');
+        } else {
+          tocContent.classList.add('expanded');
+        }
+      }
+    }
+  }
+
+  (function () {
+    // 处理不是从#一级标题开始目录
+    if (tocContent.children.length === 1 && tocContent.children[0].__proto__ === HTMLLIElement.prototype) {
+      let con = tocContent.children[0].children[0];
+      tocContent.innerHTML = con.innerHTML;
+    }
+    let markdownItTOC = document.querySelector('.markdownIt-TOC');
+    let innerHeight = window.innerHeight;
+    markdownItTOC.style = `max-height: ${innerHeight - 80 > 0 ? innerHeight - 80 : innerHeight}px`
+    addTocNumber(tocContent, '');
+  })();
+
+  document.addEventListener('scroll', function (e) {
+    if (lList.length <= 0) {
+      return;
+    }
+    let scrollTop = document.scrollingElement.scrollTop + 10;
+    let dir;
+
+    if (lastTop - scrollTop > 0) {
+      dir = 'up';
+    } else {
+      dir = 'down';
+    }
+
+    lastTop = scrollTop;
+    if (scrollTop <= 0) {
+      if (lastIndex >= 0 && lastIndex < hList.length) {
+        lList[lastIndex].classList.remove(activeClass);
+      }
+      return;
+    }
+
+    let current = 0, hasFind = false;
+    for (let i = 0; i < hList.length; i++) {
+      if (hList[i].offsetTop > scrollTop) {
+        current = i;
+        hasFind = true;
+        break;
+      }
+    }
+    if (!hasFind && scrollTop > lList[lList.length - 1].offsetTop) {
+      current = hList.length - 1;
+    } else {
+      current--;
+    }
+    if (dir === 'down') {
+      if (current > lastIndex) {
+        addActiveClass(current);
+        removeActiveClass(lastIndex)
+        lastIndex = current;
+        removeParentActiveClass();
+        lList[current] && addActiveLiElemment(lList[current].parentElement, tocContent);
+      }
+    } else {
+      if (current < lastIndex) {
+        addActiveClass(current);
+        removeActiveClass(lastIndex);
+        lastIndex = current;
+        removeParentActiveClass();
+        lList[current] && addActiveLiElemment(lList[current].parentElement, tocContent);
+      }
+    }
+  });
+
+
+  window.addEventListener('load', function () {
+    showToc();
+    document.querySelector('#sidebar').style = 'display: block;';
+    tocWrapper.classList.add('toc-active');
+    setTimeout(function () {
+      if ("createEvent" in document) {
+        let evt = document.createEvent("HTMLEvents");
+        evt.initEvent("scroll", false, true);
+        document.dispatchEvent(evt);
+      }
+      else {
+        document.fireEvent("scroll");
+      }
+    }, 500)
+  })
+
+</script>
+            </div>
+          
+        
       </div>
+    </div>
+  
+</div>
+<script>
+  const SIDEBAR_TITLE_ACTIVE = 'sidebar-title-active';
+  const SIDEBAR_BODY_ACTIVE = 'sidebar-body-active';
+  const SLIDE_UP_IN = 'slide-up-in';
+
+  let sidebar = document.querySelector('#sidebar'),
+  tocSideBar = document.querySelector('#tocSideBar'),
+  metaSideBar = document.querySelector('#metaSideBar'),
+  postToc = document.querySelector('#post_toc'),
+  postSiteMeta = document.querySelector('#post_side_meta'),
+  sidebarTitle = document.querySelector('.sidebar-title'),
+  sidebarBody = document.querySelector('#sidebar_body');
+
+  tocSideBar && tocSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  metaSideBar && metaSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  function toggleSidebar(e) {
+    let currentTitle = document.querySelector("."+SIDEBAR_TITLE_ACTIVE);
+    if (currentTitle == e.srcElement) {
+      return ;
+    }
+    let current, showElement, hideElement;
+    if (e.srcElement == metaSideBar) {
+      showElement = postSiteMeta;
+      hideElement = postToc;
+    } else if (e.srcElement == tocSideBar){
+      showElement = postToc;
+      hideElement = postSiteMeta;
+    }
+    currentTitle.classList.remove(SIDEBAR_TITLE_ACTIVE);
+    e.srcElement.classList.add(SIDEBAR_TITLE_ACTIVE);
+
+    window.Velocity(hideElement, 'stop');
+    window.Velocity(hideElement, 'transition.slideUpOut', {
+      display: 'none',
+      duration: 200,
+      complete: function () {
+        window.Velocity(showElement, 'transition.slideDownIn', {
+          duration: 200
+        });
+      }
+    })
+    hideElement.classList.remove(SIDEBAR_BODY_ACTIVE);
+    showElement.classList.add(SIDEBAR_BODY_ACTIVE);
+  }
+
+  postToc && postToc.addEventListener('transitionend', function() {
+    this.classList.remove(SLIDE_UP_IN);
+  });
+
+  if (sidebarBody) {
+    if (sidebarBody.classList.contains('pisces') || sidebarBody.classList.contains('gemini')) {
+      let hasFix = false;
+      let scrollEl = document.querySelector('.main-continer');
+      let limitTop = document.querySelector('#nav_ul').children.length * 42 + 162;
+      window.addEventListener('scroll', function(e) {
+        if (document.scrollingElement.scrollTop >= limitTop) {
+          if (!hasFix) {
+            sidebar.classList.add('sidebar-fixed');
+            hasFix = true;
+          }
+        } else {
+          if (hasFix) {
+            sidebar.classList.remove('sidebar-fixed');
+            hasFix = false;
+          }
+        }
+      });
+    }
+  }
+  
+</script>
+        <div class="section-box box-shadow-wrapper">
+          <div class="section bg-color post post-page">
+            <section class="post-header">
+  <h1 class="post-title">
+    <a class="post-title-link" href="https://w-jin.github.io/post/chan-shu-shi-bian-cheng-ru-men-yu-tbb-jiao-cheng/">
+      c++函数式编程与TBB教程
+    </a>
+  </h1>
+  <div class="post-meta">
+    
+    <span class="meta-item pc-show">
+      <i class="fa fa-calendar-o"></i>
+      <span class="language" data-lan="publish">发布于</span>
+      <span class="publish-time" data-t="2020-07-28 22:00:53">2020-07-28</span>
+      <span class="post-meta-divider pc-show">|</span>
+    </span>
+    
+    <span class="meta-item">
+      <i class="fa fa-folder-o"></i>
+      <span class="pc-show language" data-lan="category-in">分类于</span>
+      
+      
+      <a href="https://w-jin.github.io/tag/OLAqdU98X/">
+        <span>TBB</span>
+      </a>、
       
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      <a href="https://w-jin.github.io/post/ping-heng-er-cha-shu/">
-        <div class="motion-warpper">
-          <div class="tag-post-node">
-            <h1>
-              07-07
-              <small>平衡二叉树</small>
-            </h1>
-          </div>
-        </div>
+      <a href="https://w-jin.github.io/tag/7zC-V_mDy/">
+        <span>并行计算</span>
       </a>
       
       
+    </span>
+    <span class="post-meta-divider">|</span>
+    
+    <span class="meta-item">
+      <i class="fa fa-clock-o"></i>
+      <span>15<span class="language" data-lan="minute">分钟</span></span>
+    </span>
+    <span class="meta-item">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-file-word-o"></i>
+      <span>3129<span class="pc-show language" data-lan="words">字数</span></span>
+    </span>
+    
+  </div>
+</section>
+            <div class="post-body next-md-body" id="post_body">
+              <h2 id="c函数式编程">c++函数式编程</h2>
+<h3 id="函数对象">函数对象</h3>
+<p>c++可以重载绝大多数运算符，其中包含函数调用操作符<code>()</code>。当一个类重载了函数调用操作符后，此类型的对象可以像普通函数一样调用，这种对象称为函数对象。如：</p>
+<pre><code class="language-cpp">template&lt;typename T&gt;
+struct greater {
+    bool operator()(const T &amp;lhs, const T &amp;rhs) const {
+        return lhs &gt; rhs;
+    }
+};
+</code></pre>
+<p>使用方式为：</p>
+<pre><code class="language-cpp">greater&lt;int&gt; g;
+if (g(1, 2))
+    // ...
+
+std::vector&lt;int&gt; A;
+std::sort(A.begin(), A.end(), greater&lt;int&gt;{});
+</code></pre>
+<p>函数对象的类型就是普通的自定义类型，可以有成员变量、构造函数和析构函数等，语法没有区别。和普通函数相比，函数对象有两个优点：1、编译器可以内联执行函数对象的调用；2、函数对象内部可以保持状态，这使得函数对象可以捕获外部变量的值并保存下来，这是c++实现闭包的关键。</p>
+<h4 id="随机数生成">随机数生成</h4>
+<p>在之前已经接触过三个函数对象：<code>default_random_engine</code>、<code>uniform_real_distribution&lt;T&gt;</code>和<code>random_device</code>。它们都定义于头文件<code>&lt;random&gt;</code>，和标准命名空间<code>std</code>。其中<code>default_random_engine</code>为实现定义的随机数生成器，c++标准规定必须实现的算法有：</p>
+<figure data-type="image" tabindex="1"><img src="https://w-jin.github.io/post-images/tbb/random_engine.png" alt="random_engine" loading="lazy"></figure>
+<p><code>random_device</code>是使用硬件熵源的非确定随机数生成器。一般用于上表中随机数生成器的初始化。</p>
+<p><code>uniform_real_distribution</code>是随机数分布算法，用于将随机数生成器的结果按一定的统计概率密度函数分布。c++标准规定的随机数分布有：</p>
+<figure data-type="image" tabindex="2"><img src="https://w-jin.github.io/post-images/tbb/distribution.png" alt="distribution" loading="lazy"></figure>
+<p><code>default_random_engine</code>和<code>random_device</code>的函数调用操作符的签名为：</p>
+<pre><code class="language-cpp">result_type operator()();
+</code></pre>
+<p>而<code>uniform_real_distribution</code>的签名为：</p>
+<pre><code class="language-cpp">template&lt; class Generator &gt;
+result_type operator()(Generator &amp;g);
+</code></pre>
+<p>因此生成均匀分布的随机数的方法为：</p>
+<pre><code class="language-cpp">std::random_device rd;
+std::default_random_engine re{rd()}
+std::uniform_real_distribution&lt;double&gt; dist{0, 10};
+
+for (int i = 0; i &lt; 10; i++)
+        A[i] = dist(re);    // 由dist.operator()来调用re()生成随机数，再映射至区间[0, 10]
+</code></pre>
+<h3 id="函数包装器">函数包装器</h3>
+<p>c++中除普通函数外，可以调用的对象还有函数对象、成员函数和lambda表达式，它们具有不同的类型和属性。为统一c++中所有具有函数行为的对象类型，c++11引入了函数包装器，使函数成为可以像变量一样，具有创建、赋值、返回等操作的一等公民(first class)。函数包装器定义于头文件<code>functional</code>，定义为：</p>
+<pre><code class="language-cpp">// functional
+template &lt;class R, class... Args&gt;
+class function&lt;R(Args...)&gt;;
+</code></pre>
+<p>使用：</p>
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;functional&gt;
+
+// 普通函数
+int getOne() { return 1; }
+
+// 函数对象
+struct getTwo {
+    int operator()() { return 2; }
+};
+
+// 成员函数
+struct getNumber {
+    // 非static成员函数
+    int getThree() { return 3; }
+    // static成员函数
+    static int getFour() { return 4; }
+};
+
+int main() {
+    std::function&lt;int()&gt; getNumber1{getOne};
+    std::function&lt;int()&gt; getNumber2{getTwo{}};
+    std::function&lt;int(class getNumber *)&gt; getNumber3{&amp;getNumber::getThree};
+    std::function&lt;int()&gt; getNumber4{&amp;getNumber::getFour};
+    std::function&lt;int()&gt; getNumber5 = []{ return 5; };
+    
+    getNumber get_number;
+    std::cout &lt;&lt; getNumber1() &lt;&lt; &quot;, &quot;
+              &lt;&lt; getNumber2() &lt;&lt; &quot;, &quot;
+              &lt;&lt; getNumber3(&amp;get_number) &lt;&lt; &quot;, &quot;   // 非static成员函数行为略有不同
+              &lt;&lt; getNumber4() &lt;&lt; &quot;, &quot;
+              &lt;&lt; getNumber5() &lt;&lt; &quot;\n&quot;;
+    
+    return 0;
+}
+</code></pre>
+<p>执行效果：<code>1, 2, 3, 4, 5</code>。</p>
+<p><code>std::function</code>具有变量的行为，如上面的<code>getNumber1</code>、<code>getNumber2</code>和<code>getNumber4</code>可相互赋值，也可以传参和返回：</p>
+<pre><code class="language-cpp">std::function&lt;int()&gt; f(std::function&lt;int()&gt; g) { return g; }
+
+getNumber1 = getNumber2;
+getNumber2 = f(getNumber4);
+</code></pre>
+<h4 id="题外话">题外话</h4>
+<p>有一个值得注意的地方是<code>getNumber2</code>的初始化歧义。在传统的c++中，对象的初始化语法使用圆括号包围参数，如：</p>
+<pre><code class="language-cpp">getTwo get_two();   // 默认初始化
+std::function&lt;int()&gt; getNumber2(getTwo());  // 先构造临时对象，再将它作为参数传递
+</code></pre>
+<p>很不幸，这两条语句都被c++编译器当作函数声明。这是比较容易看出来出错的，还有一些比较复杂的情况，如：</p>
+<pre><code class="language-cpp">std::ifstream file(&quot;data.txt&quot;);
+std::string str(std::istream_iterator&lt;char&gt;(file), std::istream_iterator&lt;char&gt;());
+</code></pre>
+<p>c++标准规定：在直接初始化的变量声明和函数声明有歧义的情况下，c++编译器始终选择函数声明。</p>
+<p>为解决这个问题，c++11标准引入直接初始化列表，即以大括号包围初始化参数，以下三个都为变量声明：</p>
+<pre><code class="language-cpp">getTwo get_two{};
+std::function&lt;int()&gt; getNumber2{getTwo{}};
+std::string str{std::istream_iterator&lt;char&gt;{file}, std::istream_iterator&lt;char&gt;{}};
+</code></pre>
+<p>但要注意这个方法也不是十全十美的，如：</p>
+<pre><code class="language-cpp">std::vector&lt;int&gt; vec(10, 1);
+std::vector&lt;int&gt; vec{10, 1};
+</code></pre>
+<p>如果<code>{}</code>内的变量类型全部一致则可能被当成<code>std::initializer_list&lt;T&gt;</code>，如果存在以<code>std::initializer_list&lt;T&gt;</code>为参数的构造函数则优先采用。</p>
+<h3 id="lambda表达式">lambda表达式</h3>
+<p>lambda表达式即闭包，或称为匿名函数。在c++中，lamdba表达式是能够捕获作用域中的变量的无名函数对象。语法为：</p>
+<pre><code class="language-cpp">[捕获列表](形参列表) 说明符 -&gt; 返回类型 { 函数体 }
+</code></pre>
+<p>其中形参列表、说明符和返回类型都是可选的。</p>
+<p>简单直观起见，此处使用两个实例来说明lambda表达式和函数对象的对应关系：</p>
+<pre><code class="language-cpp">int a;
+std::vector&lt;int&gt; vec;
+
+[a, &amp;vec](int c, const std::vector&lt;int&gt; &amp;d) mutable -&gt; void {
+    a = c;
+    vec = d;
+};
+
+class ClosureType {
+    int a;                  // 复制捕获
+    std::vector&lt;int&gt; &amp;vec;  // 引用捕获
+public:
+   	ClosureType(int a, std::vector&lt;int&gt; &amp;vec) : a{a}, vec{vec} {}
+    
+    void operator()(int c, std::vector&lt;int&gt; &amp;d) {
+        a = c;
+        vec = d;
+    }
+};
+
+
+[a](int b) -&gt; bool { return b &lt; a; };
+
+class ClosureType {
+    int a;
+public:
+    ClosureType(int a) : a{a} {}
+    
+    bool operator()(int b) const {
+        return b &lt; a;
+    }
+};
+</code></pre>
+<p>可见，捕获列表中的变量成为函数对象的成员变量，根据复制捕获或者引用捕获的方式来决定成员变量是否为引用类型。参数列表和返回类型分别成为<code>operator()</code>的参数列表和返回类型。说明符可选<code>mutable</code>，如果lambda表达式省略<code>mutable</code>，则<code>operator()</code>声明为const成员函数，不可更改捕获列表中的变量。</p>
+<p>lambda的捕获列表除了可以将变量一一列出之外，还可以使用<code>=</code>和<code>&amp;</code>捕获当前上下文的所有变量：</p>
+<pre><code class="language-cpp">[&amp;]() {};            // 以引用方式捕获所有变量
+[=]() {};            // 以复制方式捕获所有变量
+[&amp;, i]() {};         // i以复制方式捕获，其它变量以引用方式捕获
+[=, &amp;i]() {};        // i以引用方式捕获，其它变量以复制方式捕获
+</code></pre>
+<p>如果lambda表达式不接受参数，可以不写参数列表。如果lambda表达式没有返回语句或者只有一条返回语句，可以不写返回类型。</p>
+<p>例：创建一个自定义比较函数的优先队列</p>
+<pre><code class="language-cpp">#include &lt;queue&gt;
+auto cmp = [](int left, int right) { return left &gt; right; };
+std::priority_queue&lt;int, std::vector&lt;int&gt;, decltype(cmp)&gt; q(cmp);
+</code></pre>
+<p>例：递归函数</p>
+<pre><code class="language-cpp">std::vector&lt;std::vector&lt;int&gt;&gt; mat(M, std::vector&lt;int&gt;(N));  // MxN的矩阵
+
+std::function&lt;int(int, int)&gt; f;
+f = [&amp;f, &amp;mat, M, N](int i, int j) -&gt; int {
+    int length = 0;
+    if (i &gt; 0 &amp;&amp; mat[i - 1][j] &gt; mat[i][j])
+        length = std::max(length, f(i - 1, j));
+    if (i &lt; M &amp;&amp; mat[i + 1][j] &gt; mat[i][j])
+        length = std::max(length, f(i + 1, j));
+    if (j &gt; 0 &amp;&amp; mat[i][j - 1] &gt; mat[i][j])
+        length = std::max(length, f(i, j - 1));
+    if (j &lt; N &amp;&amp; mat[i][j + 1] &gt; mat[i][j])
+        length = std::max(length, f(i, j + 1));
+    return length + 1;
+};
+
+int max_length = 0;
+for (int i = 0; i &lt; M; ++i) {
+    for (int j = 0; j &lt; N; ++j)
+        max_length = std::max(max_length, f(i, j));
+}
+</code></pre>
+<p>需要注意，lambda表达式的类型是闭包类型(<code>ClosureType</code>)，不是<code>std::function</code>，因此不能赋值：</p>
+<pre><code class="language-cpp">auto cmp = [](int left, int right) { return left &gt; right; };
+cmp = [](int left, int right) { return left &lt; right; };   // error
+</code></pre>
+<h3 id="柯里化">柯里化</h3>
+<p>柯里化(currying)是将接受多个参数和函数变换成接受一个参数，而返回接受剩余参数的新函数的技术。通俗理解就是对参数列表进行切片：</p>
+<pre><code class="language-cpp">int add(int a, int b, int c) {
+    return a + b + c;
+}
+
+std::function&lt;int(int, int)&gt; curried_add(int a) {
+    return [a](int b, int c) { return a + b + c; };
+}
+
+// curried_add只接受一个参数，但需要调用两次
+int c = curried_add(1)(2, 3);  // 6
+
+// 也可以固定某些参数，生成新的函数
+auto add1 = curried_add(1);
+int c = add1(2, 3);            // 6
+</code></pre>
+<p>在许多时候，我们不想写上面的curried_add这样的函数，而是希望直接将函数的部分参数固定，以得到像add1这样的函数。c++11之前使用bind1st和bind2nd来绑定一个二元函数的参数，c++11之后使用bind来绑定任意函数的任意多个参数，对于未绑定的那些参数，使用占位符替换。</p>
+<p>bind声明于头文件<code>&lt;functional&gt;</code>，声明为：</p>
+<pre><code class="language-cpp">template&lt; class F, class... Args &gt;
+/*unspecified*/ bind( F&amp;&amp; f, Args&amp;&amp;... args );
+</code></pre>
+<p>使用方法为：</p>
+<pre><code class="language-cpp">#include &lt;functional&gt;
+
+int add(int a, int b, int c) {
+    return a + b + c;
+}
+
+auto add1 = std::bind(add, 1, std::placeholders::_1, std::placeholders::_2);
+auto add2 = std::bind(add, std::placeholders::_1, 2, std::placeholders::_2);
+auto add3 = std::bind(add, std::placeholders::_1, std::placeholders::_2, 3);
+
+add1(2, 3);  // 6
+add2(1, 3);  // 6
+add3(1, 2);  // 6
+</code></pre>
+<p>通过使用相同的占位符，还可以将两个参数绑定在一起却又不固定：</p>
+<pre><code class="language-cpp">auto add1 = std::bind(add, 1, std::placeholders::_1, std::placeholders::_1);
+add1(2);  // 1+2+2=5
+</code></pre>
+<p>需要注意，bind的返回类型是实现定义的，不是std::function，但可以转换为std::function：</p>
+<pre><code class="language-cpp">std::function&lt;int(int,int)&gt; add1 = std::bind(add, 1, std::placeholders::_1,
+                                             std::placeholders::_2);
+std::function&lt;int(int)&gt; add2 = std::bind(add, 1, std::placeholders::_1,
+                                         std::placeholders::_1);
+</code></pre>
+<p>例：生成随机数</p>
+<pre><code class="language-cpp">std::function&lt;int(void)&gt; random_function = std::bind(
+        std::uniform_int_distribution&lt;int&gt;(0, 10),
+        std::default_random_engine{std::random_device{}()});
+for (int i = 0; i &lt; 10; ++i)
+    A[i] = random_function();
+</code></pre>
+<h2 id="tbb">TBB</h2>
+<p>与OpenMP类似的框架还有微软的PPL(Parallel Patterns Library)和英特尔的TBB(Thread Building Blocks)，PPL和TBB以库的方式提供，不需要其它厂商的额外支持。PPL只能支持visual studio，而TBB是开源软件，可以支持大多数常见的平台和编译器，此处简单介绍TBB库。</p>
+<h3 id="例1-向量加法">例1、向量加法</h3>
+<pre><code class="language-cpp">// 文件：vector_add_tbb.cpp
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;tbb/blocked_range.h&gt;
+#include &lt;tbb/parallel_for.h&gt;
+
+int main() {
+    const int n = 10;
+    std::vector&lt;int&gt; v1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector&lt;int&gt; v2 = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+    std::vector&lt;int&gt; v3(n);
+
+    tbb::parallel_for(tbb::blocked_range&lt;int&gt;(0, n),
+            [&amp;v1, &amp;v2, &amp;v3](const tbb::blocked_range&lt;int&gt; &amp;range) {
+                for (int i = range.begin(); i != range.end(); ++i)
+                    v3[i] = v1[i] + v2[i];
+            }
+    );
+
+    for (int i = 0; i &lt; n; ++i)
+        std::cout &lt;&lt; v3[i] &lt;&lt; &quot; &quot;;
+    std::cout &lt;&lt; std::endl;
+
+    return 0;
+}
+</code></pre>
+<p>编译命令：<code>g++ -std=c++11 vector_add_tbb.cpp -o vector_add_tbb -ltbb</code></p>
+<p>执行：</p>
+<pre><code class="language-bash">$ ./vector_add_tbb
+11 11 11 11 11 11 11 11 11 11
+</code></pre>
+<h3 id="例2-向量内积">例2、向量内积</h3>
+<pre><code class="language-cpp">// 文件：vector_dot_tbb.cpp
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;tbb/blocked_range.h&gt;
+#include &lt;tbb/parallel_reduce.h&gt;
+
+int main() {
+    const int n = 10;
+    std::vector&lt;int&gt; v1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector&lt;int&gt; v2 = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+
+    int sum = tbb::parallel_reduce(tbb::blocked_range&lt;int&gt;(0, n), 0,
+            [&amp;v1, &amp;v2](const tbb::blocked_range&lt;int&gt; &amp;range, int s) -&gt; int {
+                for (int i = range.begin(); i != range.end(); ++i)
+                    s += v1[i] * v2[i];
+                return s;
+            },
+            [](int s1, int s2) -&gt; int { return s1 + s2; }
+    );
+
+    std::cout &lt;&lt; sum &lt;&lt; std::endl;
+
+    return 0;
+}
+</code></pre>
+<p>编译：<code>g++ -std=c++11 vector_dot_tbb.cpp -o vector_dot_tbb -ltbb</code></p>
+<p>执行：</p>
+<pre><code class="language-bash">$ ./vector_dot_tbb
+220
+</code></pre>
+<h3 id="例3-求最大值">例3、求最大值</h3>
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;random&gt;
+#include &lt;limits&gt;
+#include &lt;functional&gt;
+#include &lt;tbb/blocked_range.h&gt;
+#include &lt;tbb/parallel_reduce.h&gt;
+
+std::ostream &amp;operator&lt;&lt;(std::ostream &amp;out, const std::vector&lt;int&gt; &amp;vec) {
+    if (vec.empty())
+        return out;
+    for (int i = 0; i + 1 &lt; vec.size(); ++i)
+        out &lt;&lt; vec[i] &lt;&lt; &quot;, &quot;;
+    return out &lt;&lt; vec.back();
+}
+
+int main() {
+    const int N = 16;
+    std::vector&lt;int&gt; nums(N);
+
+    std::function&lt;int(void)&gt; random_function = std::bind(
+        std::uniform_int_distribution&lt;int&gt;(0, 100),
+        std::default_random_engine{std::random_device{}()});
+
+    std::generate(nums.begin(), nums.end(), random_function);
+    std::cout &lt;&lt; &quot;numbers: &quot; &lt;&lt; nums &lt;&lt; std::endl;
+
+    int max_value = tbb::parallel_reduce(
+        tbb::blocked_range&lt;int&gt;(0, nums.size()),
+        std::numeric_limits&lt;int&gt;::min(),
+        [&amp;nums](const tbb::blocked_range&lt;int&gt; &amp;range, int max_value) -&gt; int {
+            for (int i = range.begin(); i != range.end(); ++i)
+                max_value = std::max(max_value, nums[i]);
+            return max_value;
+        },
+        [](int a, int b) -&gt; int {
+            return a &gt; b ? a : b;
+        }
+    );
+
+    std::cout &lt;&lt; &quot;max value: &quot; &lt;&lt; max_value &lt;&lt; std::endl;
+
+    // return 0;
+}
+</code></pre>
+<p>执行结果：</p>
+<pre><code class="language-bash">numbers: 50, 36, 20, 81, 98, 55, 62, 98, 39, 2, 1, 26, 45, 25, 48, 93
+max value: 98
+</code></pre>
+<p>TBB比OpenMP的抽象层次更高，更适合c++程序设计，除parallel_for和parallel_reduce以外，还提供了parallel_pipline、parallel_sort、parallel_scan、concurrent_unordered_map、concurrent_queue和concurrent_vector等并行算法或并发容器，可以大大节省程序员的精力。对于一些精细控制的任务，TBB不合适的，可以搭配OpenMP使用。</p>
+<h3 id="参考">参考</h3>
+<p>[1] TBB文档：https://software.intel.com/content/www/us/en/develop/documentation/tbb-documentation/top.html.</p>
+
+            </div>
+            
+              <div class="reward-btn">
+                <div class="reward-btn-text">赞赏</div>
+              </div>
+            
+            
+              <div class="post-footer">
+  <ul class="post-copyright">
+    <li class="post-copyright-author">
+      <strong class="language" data-lan="author">本文作者：</strong>
+      不怕风似快刀，不怕沙尘障路，少年汉莫低首，相伴同求道
+    </li>
+    <li class="post-copyright-link">
+      <strong class="language" data-lan="link">本文链接：</strong>
+      <a href="https://w-jin.github.io/post/chan-shu-shi-bian-cheng-ru-men-yu-tbb-jiao-cheng/" title="c++函数式编程与TBB教程">https://w-jin.github.io/post/chan-shu-shi-bian-cheng-ru-men-yu-tbb-jiao-cheng/</a>
+    </li>
+    <li class="post-copyright-license">
+      <strong class="language" data-lan="copyright">版权声明： </strong>
+      本博客所有文章除特别声明外，均采用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i> BY-NC-SA</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+  <div class="tags">
+    
+      <a href="https://w-jin.github.io/tag/OLAqdU98X/"># TBB</a>
+    
+      <a href="https://w-jin.github.io/tag/7zC-V_mDy/"># 并行计算</a>
+    
+  </div>
+  <div class="nav">
+    <div class="nav-prev">
       
+        <i class="fa fa-chevron-left"></i>
+        <a class="nav-pc-next" title="MPI教程1" href="https://w-jin.github.io/post/mpi-jiao-cheng-1/">MPI教程1</a class="nav-pc-next">
+        <a class="nav-mobile-prev" title="MPI教程1" href="https://w-jin.github.io/post/mpi-jiao-cheng-1/">上一篇</a>
       
+    </div>
+    <div class="nav-next">
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
+        <a class="nav-pc-next" title="OpenMP教程" href="https://w-jin.github.io/post/openmp-jiao-cheng/">OpenMP教程</a>
+        <a class="nav-mobile-next" title="OpenMP教程" href="https://w-jin.github.io/post/openmp-jiao-cheng/">下一篇</a>
+        <i class="fa fa-chevron-right"></i>
       
     </div>
   </div>
 </div>
-          </section>
+            
+            
+  <script src="https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<div id="vcomments" style="padding: 10px 0px 0px 0px"></div>
+
+<style>
+  .v .veditor {
+    min-height: 10rem;
+    background-image: url('');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: right;
+    background-color: rgba(255, 255, 255, 0);
+    resize: none;
+  }
+
+  .v .vwrap {
+    border: 1px solid #000 !important;
+  }
+
+  .v .vbtn {
+    padding: .4rem 1.2rem !important;
+    border-color: #fff !important;
+    background-color: #49b1f5 !important;
+    color: #fff !important;
+    font-size: .7rem !important;
+  }
+
+  .v .vcards .vcard .vh .vmeta .vat {
+    padding: 0 .8rem !important;
+    border: 1px solid #00c4b6 !important;
+    border-radius: 5px !important;
+    color: #00c4b6 !important;
+  }
+</style>
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'oJ3I57xnJeHrSYxtwPqE3uFy-gzGzoHsz',
+    appKey: '3IfvJOtcQchX3DRs4zMGxuqv',
+    avatar: '',
+    placeholder: '',
+    pageSize: '',
+    lang: 'zh-cn',
+    enableQQ: 'true' === 'false',
+    visitor: 'true' === 'false',
+    highlight: 'true' === 'true',
+    avatarForce: 'true' === 'false',
+  });
+</script>
+
+          </div>
         </div>
       </div>
     </div>
@@ -479,6 +1218,259 @@
   }
 
 </script>
+    <div class="light-box" id="light_box"></div>
+<script>
+  let imgs = document.querySelectorAll('.post-body img');
+  let lightBox = document.querySelector('#light_box');
+  lightBox.addEventListener('mousedown', (e) => {
+    e.preventDefault()
+  })
+  lightBox.addEventListener('mousewheel', (e) => {
+    e.preventDefault()
+  })
+  let width = window.innerWidth * 0.8;
+  lightBox.onclick = () => {
+    let img = lightBox.querySelector('img');
+    lightBox.style = '';
+    img && img.remove();
+  }
+  imgs.forEach(item => {
+    item.onclick = function (e) {
+      let lightImg = document.createElement('img');
+      lightImg.src = this.src;
+      lightBox.style = `height: 100%; opacity: 1; background-color: rgba(0, 0, 0, 0.5);cursor: zoom-out;`;
+      lightImg.style = `width: ${width}px;border-radius: 2px;`;
+      lightImg.onclick = function () {
+        lightBox.style = '';
+        this.remove();
+      }
+      lightBox.append(lightImg);
+    }
+  })
+</script>
+    <div class="reward-mask" style="display: none;">
+  <div class="reward-relative">
+    <span class="close" aria-hidden="true">x</span>
+    <div class="reward-body">
+      <h2>感谢您的支持，我会继续努力的!</h2>
+      <div class="reward-img-box">
+        <div style="position: relative; width: 140px; height: 140px;">
+          
+          
+          
+            <img id="wx" class="reward-img" src="/images/wechatcode.png" alt="赞赏码">
+          
+        </div>
+      </div>
+      <p class="reward-word">扫码打赏，你说多少就多少</p>
+      <p class="reward-tip">打开支付宝或者微信扫一扫，即可进行扫码打赏哦</p>
+    </div>
+    <div class="bottom">
+      
+      
+      <div id="wxBtn" class="pay-text">
+        微信支付
+      </div>
+      
+    </div>
+  </div>
+</div>
+<style>
+  .reward-mask {
+    position: fixed;
+    z-index: 99999;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #00000054;
+  }
+
+  .reward-relative {
+    position: relative;
+    width: 480px;
+    text-align: center;
+    margin: 0 auto;
+    border-radius: 5px;
+    background-color: #fff;
+    top: 50%;
+    margin-top: -205px;
+  }
+
+  .reward-relative .close {
+    position: absolute;
+    right: 10px;
+    font-weight: normal;
+    font-size: 16px;
+    color: #929292;
+  }
+
+  .reward-body {
+    padding: 40px 20px 20px;
+  }
+
+  .bottom {
+    display: flex;
+  }
+
+  .reward-btn {
+    text-align: center;
+  }
+
+  .reward-btn-text {
+    display: inline-block;
+    cursor: pointer;
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    border-radius: 50%;
+    background-color: #ff9734;
+    color: #FFF;
+    margin-top: 20px;
+  }
+
+  .pay-text {
+    margin-top: 10px;
+    padding: 10px;
+    flex: 1;
+    transition: all .2s linear;
+  }
+
+  .pay-text:hover {
+    background-color: #a5a5a536;
+  }
+
+  .reward-body h2 {
+    padding-top: 10px;
+    text-align: center;
+    color: #a3a3a3;
+    font-size: 16px;
+    font-weight: normal;
+    margin: 0 0 20px;
+  }
+
+  .reward-body h2:after,
+  .reward-body h2:before {
+    font-family: Arial, Helvetica, sans-serif;
+    background: 0 0;
+    width: 0;
+    height: 0;
+    font-style: normal;
+    color: #eee;
+    font-size: 80px;
+    position: absolute;
+    top: 20px;
+  }
+
+  .reward-body h2:before {
+    content: '\201c';
+    left: 50px;
+  }
+
+  .reward-body h2:after {
+    content: '\201d';
+    right: 80px;
+  }
+
+  .reward-img-box {
+    display: inline-block;
+    padding: 10px;
+    border: 6px solid #ea5f00;
+    margin: 0 auto;
+    border-radius: 3px;
+    position: relative;
+  }
+
+  .reward-img {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (max-width: 767px) {
+    .reward-relative {
+      height: 100%;
+      top: 0px;
+      margin-top: 0;
+      width: auto;
+    }
+
+    .reward-relative .bottom {
+      flex-direction: column;
+    }
+
+    .reward-relative .pay-text {
+      width: 80%;
+      margin: 5px auto;
+      border: 1px solid silver;
+      padding: 6px;
+      border-radius: 4px;
+    }
+
+    .reward-body h2:after {
+      right: 40px;
+    }
+
+    .reward-body h2:after,
+    .reward-body h2:before {
+      font-size: 60px;
+    }
+
+    .reward-body h2:before {
+      left: 20px;
+    }
+  }
+</style>
+<script>
+  !function () {
+    var mask = document.querySelector('.reward-mask');
+    let close = document.querySelector('.reward-relative .close');
+    let rewardBtn = document.querySelector('.reward-btn');
+
+    let zfb = document.querySelector('#zfb'),
+      wx = document.querySelector('#wx'),
+      zfbBtn = document.querySelector('#zfbBtn'),
+      wxBtn = document.querySelector('#wxBtn');
+
+    if (zfbBtn && wxBtn) {
+      zfbBtn.addEventListener('click', () => {
+        window.Velocity(zfb, 'transition.slideLeftIn', {
+          duration: 400
+        });
+        window.Velocity(wx, 'transition.slideRightOut', {
+          display: 'none',
+          duration: 400
+        });
+      });
+
+      wxBtn.addEventListener('click', () => {
+        window.Velocity(wx, 'transition.slideRightIn', {
+          duration: 400
+        });
+        window.Velocity(zfb, 'transition.slideLeftOut', {
+          display: 'none',
+          duration: 400
+        });
+      });
+    }
+
+    rewardBtn.addEventListener('click', (e) => {
+      window.Velocity(mask, 'transition.slideDownIn', {
+        duration: 400
+      })
+    });
+
+    close.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.Velocity(mask, 'transition.slideUpOut', {
+        duration: 400
+      })
+    })
+  }()
+</script>
+
   </div>
 </body>
 
@@ -3958,7 +4950,6 @@ CUresult cuGetErrorString( CUresult error, const char** pStr );
 
 
 <script src="/media/js/mouse/love.js"></script>
-
 
 
 
