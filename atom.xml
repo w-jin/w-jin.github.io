@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://w-jin.github.io</id>
     <title>wjin</title>
-    <updated>2020-08-06T03:05:25.351Z</updated>
+    <updated>2020-08-06T03:12:19.583Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://w-jin.github.io"/>
     <link rel="self" href="https://w-jin.github.io/atom.xml"/>
@@ -20,7 +20,7 @@
 <p>点对点通信是两个进程参与的通信，其中一个进程发送消息，另一个进程接收消息，而聚合通信是在一个进程组内发生的通信，进程组内所有进程都要参与。调用一个聚合通信函数时，通信器中的所有进程必须同时调用同一函数，共同参与操作。通信函数在各个进程中的调用方式完全相同，而不是像点对点通信那样分为发送函数和接收函数。</p>
 <p>聚合通信函数主要为分为三个功能：</p>
 <ul>
-<li>通信：完成组内进程间的数据传输</li>
+<li>通信：完成组内进程间的数据传输。这部分的功能使用点对点通信也能完成，但聚合通信性能更好，表达更简洁。</li>
 <li>同步：实现组内所有进程在特定点的执行速度保持一致</li>
 <li>计算：对给定的数据在进程间完成一定的操作</li>
 </ul>

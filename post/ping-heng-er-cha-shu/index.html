@@ -9,7 +9,7 @@
 <meta name="description" content="不怕风似快刀，不怕沙尘障路，少年汉莫低首，相伴同求道">
 <meta name="theme-color" content="#000">
 <title>平衡二叉树 | wjin</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1596683120725">
+<link rel="shortcut icon" href="/favicon.ico?v=1596683534928">
 <link rel="stylesheet" href="/media/css/pisces.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -1963,7 +1963,7 @@ void AVL::erase(int data) {
 &lt;p&gt;点对点通信是两个进程参与的通信，其中一个进程发送消息，另一个进程接收消息，而聚合通信是在一个进程组内发生的通信，进程组内所有进程都要参与。调用一个聚合通信函数时，通信器中的所有进程必须同时调用同一函数，共同参与操作。通信函数在各个进程中的调用方式完全相同，而不是像点对点通信那样分为发送函数和接收函数。&lt;/p&gt;
 &lt;p&gt;聚合通信函数主要为分为三个功能：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;通信：完成组内进程间的数据传输&lt;/li&gt;
+&lt;li&gt;通信：完成组内进程间的数据传输。这部分的功能使用点对点通信也能完成，但聚合通信性能更好，表达更简洁。&lt;/li&gt;
 &lt;li&gt;同步：实现组内所有进程在特定点的执行速度保持一致&lt;/li&gt;
 &lt;li&gt;计算：对给定的数据在进程间完成一定的操作&lt;/li&gt;
 &lt;/ul&gt;
