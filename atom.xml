@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://w-jin.github.io</id>
     <title>wjin</title>
-    <updated>2020-08-06T00:51:55.565Z</updated>
+    <updated>2020-08-06T00:56:39.053Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://w-jin.github.io"/>
     <link rel="self" href="https://w-jin.github.io/atom.xml"/>
@@ -1108,11 +1108,7 @@ calculate by sequence:
         <link href="https://w-jin.github.io/post/mpi-jiao-cheng-2/">
         </link>
         <updated>2020-07-29T17:09:52.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="mpi">MPI</h1>
-<h3 id="博客在线">博客在线</h3>
-<p>https://w-jin.github.io/.</p>
-<figure data-type="image" tabindex="1"><img src="C:/Users/jin/OneDrive/%E7%AC%94%E8%AE%B0/%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97/assets/blog.png" alt="blog" loading="lazy"></figure>
-<h2 id="点对点通信">点对点通信</h2>
+        <content type="html"><![CDATA[<h2 id="点对点通信">点对点通信</h2>
 <p>MPI最基本的通信模式是在一对进程之间进行的消息收发操作：一个进程发送消息，另一个进程接收消息，这种通信方式称为点对点通信(point to point communications)。</p>
 <p>MPI提供两大类型的点对点通信函数：阻塞型(blocking)、非阻塞型(non blocking)。</p>
 <p>阻塞型函数需要等待指定操作的实际完成，或至少所涉及的数据已经被MPI系统安全地备份后才返回，如MPI_Send和MPI_Recv，MPI_Send函数返回时表明数据已经发出或者已经被MPI系统复制，随后对发送对象的修改不会影响所发送的数据，而MPI_Recv返回则表明数据已经接收到并且可以立即使用。阻塞型函数的操作是非局部的，它的完成需要与其它进程进行通信。</p>
@@ -1214,7 +1210,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 </code></pre>
-<p>编译：<code>mpic++ ring.cpp -o ring</code></p>
+<p>编译：<code>mpicxx ring.cpp -o ring</code></p>
 <p>4个进程执行：</p>
 <pre><code class="language-bash">$ mpiexec -n 4 ./ring
 process 1 received a token 1502712217 from process 0

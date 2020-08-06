@@ -9,7 +9,7 @@
 <meta name="description" content="不怕风似快刀，不怕沙尘障路，少年汉莫低首，相伴同求道">
 <meta name="theme-color" content="#000">
 <title>MPI教程1 | wjin</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1596675074930">
+<link rel="shortcut icon" href="/favicon.ico?v=1596675391479">
 <link rel="stylesheet" href="/media/css/pisces.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -2599,11 +2599,7 @@ calculate by sequence:
       
       <div class="item">
         <a class="result-title" style="opacity: 0;" href="https://w-jin.github.io/post/mpi-jiao-cheng-2/"" data-c="
-          &lt;h1 id=&#34;mpi&#34;&gt;MPI&lt;/h1&gt;
-&lt;h3 id=&#34;博客在线&#34;&gt;博客在线&lt;/h3&gt;
-&lt;p&gt;https://w-jin.github.io/.&lt;/p&gt;
-&lt;figure data-type=&#34;image&#34; tabindex=&#34;1&#34;&gt;&lt;img src=&#34;C:/Users/jin/OneDrive/%E7%AC%94%E8%AE%B0/%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97/assets/blog.png&#34; alt=&#34;blog&#34; loading=&#34;lazy&#34;&gt;&lt;/figure&gt;
-&lt;h2 id=&#34;点对点通信&#34;&gt;点对点通信&lt;/h2&gt;
+          &lt;h2 id=&#34;点对点通信&#34;&gt;点对点通信&lt;/h2&gt;
 &lt;p&gt;MPI最基本的通信模式是在一对进程之间进行的消息收发操作：一个进程发送消息，另一个进程接收消息，这种通信方式称为点对点通信(point to point communications)。&lt;/p&gt;
 &lt;p&gt;MPI提供两大类型的点对点通信函数：阻塞型(blocking)、非阻塞型(non blocking)。&lt;/p&gt;
 &lt;p&gt;阻塞型函数需要等待指定操作的实际完成，或至少所涉及的数据已经被MPI系统安全地备份后才返回，如MPI_Send和MPI_Recv，MPI_Send函数返回时表明数据已经发出或者已经被MPI系统复制，随后对发送对象的修改不会影响所发送的数据，而MPI_Recv返回则表明数据已经接收到并且可以立即使用。阻塞型函数的操作是非局部的，它的完成需要与其它进程进行通信。&lt;/p&gt;
@@ -2705,7 +2701,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 &lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;编译：&lt;code&gt;mpic++ ring.cpp -o ring&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;编译：&lt;code&gt;mpicxx ring.cpp -o ring&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;4个进程执行：&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ mpiexec -n 4 ./ring
 process 1 received a token 1502712217 from process 0
