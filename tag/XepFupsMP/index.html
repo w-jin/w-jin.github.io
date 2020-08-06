@@ -9,7 +9,7 @@
 <meta name="description" content="不怕风似快刀，不怕沙尘障路，少年汉莫低首，相伴同求道">
 <meta name="theme-color" content="#000">
 <title>wjin</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1596683534928">
+<link rel="shortcut icon" href="/favicon.ico?v=1596696661682">
 <link rel="stylesheet" href="/media/css/pisces.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
@@ -777,7 +777,7 @@ int main(int argc, char *argv[]) {
 &lt;p&gt;MPI_Allgather和MPI_Gather比起来只少了一个root参数，其它参数含义与MPI_Gather相同。MPI_Allgather相当于以任意一个进程为根进程调用一次MPI_Gather，然后再广播：&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;// 以0号进程为根进程
 MPI_Gather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, 0, comm);
-MPI_Bcast(sendbuf, np * recvcount, recvtype, 0, comm);
+MPI_Bcast(recvbuf, np * recvcount, recvtype, 0, comm);
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;或者以任意进程为根进程各调用一次MPI_Gather：&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-cpp&#34;&gt;for (int root = 0; root &amp;lt; np; ++root)
@@ -1079,32 +1079,32 @@ double Integrate(const std::function&amp;lt;double(double)&amp;gt; &amp;amp;f, d
     int np = 0;
     MPI_Comm_size(MPI_COMM_WORLD, &amp;amp;np);
     int *counts = new int[np];
-    int *displays = new int[np];
+    int *displs = new int[np];
     double *x_save = nullptr;    // 保存需要求函数值的x
     double **f_save = nullptr;   // 保存对应的函数值返回地址
     int size = 0;                // 已分配的单元个数，即有x_save有多少个可用单元
-    std::function&amp;lt;void(double, double *)&amp;gt; F = [&amp;amp;np, &amp;amp;counts, &amp;amp;displays, &amp;amp;x_save,
+    std::function&amp;lt;void(double, double *)&amp;gt; F = [&amp;amp;np, &amp;amp;counts, &amp;amp;displs, &amp;amp;x_save,
             &amp;amp;f_save, &amp;amp;size](double x, double *v) -&amp;gt; void {
         static int n = 0;        // 目前有多少个未计算函数值的x
 
         if (v == nullptr) {
             counts[0] = 0;    // 0号进程不发送数据
-            displays[0] = 0;
+            displs[0] = 0;
 
             for (int i = 1; i &amp;lt; np; ++i) {
                 counts[i] = n / (np - 1) + (i &amp;lt;= n % (np - 1) ? 1 : 0);
-                displays[i] = displays[i - 1] + counts[i - 1];
+                displs[i] = displs[i - 1] + counts[i - 1];
             }
             
             int i = 0;      // 各进程计算任务个数
             // 告知各进程有多少个点需要计算函数值
             MPI_Scatter(counts, 1, MPI_INT, &amp;amp;i, 1, MPI_INT, 0, MPI_COMM_WORLD);
             // 散发需要计算函数值的点
-            MPI_Scatterv(x_save, counts, displays, MPI_DOUBLE,
+            MPI_Scatterv(x_save, counts, displs, MPI_DOUBLE,
                       nullptr, 0, MPI_DOUBLE, 0, MPI_COMM_WORLD);
             // 收集计算好的函数值
             MPI_Gatherv(nullptr, 0, MPI_DOUBLE,
-                      x_save, counts, displays, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+                      x_save, counts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
             
             for (int j = 0; j &amp;lt; n; ++j)
                 *(f_save[j]) = x_save[j];
@@ -1176,7 +1176,7 @@ double Integrate(const std::function&amp;lt;double(double)&amp;gt; &amp;amp;f, d
     }
 
     delete[] counts;
-    delete[] displays;
+    delete[] displs;
     delete[] x_save;
     delete[] f_save;
     return result;
