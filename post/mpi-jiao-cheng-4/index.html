@@ -8,7 +8,7 @@
 <meta name="keywords" content="Gridea静态个人博客">
 <meta name="description" content="不怕风似快刀，不怕沙尘障路，少年汉莫低首，相伴同求道">
 <meta name="theme-color" content="#000">
-<title>wjin</title>
+<title>MPI教程4 | wjin</title>
 <link rel="shortcut icon" href="/favicon.ico?v=1597300991601">
 <link rel="stylesheet" href="/media/css/pisces.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
@@ -38,6 +38,8 @@
 
 
 
+  <meta name="description" content="MPI教程4" />
+  <meta name="keywords" content="MPI,并行计算" />
 </head>
 
 <body>
@@ -170,10 +172,26 @@
   <div class="main-continer">
     
     <div
-      class="section-layout  pisces">
+      class="section-layout pisces ">
       <div class="section-layout-wrapper">
-        <div id="sidebarMeta" class="sidebar">
-    
+        
+
+<div class="sidebar">
+  
+    <div class="sidebar-box box-shadow-wrapper bg-color right-motion" id="sidebar">
+      
+        <div class="post-list-sidebar">
+          <div class="sidebar-title">
+            <span id="tocSideBar" class="sidebar-title-item sidebar-title-active language" data-lan="index">文章目录</span>
+            <span id="metaSideBar" class="sidebar-title-item language" data-lan="preview">站点概览</span>
+          </div>
+        </div>
+      
+      <div class="sidebar-body pisces" id="sidebar_body">
+        
+          
+            <div class="post-side-meta" id="post_side_meta">
+              
 <div class="sidebar-wrapper box-shadow-wrapper bg-color">
   <div class="sidebar-item">
     <img class="site-author-image right-motion" src="/images/avatar.png"/>
@@ -209,108 +227,856 @@
 
 
 </div>
+            </div>
+            <div class="post-toc sidebar-body-active" id="post_toc" style="opacity: 1;">
+              <div class="toc-box right-motion">
+  <div class="toc-wrapper auto-number auto"
+    id="toc_wrapper">
+    <ul class="markdownIt-TOC">
+<li><a href="#mpi-4">MPI 4</a>
+<ul>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">自定义数据类型</a>
+<ul>
+<li><a href="#%E5%86%85%E7%BD%AE%E7%B1%BB%E5%9E%8B">内置类型</a></li>
+<li><a href="#%E7%B1%BB%E5%9E%8B%E6%8F%90%E4%BA%A4%E4%B8%8E%E9%87%8A%E6%94%BE">类型提交与释放</a></li>
+<li><a href="#%E8%BF%9E%E7%BB%AD%E5%A4%8D%E5%88%B6%E7%B1%BB%E5%9E%8B">连续复制类型</a></li>
+<li><a href="#%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">向量数据类型</a></li>
+<li><a href="#%E7%B4%A2%E5%BC%95%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">索引数据类型</a></li>
+<li><a href="#%E7%BB%93%E6%9E%84%E4%BD%93%E7%B1%BB%E5%9E%8B">结构体类型</a></li>
+</ul>
+</li>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0">自定义函数</a>
+<ul>
+<li><a href="#%E6%96%87%E6%A1%A3">文档</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
 </div>
+
 <script>
-  let sidebarMeta = document.querySelector('#sidebarMeta');
-  let scheme = 'pisces';
-  let sidebarWrapper = document.querySelector('.sidebar-wrapper');
-  if (sidebarMeta && (scheme === 'pisces' || scheme === 'gemini')) {
-    document.addEventListener('scroll', function(e) {
-      if (document.scrollingElement.scrollTop > parseInt(sidebarMeta.style.marginTop) + 10) {
-        sidebarWrapper.classList.add('home-sidebar-fixed')
-      } else {
-        sidebarWrapper.classList.remove('home-sidebar-fixed')
+
+  let lastTop = 0, lList = [], hList = [], postBody, lastIndex = -1;
+  let active = 'active-show', activeClass = 'active-current';
+  let tocWrapper = document.querySelector('#toc_wrapper');
+  let tocContent = tocWrapper.children[0];
+  let autoNumber = tocWrapper && tocWrapper.classList.contains('auto-number');
+
+  function addTocNumber(elem, deep) {
+    if (!elem) {
+      return;
+    }
+    let prop = elem.__proto__;
+
+    if (prop === HTMLUListElement.prototype) {
+      for (let i = 0; i < elem.children.length; i++) {
+        addTocNumber(elem.children[i], deep + (i + 1) + '.');
       }
+    } else if (prop === HTMLLIElement.prototype) {
+      // 保存li元素
+      if (elem.children[0] && elem.children[0].__proto__ === HTMLAnchorElement.prototype) {
+        lList.push(elem);
+      }
+      for (let i = 0; i < elem.children.length; i++) {
+        let cur = elem.children[i];
+        if (cur.__proto__ === HTMLAnchorElement.prototype) {
+          if (autoNumber) {
+            cur.text = deep + ' ' + cur.text;
+          }
+        } else if (cur.__proto__ === HTMLUListElement.prototype) {
+          addTocNumber(cur, deep);
+        }
+      }
+    }
+  }
+
+  function removeParentActiveClass() {
+    let parents = tocContent.querySelectorAll('.' + active)
+    parents.forEach(function (elem) {
+      elem.classList.remove(active);
     });
   }
-  </script>
-        <div class="section-box tag-line box-shadow-wrapper">
-          <section class="section tags-section posts-expand bg-color">
-            <div class="padding-wrapper">
-  <div class="tag-timeline-box">
-    <div class="tag-timeline-wrapper">
-      <div class="tag-timeline-title">
-        <h2>
-          algorithm
-          <small class="language" data-lan="tag">标签</small>
-        </h2>
+
+  function addActiveClass(index) {
+    if (index >= 0 && index < hList.length) {
+      lList[index].classList.add(activeClass);
+    }
+  }
+
+  function removeActiveClass(index) {
+    if (index >= 0 && index < hList.length) {
+      lList[index].classList.remove(activeClass);
+    }
+  }
+
+  function addActiveLiElemment(elem, parent) {
+    if (!elem || elem === parent) {
+      return;
+    } else {
+      if (elem.__proto__ === HTMLLIElement.prototype) {
+        elem.classList.add(active);
+      }
+      addActiveLiElemment(elem.parentElement, parent);
+    }
+  }
+
+  function showToc() {
+    if (tocWrapper) {
+      postBody = document.querySelector('#post_body');
+      for (let i = 0; i < postBody.children.length; i++) {
+        if (postBody.children[i].__proto__ === HTMLHeadingElement.prototype) {
+          hList.push(postBody.children[i]);
+        }
+      }
+      if (tocWrapper.classList.contains('compress')) {
+        tocContent.classList.add('closed');
+      } else if (tocWrapper.classList.contains('no_compress')) {
+        tocContent.classList.add('expanded');
+      } else {
+        if (hList.length > 10) {
+          active = 'active-hidden'
+          tocContent.classList.add('closed');
+        } else {
+          tocContent.classList.add('expanded');
+        }
+      }
+    }
+  }
+
+  (function () {
+    // 处理不是从#一级标题开始目录
+    if (tocContent.children.length === 1 && tocContent.children[0].__proto__ === HTMLLIElement.prototype) {
+      let con = tocContent.children[0].children[0];
+      tocContent.innerHTML = con.innerHTML;
+    }
+    let markdownItTOC = document.querySelector('.markdownIt-TOC');
+    let innerHeight = window.innerHeight;
+    markdownItTOC.style = `max-height: ${innerHeight - 80 > 0 ? innerHeight - 80 : innerHeight}px`
+    addTocNumber(tocContent, '');
+  })();
+
+  document.addEventListener('scroll', function (e) {
+    if (lList.length <= 0) {
+      return;
+    }
+    let scrollTop = document.scrollingElement.scrollTop + 10;
+    let dir;
+
+    if (lastTop - scrollTop > 0) {
+      dir = 'up';
+    } else {
+      dir = 'down';
+    }
+
+    lastTop = scrollTop;
+    if (scrollTop <= 0) {
+      if (lastIndex >= 0 && lastIndex < hList.length) {
+        lList[lastIndex].classList.remove(activeClass);
+      }
+      return;
+    }
+
+    let current = 0, hasFind = false;
+    for (let i = 0; i < hList.length; i++) {
+      if (hList[i].offsetTop > scrollTop) {
+        current = i;
+        hasFind = true;
+        break;
+      }
+    }
+    if (!hasFind && scrollTop > lList[lList.length - 1].offsetTop) {
+      current = hList.length - 1;
+    } else {
+      current--;
+    }
+    if (dir === 'down') {
+      if (current > lastIndex) {
+        addActiveClass(current);
+        removeActiveClass(lastIndex)
+        lastIndex = current;
+        removeParentActiveClass();
+        lList[current] && addActiveLiElemment(lList[current].parentElement, tocContent);
+      }
+    } else {
+      if (current < lastIndex) {
+        addActiveClass(current);
+        removeActiveClass(lastIndex);
+        lastIndex = current;
+        removeParentActiveClass();
+        lList[current] && addActiveLiElemment(lList[current].parentElement, tocContent);
+      }
+    }
+  });
+
+
+  window.addEventListener('load', function () {
+    showToc();
+    document.querySelector('#sidebar').style = 'display: block;';
+    tocWrapper.classList.add('toc-active');
+    setTimeout(function () {
+      if ("createEvent" in document) {
+        let evt = document.createEvent("HTMLEvents");
+        evt.initEvent("scroll", false, true);
+        document.dispatchEvent(evt);
+      }
+      else {
+        document.fireEvent("scroll");
+      }
+    }, 500)
+  })
+
+</script>
+            </div>
+          
+        
       </div>
+    </div>
+  
+</div>
+<script>
+  const SIDEBAR_TITLE_ACTIVE = 'sidebar-title-active';
+  const SIDEBAR_BODY_ACTIVE = 'sidebar-body-active';
+  const SLIDE_UP_IN = 'slide-up-in';
+
+  let sidebar = document.querySelector('#sidebar'),
+  tocSideBar = document.querySelector('#tocSideBar'),
+  metaSideBar = document.querySelector('#metaSideBar'),
+  postToc = document.querySelector('#post_toc'),
+  postSiteMeta = document.querySelector('#post_side_meta'),
+  sidebarTitle = document.querySelector('.sidebar-title'),
+  sidebarBody = document.querySelector('#sidebar_body');
+
+  tocSideBar && tocSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  metaSideBar && metaSideBar.addEventListener('click', (e) => {
+    toggleSidebar(e);
+  });
+
+  function toggleSidebar(e) {
+    let currentTitle = document.querySelector("."+SIDEBAR_TITLE_ACTIVE);
+    if (currentTitle == e.srcElement) {
+      return ;
+    }
+    let current, showElement, hideElement;
+    if (e.srcElement == metaSideBar) {
+      showElement = postSiteMeta;
+      hideElement = postToc;
+    } else if (e.srcElement == tocSideBar){
+      showElement = postToc;
+      hideElement = postSiteMeta;
+    }
+    currentTitle.classList.remove(SIDEBAR_TITLE_ACTIVE);
+    e.srcElement.classList.add(SIDEBAR_TITLE_ACTIVE);
+
+    window.Velocity(hideElement, 'stop');
+    window.Velocity(hideElement, 'transition.slideUpOut', {
+      display: 'none',
+      duration: 200,
+      complete: function () {
+        window.Velocity(showElement, 'transition.slideDownIn', {
+          duration: 200
+        });
+      }
+    })
+    hideElement.classList.remove(SIDEBAR_BODY_ACTIVE);
+    showElement.classList.add(SIDEBAR_BODY_ACTIVE);
+  }
+
+  postToc && postToc.addEventListener('transitionend', function() {
+    this.classList.remove(SLIDE_UP_IN);
+  });
+
+  if (sidebarBody) {
+    if (sidebarBody.classList.contains('pisces') || sidebarBody.classList.contains('gemini')) {
+      let hasFix = false;
+      let scrollEl = document.querySelector('.main-continer');
+      let limitTop = document.querySelector('#nav_ul').children.length * 42 + 162;
+      window.addEventListener('scroll', function(e) {
+        if (document.scrollingElement.scrollTop >= limitTop) {
+          if (!hasFix) {
+            sidebar.classList.add('sidebar-fixed');
+            hasFix = true;
+          }
+        } else {
+          if (hasFix) {
+            sidebar.classList.remove('sidebar-fixed');
+            hasFix = false;
+          }
+        }
+      });
+    }
+  }
+  
+</script>
+        <div class="section-box box-shadow-wrapper">
+          <div class="section bg-color post post-page">
+            <section class="post-header">
+  <h1 class="post-title">
+    <a class="post-title-link" href="https://2qhs9l.coding-pages.com/post/mpi-jiao-cheng-4/">
+      MPI教程4
+    </a>
+  </h1>
+  <div class="post-meta">
+    
+    <span class="meta-item pc-show">
+      <i class="fa fa-calendar-o"></i>
+      <span class="language" data-lan="publish">发布于</span>
+      <span class="publish-time" data-t="2020-08-13 11:19:08">2020-08-13</span>
+      <span class="post-meta-divider pc-show">|</span>
+    </span>
+    
+    <span class="meta-item">
+      <i class="fa fa-folder-o"></i>
+      <span class="pc-show language" data-lan="category-in">分类于</span>
+      
+      
+      <a href="https://2qhs9l.coding-pages.com/tag/XepFupsMP/">
+        <span>MPI</span>
+      </a>、
       
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      <a href="https://2qhs9l.coding-pages.com/post/ping-heng-er-cha-shu/">
-        <div class="motion-warpper">
-          <div class="tag-post-node">
-            <h1>
-              07-07
-              <small>平衡二叉树</small>
-            </h1>
-          </div>
-        </div>
+      <a href="https://2qhs9l.coding-pages.com/tag/7zC-V_mDy/">
+        <span>并行计算</span>
       </a>
       
       
+    </span>
+    <span class="post-meta-divider">|</span>
+    
+    <span class="meta-item">
+      <i class="fa fa-clock-o"></i>
+      <span>14<span class="language" data-lan="minute">分钟</span></span>
+    </span>
+    <span class="meta-item">
+      <span class="post-meta-divider">|</span>
+      <i class="fa fa-file-word-o"></i>
+      <span>3216<span class="pc-show language" data-lan="words">字数</span></span>
+    </span>
+    
+  </div>
+</section>
+            <div class="post-body next-md-body" id="post_body">
+              <h1 id="mpi-4">MPI 4</h1>
+<h2 id="自定义数据类型">自定义数据类型</h2>
+<h3 id="内置类型">内置类型</h3>
+<p>MPI内置类型及其对应的MPI_Datatype如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th>MPI_Datatype</th>
+<th>对应c语言类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MPI_CHAR</td>
+<td>char</td>
+</tr>
+<tr>
+<td>MPI_SHORT</td>
+<td>short</td>
+</tr>
+<tr>
+<td>MPI_INT</td>
+<td>int</td>
+</tr>
+<tr>
+<td>MPI_LONG</td>
+<td>long</td>
+</tr>
+<tr>
+<td>MPI_FLOAT</td>
+<td>float</td>
+</tr>
+<tr>
+<td>MPI_DOUBLE</td>
+<td>double</td>
+</tr>
+<tr>
+<td>MPI_UNSIGNED_CHAR</td>
+<td>unsigned char</td>
+</tr>
+<tr>
+<td>MPI_UNSIGNED_SHORT</td>
+<td>unsigned short</td>
+</tr>
+<tr>
+<td>MPI_UNSIGNED</td>
+<td>unsigned int</td>
+</tr>
+<tr>
+<td>MPI_UNSIGNED_LONG</td>
+<td>unsigned long</td>
+</tr>
+<tr>
+<td>MPI_LONG_LONG_INT</td>
+<td>long long</td>
+</tr>
+<tr>
+<td>MPI_LONG_DOUBLE</td>
+<td>long double</td>
+</tr>
+</tbody>
+</table>
+<p>MPI系统的内置数据类型只适合于收发一组在内存中连续存放的数据，如果要发送和接收的数据在内存中不连续或者由不同类型的数据构成时，需要使用自定义的数据类型。自定义数据类型用于描述要发送或接收的数据在内存中的确切分布。使用适当的自定义类型可以有效地减少消息传递的次数，增大通信粒度，提升程序性能。</p>
+<h3 id="类型提交与释放">类型提交与释放</h3>
+<p>所有新创建的数据类型在首次用于消息传递前必须进行提交。新数据类型提交后就可以和 MPI 原始数据类型完全一样地在消息传递中使用。如果一个数据类型仅被用于创建其他数据类型的中间步骤<br>
+而并不直接在消息传递中使用，则不必将它提交，一旦基于它的其他数据类型创建完毕即可立即将其释放。</p>
+<p>当一个数据类型不再需要时应该将它释放以便释放其所占用的内存。释放一个数据类型不会影响正在进行的使用该数据类型的通信，也不会影响基于它创建的其他数据类型。</p>
+<p>类型提交与释放函数分别为MPI_Type_commit和MPI_Type_free，它们的声明为：</p>
+<pre><code class="language-cpp">int MPI_Type_commit(MPI_Datatype *datatype);
+int MPI_Type_free(MPI_Datatype *datatype);
+</code></pre>
+<p>MPI_Type_free函数返回时将datatype设置为MPI_DATATYPE_NULL，即空数据类型。</p>
+<h3 id="连续复制类型">连续复制类型</h3>
+<p>通过MPI_Type_contiguous函数可以将多个连续的相同的数据类型合成一个数据类型，其声明为：</p>
+<pre><code class="language-cpp">int MPI_Type_contiguous(
+    int count;              // 旧类型的个数
+    MPI_Datatype oldtype,   // 旧数据类型
+    MPI_Datatype *newtype   // 新数据类型
+);
+</code></pre>
+<p>MPI_Type_contiguous的用处在于，为一个固定长度的数组或者只含同种类型成员的结构体创建一个新的类型。例如：</p>
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;mpi.h&gt;
+
+struct Complex {
+    double real;
+    double image;
+};
+
+int main(int argc, char *argv[]) {
+    MPI_Init(&amp;argc, &amp;argv);
+
+    int id = 0;
+    MPI_Comm_rank(MPI_COMM_WORLD, &amp;id);
+
+    Complex c;
+    if (0 == id) {
+        std::cin &gt;&gt; c.real &gt;&gt; c.image;
+    }
+
+    // 为Complex创建MPI数据类型
+    MPI_Datatype ComplexType;
+    MPI_Type_contiguous(2, MPI_DOUBLE, &amp;ComplexType);
+    MPI_Type_commit(&amp;ComplexType);
+
+    MPI_Bcast(&amp;c, 1, ComplexType, 0, MPI_COMM_WORLD);
+
+    MPI_Type_free(&amp;ComplexType);
+
+    if (1 == id)
+        std::cout &lt;&lt; c.real &lt;&lt; &quot; &quot; &lt;&lt; c.image &lt;&lt; std::endl;
+
+    MPI_Finalize();
+
+    return 0;
+}
+</code></pre>
+<h3 id="向量数据类型">向量数据类型</h3>
+<p>连续复制类型不允许类型之间有间隔，向量数据类型支持从不连续存放的相同类型创建新的类型。向量数据类型创建函数有两个：MPI_Type_vector和MPI_Type_hvector。它们的声明为：</p>
+<pre><code class="language-cpp">int MPI_Type_vector(
+    int count,              // 块的数量
+    int blocklength,        // 每个块中所含元素的个数
+    int stride,             // 各块第一个元素之间相隔的元素数
+    MPI_Datatype oldtype,   // 旧数据类型
+    MPI_Datatype *newtype   // 新数据类型
+);
+
+int MPI_Type_hvector(
+    int count,              // 块的数量
+    int blocklength,        // 每个块中所含元素的个数
+    MPIAint stride,         // 各块第一个元素之间相隔的字节数
+    MPI_Datatype oldtype,   // 旧数据类型
+    MPI_Datatype *newtype   // 新数据类型
+)；
+</code></pre>
+<p>两个函数功能相同，区别仅在于：stride在MPI_Type_vector中以oldtype为单位，而在MPI_Type_hvector中以字节为单位。其中MPI_Aint为存放地址或位移的变量，在不同的mpi实现中不同，如msmpi定义为long long，而在mpich中定义为long。</p>
+<p>MPI_Type_vector的功能是创建一个新数据类型newtype，它由count个数据块构成，每个数据块由blocklength个连续存放的类型为oldtype的数据构成，相邻两个数据块的首地址相差stride个oldtype类型的数据。以下为count=2, blocklength=2, stride=3的示意图，它表示新数据类型有两个不连续的块，块的首地址相差3个oldtype，每块有2个连续的oldtype。</p>
+<figure data-type="image" tabindex="1"><img src="assets/mpi_type_vector.png" alt="type_vector" loading="lazy"></figure>
+<p>MPI_Type_vector用于将数组内不连续存放的数据发送给另一个进程，例如，对于数组A，希望将下标为偶数的数据发送给进程1，下标为奇数的数据发送给进程2，代码描述如下：</p>
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;mpi.h&gt;
+
+int main(int argc, char *argv[]) {
+    MPI_Init(&amp;argc, &amp;argv);
+
+    int id = 0;
+    MPI_Comm_rank(MPI_COMM_WORLD, &amp;id);
+
+    const int N = 15;
+    std::vector&lt;double&gt; A(N, 0);
+
+    if (0 == id)
+        std::generate(A.begin(), A.end(), []() { static int n = 1; return n++;});
+
+    MPI_Datatype EvenType;
+    MPI_Type_vector(
+        (N + 1) / 2,    // 块的数量
+        1,              // 块内元素个数
+        2,              // 相邻块首地址间隔
+        MPI_DOUBLE,     // 旧数据类型
+        &amp;EvenType       // 偶数下标类型
+    );
+    MPI_Type_commit(&amp;EvenType);
+
+    if (0 == id)
+        MPI_Send(A.data(), 1, EvenType, 1, 0, MPI_COMM_WORLD);
+
+    if (1 == id)
+        MPI_Recv(A.data(), 1, EvenType, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    // 奇数下标类似
+
+    MPI_Type_free(&amp;EvenType);
+
+    if (1 == id) {
+        for (int i = 0; i &lt; N; ++i)
+            std::cout &lt;&lt; A[i] &lt;&lt; &quot; &quot;;
+        std::cout &lt;&lt; std::endl;
+    }
+
+    MPI_Finalize();
+
+    return 0;
+}
+</code></pre>
+<p>2个进程执行结果：</p>
+<pre><code>1 0 3 0 5 0 7 0 9 0 11 0 13 0 15
+</code></pre>
+<h3 id="索引数据类型">索引数据类型</h3>
+<p>向量数据类型的块间间隔必须相同，而索引数据类型则不必。与MPI_Type_vector和MPI_Type_hvector类似，索引数据类型创建函数也有两个，分别为MPI_Type_indexed和MPI_Type_hindexed，它们的声明为：</p>
+<pre><code class="language-cpp">int MPI_Type_indexed(
+    int count,              // 块的数量
+    const int blocklens[],  // 每个块中所含元素的个数
+    const int indices[],    // 各块首地址偏移量
+    MPI_Datatype oldtype,   // 旧数据类型
+    MPI_Datatype *newtype   // 新数据类型
+);
+
+int MPI_Type_hindexed(
+    int count,              // 块的数量
+    int blocklens[],        // 每个块中所含元素的个数
+    MPI_Aint indices[],     // 各块偏移字节
+    MPI_Datatype oldtype,   // 旧数据类型
+    MPI_Datatype *newtype   // 新数据类型
+);
+</code></pre>
+<p>两者的区别仅在于参数indices在MPI_Type_indexed以旧数据类型为单位，而在MPI_Type_hindexed中以字节为单位。</p>
+<p>MPI_Type_indexed创建的新类型newtype由count个数据块构成，数据块i由blocklens[i]个连续存放、类型为oldtype的数据构成，首地址为indices[i]个oldtype的偏移量。以下为count=2, blocklens={1, 2}，indices={0, 3}的示意图。它表示新数据类型有2个块，第一块有1个数据，起始地址偏移为0，第二块有2个数据，起始地址偏移3个oldtype。</p>
+<figure data-type="image" tabindex="2"><img src="assets/mpi_type_indexed.png" alt="type_indexed" loading="lazy"></figure>
+<p>MPI_Type_indexed用于将数组中不连续存放且间隔不相同的数据一次性发送到另一个进程。例如使用MPI_Type_indexed将数组中下标为质数的数发送到另一个进程：</p>
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;mpi.h&gt;
+
+int main(int argc, char *argv[]) {
+    MPI_Init(&amp;argc, &amp;argv);
+
+    int id = 0;
+    MPI_Comm_rank(MPI_COMM_WORLD, &amp;id);
+
+    const int N = 15;
+    std::vector&lt;double&gt; A(N, 0);
+
+    if (0 == id)
+        std::generate(A.begin(), A.end(), []() { static int n = 0; return n++;});
+
+    // 筛掉所有合数
+    std::vector&lt;bool&gt; is_prime(N, true);
+    is_prime[0] = is_prime[1] = false;
+    for (int i = 2; i &lt; N; ++i) {
+        if (!is_prime[i])
+            continue;
+        for (int j = 2 * i; j &lt; N; j += i)
+            is_prime[j] = false;
+    }
+
+    // 计算质数个数
+    int num_primes = 0;
+    for (int i = 2; i &lt; N; ++i) {
+        if (is_prime[i])
+            ++num_primes;
+    }
+
+    // 计算每块有多少个数
+    std::vector&lt;int&gt; blocklens(num_primes);
+    blocklens[0] = 2;
+    for (int i = 1; i &lt; num_primes; ++i)
+        blocklens[i] = 1;
+
+    // 计算每块的偏移量
+    int n = 0;
+    std::vector&lt;int&gt; indices(num_primes);
+    for (int i = 0; i &lt; N; ++i) {
+        if (is_prime[i])
+            indices[n++] = i;
+    }
+
+    // 提交新类型
+    MPI_Datatype PrimeType;
+    MPI_Type_indexed(
+        num_primes,        // 块的数量
+        blocklens.data(),  // 块内元素个数
+        indices.data(),    // 各块首地址偏移量
+        MPI_DOUBLE,        // 旧数据类型
+        &amp;PrimeType         // 质数下标类型
+    );
+    MPI_Type_commit(&amp;PrimeType);
+
+    if (0 == id)
+        MPI_Send(A.data(), 1, PrimeType, 1, 0, MPI_COMM_WORLD);
+
+    if (1 == id)
+        MPI_Recv(A.data(), 1, PrimeType, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    MPI_Type_free(&amp;PrimeType);
+
+    if (1 == id) {
+        for (int i = 0; i &lt; N; ++i)
+            std::cout &lt;&lt; A[i] &lt;&lt; &quot; &quot;;
+        std::cout &lt;&lt; std::endl;
+    }
+
+    MPI_Finalize();
+
+    return 0;
+}
+</code></pre>
+<p>2个进程执行的结果为：</p>
+<pre><code>0 0 2 3 0 5 0 7 0 0 0 11 0 13 0
+</code></pre>
+<h3 id="结构体类型">结构体类型</h3>
+<p>前面三种方法是为数组为同种类型的多个数据创建新类型，而对于许多自定义类型，其成员变量的类型并不相同，此时需要使用MPI_Type_struct创建结构体类型。</p>
+<p>MPI_Type_struct的声明为：</p>
+<pre><code class="language-cpp">int MPI_Type_struct(
+    int count,                // 块的数量
+    int blocklens[],          // 每个块中所含元素的个数
+    MPI_Aint indices[],       // 各块偏移字节数
+    MPI_Datatype oldtypes[],  // 旧数据类型
+    MPI_Datatype *newtype     // 新数据类型
+);
+</code></pre>
+<p>新数据类型newtype由count个数据块构成，数据块i由blocklens[i]个连续存放、类型为oldtypes[i]的数据构成，数据块i的首地址为indices[i]，此处的偏移为字节数，而不是旧数据类型个数。</p>
+<p>MPI_Type_struct是MPI中最一般的类型构造函数，它和MPI_Type_hindexed相比，区别在于各个数据块可以由不同的数据类型构成。这就引入了一个非常重要的问题：对齐要求。</p>
+<p>考虑一个由内置类型构成的自定义类型，其各个成员必须满足的对齐要求和大小相同，各种内置类型的大小见下表：</p>
+<figure data-type="image" tabindex="3"><img src="assets/type_size.png" alt="type_size" loading="lazy"></figure>
+<p>仅考虑64位系统，visual studio和gcc/clang分别采用LLP64和LP64模型，区别仅在于long的尺寸不一样，因此应当尽量避免使用long类型。因此char需要对齐到1字节，short需要对齐到2字节，int需要对齐到4字节，long long需要对齐到8字节。浮点类型的宽度由IEEE 754标准给出，编译器间无区别，float为4字节，需要对齐到4字节，double为8字节，需要对齐到8字节。</p>
+<p>这样的对齐要求可以保证一个内置类型不会跨越字长边界。如64位系统字长为8字节，int类型对齐到4字节则必然存储于一个字的低地址或者高地址的半字。</p>
+<p>对于自定义类型，其对齐要求为成员变量中最严格的一个。如</p>
+<pre><code class="language-cpp">struct T1 {
+    char c;
+    int n;
+    double d;
+};
+</code></pre>
+<p>T1需要对齐到8字节，这样才能保证其成员d不会跨越字长边界。对于成员中有数组类型的，其对齐要求按元素类型处理，如</p>
+<pre><code class="language-cpp">struct T2 {
+    char s[7];
+    int n;
+};
+</code></pre>
+<p>T2的对齐要求是4而不是7或者8，因为按4字节对齐可以保证T2的成员变量都不跨越字长边界存储。</p>
+<p>为满足对齐要求，自定义类型的成员变量之间可能有间隙，间隙不存储任何有效数据，但会影响类型的大小，比如T1的c后面有3个字节的间隙，T2的s后面有1个字节的间隙，而下面的类型T3</p>
+<pre><code class="language-cpp">struct T3 {
+    int n;
+    double d;
+    int m;
+};
+</code></pre>
+<p>在n和m的后面都有4个字节的间隙，所以T1、T2、T3的大小分别为16、12、24字节。</p>
+<p>在创建结构体类型时需要正确计算间隙的的大小，这样才能正确地计算出各个块的偏移量。如T1、T2和T3类型的MPI_Type_struct的参数分别为：</p>
+<pre><code class="language-cpp">// T1
+int count = 3;
+int blocklens[] = {1, 1, 1};
+MPI_Aint indices[] = {0, 4, 8};
+
+// T2
+int count = 2;
+int blocklens[] = {7, 1};
+MPI_Aint indices[] = {0, 8};
+
+// T3
+int count = 3;
+int blocklens[] = {1, 1, 1};
+MPI_Aint indices[] = {0, 8, 16};
+</code></pre>
+<p>自定义类型在提交后，传输方式和普通类型一般无二，例如：</p>
+<pre><code class="language-cpp">std::vector&lt;T3&gt; A(N);
+MPI_send(A.data(), N, T3Type, dest, tag, MPI_COMM_WORLD);
+</code></pre>
+<p>T3尾部m后面有4个字节的空隙，这个空隙没有在创建类型的时候指定，但通过sizeof就可以简单地计算出T3的大小，即下一个T3对象的地址，这个过程不需要用户操心。</p>
+<h2 id="自定义函数">自定义函数</h2>
+<p>对于自定义的类型，如果要使用带计算的聚合通信函数，则需要向MPI提交自定义二元函数。在MPI中，二元函数应当具有如下的形式：</p>
+<pre><code class="language-cpp">void user_function_name(
+    void *invec,            // 操作数1所在缓冲区的首地址
+    void *inoutvec,         // 操作数2所在缓冲区的首地址，返回结果要保存到这个数组里
+    int *len,               // 数组长度
+    MPI_Datatype *datatype  // 数据类型
+);
+</code></pre>
+<p>这个函数应当完成的操作类似于：</p>
+<pre><code class="language-cpp">for (i = 0; i &lt; *len; i++)
+    inoutvec[i] = invec[i] op inoutvec[i];
+</code></pre>
+<p>自定义函数通过MPI_Op_create提交、MPI_Op_free释放：</p>
+<pre><code class="language-cpp">int MPI_Op_create(
+    MPI_User_function *function,    // 用户自定义函数
+    int commute,                    // 是否可交换，非0表示可交换，0表示不可交换
+    MPI_Op *op                      // 函数句柄
+);
+
+int MPI_Op_free(
+    MPI_Op *op                      // 函数句柄
+);
+</code></pre>
+<p>例如，对复数类型累积。各个进程已经求出本进程的累积结果，使用全局归约函数求出所有复数累积的结果：</p>
+<pre><code class="language-cpp">#include &lt;mpi.h&gt;
+
+struct Complex {
+    double real;
+    double imag;
+};
+
+void ComplexProd(void *inP, void *inoutP, int *len, MPI_Datatype *dptr) {
+    Complex c;
+    Complex *in = (Complex *)inP;
+    Complex *inout = (Complex *)inoutP;
+    for (int i = 0; i &lt; *len; ++i) {
+        c.real = inout-&gt;real * in-&gt;real - inout-&gt;imag * in-&gt;imag;
+        c.imag = inout-&gt;real * in-&gt;imag + inout-&gt;imag * in-&gt;real;
+        *inout = c;
+        in++; inout++;
+    }
+}
+
+int main(int argc, char *argv[]) {
+    // ...
+    
+    Complex a[100], answer[100];
+
+    MPI_Datatype ComplexType;
+
+    MPI_Type_contiguous(2, MPI_DOUBLE, &amp;ComplexType);
+    MPI_Type_commit(&amp;ComplexType);
+
+    MPI_Op ComplexProdOp;
+    MPI_Op_create(ComplexProd, true, &amp;ComplexProdOp);
+    MPI_Reduce(a, answer, 100, ComplexType, ComplexProdOp, 0, MPI_COMM_WORLD);
+
+    MPI_Op_free(&amp;ComplexProdOp);
+    
+    // ...
+}
+</code></pre>
+<h3 id="文档">文档</h3>
+<p>[1] https://www.open-mpi.org/doc/current/.</p>
+<p>[2] https://www.mpich.org/static/docs/latest/.</p>
+<p>[3] https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf.</p>
+
+            </div>
+            
+              <div class="reward-btn">
+                <div class="reward-btn-text">赞赏</div>
+              </div>
+            
+            
+              <div class="post-footer">
+  <ul class="post-copyright">
+    <li class="post-copyright-author">
+      <strong class="language" data-lan="author">本文作者：</strong>
+      不怕风似快刀，不怕沙尘障路，少年汉莫低首，相伴同求道
+    </li>
+    <li class="post-copyright-link">
+      <strong class="language" data-lan="link">本文链接：</strong>
+      <a href="https://2qhs9l.coding-pages.com/post/mpi-jiao-cheng-4/" title="MPI教程4">https://2qhs9l.coding-pages.com/post/mpi-jiao-cheng-4/</a>
+    </li>
+    <li class="post-copyright-license">
+      <strong class="language" data-lan="copyright">版权声明： </strong>
+      本博客所有文章除特别声明外，均采用<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i> BY-NC-SA</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+  <div class="tags">
+    
+      <a href="https://2qhs9l.coding-pages.com/tag/XepFupsMP/"># MPI</a>
+    
+      <a href="https://2qhs9l.coding-pages.com/tag/7zC-V_mDy/"># 并行计算</a>
+    
+  </div>
+  <div class="nav">
+    <div class="nav-prev">
       
+    </div>
+    <div class="nav-next">
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+        <a class="nav-pc-next" title="MPI教程3" href="https://2qhs9l.coding-pages.com/post/mpi-jiao-cheng-3/">MPI教程3</a>
+        <a class="nav-mobile-next" title="MPI教程3" href="https://2qhs9l.coding-pages.com/post/mpi-jiao-cheng-3/">下一篇</a>
+        <i class="fa fa-chevron-right"></i>
       
     </div>
   </div>
 </div>
-          </section>
+            
+            
+  <script src="https://cdn.jsdelivr.net/npm/valine@1.4.14/dist/Valine.min.js"></script>
+<div id="vcomments" style="padding: 10px 0px 0px 0px"></div>
+
+<style>
+  .v .veditor {
+    min-height: 10rem;
+    background-image: url('');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: right;
+    background-color: rgba(255, 255, 255, 0);
+    resize: none;
+  }
+
+  .v .vwrap {
+    border: 1px solid #000 !important;
+  }
+
+  .v .vbtn {
+    padding: .4rem 1.2rem !important;
+    border-color: #fff !important;
+    background-color: #49b1f5 !important;
+    color: #fff !important;
+    font-size: .7rem !important;
+  }
+
+  .v .vcards .vcard .vh .vmeta .vat {
+    padding: 0 .8rem !important;
+    border: 1px solid #00c4b6 !important;
+    border-radius: 5px !important;
+    color: #00c4b6 !important;
+  }
+</style>
+<script>
+  new Valine({
+    el: '#vcomments',
+    appId: 'oJ3I57xnJeHrSYxtwPqE3uFy-gzGzoHsz',
+    appKey: '3IfvJOtcQchX3DRs4zMGxuqv',
+    avatar: '',
+    placeholder: '',
+    pageSize: '',
+    lang: 'zh-cn',
+    enableQQ: 'true' === 'false',
+    visitor: 'true' === 'false',
+    highlight: 'true' === 'true',
+    avatarForce: 'true' === 'false',
+  });
+</script>
+
+          </div>
         </div>
       </div>
     </div>
@@ -497,6 +1263,259 @@
   }
 
 </script>
+    <div class="light-box" id="light_box"></div>
+<script>
+  let imgs = document.querySelectorAll('.post-body img');
+  let lightBox = document.querySelector('#light_box');
+  lightBox.addEventListener('mousedown', (e) => {
+    e.preventDefault()
+  })
+  lightBox.addEventListener('mousewheel', (e) => {
+    e.preventDefault()
+  })
+  let width = window.innerWidth * 0.8;
+  lightBox.onclick = () => {
+    let img = lightBox.querySelector('img');
+    lightBox.style = '';
+    img && img.remove();
+  }
+  imgs.forEach(item => {
+    item.onclick = function (e) {
+      let lightImg = document.createElement('img');
+      lightImg.src = this.src;
+      lightBox.style = `height: 100%; opacity: 1; background-color: rgba(0, 0, 0, 0.5);cursor: zoom-out;`;
+      lightImg.style = `width: ${width}px;border-radius: 2px;`;
+      lightImg.onclick = function () {
+        lightBox.style = '';
+        this.remove();
+      }
+      lightBox.append(lightImg);
+    }
+  })
+</script>
+    <div class="reward-mask" style="display: none;">
+  <div class="reward-relative">
+    <span class="close" aria-hidden="true">x</span>
+    <div class="reward-body">
+      <h2>感谢您的支持，我会继续努力的!</h2>
+      <div class="reward-img-box">
+        <div style="position: relative; width: 140px; height: 140px;">
+          
+          
+          
+            <img id="wx" class="reward-img" src="/images/wechatcode.png" alt="赞赏码">
+          
+        </div>
+      </div>
+      <p class="reward-word">扫码打赏，你说多少就多少</p>
+      <p class="reward-tip">打开支付宝或者微信扫一扫，即可进行扫码打赏哦</p>
+    </div>
+    <div class="bottom">
+      
+      
+      <div id="wxBtn" class="pay-text">
+        微信支付
+      </div>
+      
+    </div>
+  </div>
+</div>
+<style>
+  .reward-mask {
+    position: fixed;
+    z-index: 99999;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #00000054;
+  }
+
+  .reward-relative {
+    position: relative;
+    width: 480px;
+    text-align: center;
+    margin: 0 auto;
+    border-radius: 5px;
+    background-color: #fff;
+    top: 50%;
+    margin-top: -205px;
+  }
+
+  .reward-relative .close {
+    position: absolute;
+    right: 10px;
+    font-weight: normal;
+    font-size: 16px;
+    color: #929292;
+  }
+
+  .reward-body {
+    padding: 40px 20px 20px;
+  }
+
+  .bottom {
+    display: flex;
+  }
+
+  .reward-btn {
+    text-align: center;
+  }
+
+  .reward-btn-text {
+    display: inline-block;
+    cursor: pointer;
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    border-radius: 50%;
+    background-color: #ff9734;
+    color: #FFF;
+    margin-top: 20px;
+  }
+
+  .pay-text {
+    margin-top: 10px;
+    padding: 10px;
+    flex: 1;
+    transition: all .2s linear;
+  }
+
+  .pay-text:hover {
+    background-color: #a5a5a536;
+  }
+
+  .reward-body h2 {
+    padding-top: 10px;
+    text-align: center;
+    color: #a3a3a3;
+    font-size: 16px;
+    font-weight: normal;
+    margin: 0 0 20px;
+  }
+
+  .reward-body h2:after,
+  .reward-body h2:before {
+    font-family: Arial, Helvetica, sans-serif;
+    background: 0 0;
+    width: 0;
+    height: 0;
+    font-style: normal;
+    color: #eee;
+    font-size: 80px;
+    position: absolute;
+    top: 20px;
+  }
+
+  .reward-body h2:before {
+    content: '\201c';
+    left: 50px;
+  }
+
+  .reward-body h2:after {
+    content: '\201d';
+    right: 80px;
+  }
+
+  .reward-img-box {
+    display: inline-block;
+    padding: 10px;
+    border: 6px solid #ea5f00;
+    margin: 0 auto;
+    border-radius: 3px;
+    position: relative;
+  }
+
+  .reward-img {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (max-width: 767px) {
+    .reward-relative {
+      height: 100%;
+      top: 0px;
+      margin-top: 0;
+      width: auto;
+    }
+
+    .reward-relative .bottom {
+      flex-direction: column;
+    }
+
+    .reward-relative .pay-text {
+      width: 80%;
+      margin: 5px auto;
+      border: 1px solid silver;
+      padding: 6px;
+      border-radius: 4px;
+    }
+
+    .reward-body h2:after {
+      right: 40px;
+    }
+
+    .reward-body h2:after,
+    .reward-body h2:before {
+      font-size: 60px;
+    }
+
+    .reward-body h2:before {
+      left: 20px;
+    }
+  }
+</style>
+<script>
+  !function () {
+    var mask = document.querySelector('.reward-mask');
+    let close = document.querySelector('.reward-relative .close');
+    let rewardBtn = document.querySelector('.reward-btn');
+
+    let zfb = document.querySelector('#zfb'),
+      wx = document.querySelector('#wx'),
+      zfbBtn = document.querySelector('#zfbBtn'),
+      wxBtn = document.querySelector('#wxBtn');
+
+    if (zfbBtn && wxBtn) {
+      zfbBtn.addEventListener('click', () => {
+        window.Velocity(zfb, 'transition.slideLeftIn', {
+          duration: 400
+        });
+        window.Velocity(wx, 'transition.slideRightOut', {
+          display: 'none',
+          duration: 400
+        });
+      });
+
+      wxBtn.addEventListener('click', () => {
+        window.Velocity(wx, 'transition.slideRightIn', {
+          duration: 400
+        });
+        window.Velocity(zfb, 'transition.slideLeftOut', {
+          display: 'none',
+          duration: 400
+        });
+      });
+    }
+
+    rewardBtn.addEventListener('click', (e) => {
+      window.Velocity(mask, 'transition.slideDownIn', {
+        duration: 400
+      })
+    });
+
+    close.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.Velocity(mask, 'transition.slideUpOut', {
+        duration: 400
+      })
+    })
+  }()
+</script>
+
   </div>
 </body>
 
@@ -6004,7 +7023,6 @@ CUresult cuGetErrorString( CUresult error, const char** pStr );
 
 
 <script src="/media/js/mouse/love.js"></script>
-
 
 
 
