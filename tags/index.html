@@ -9,8 +9,8 @@
 <meta name="description" content="不怕风似快刀，不怕沙尘障路，少年汉莫低首，相伴同求道">
 <meta name="theme-color" content="#000">
 <title>wjin</title>
-<link rel="shortcut icon" href="/favicon.ico?v=1597331603948">
-<link rel="stylesheet" href="/media/css/pisces.css">
+<link rel="shortcut icon" href="/favicon.ico?v=1597425909391">
+<link rel="stylesheet" href="/media/css/gemini.css">
 <link rel="stylesheet" href="/media/fonts/font-awesome.css">
 <link
   href="//fonts.googleapis.com/css?family=Monda:300,300italic,400,400italic,700,700italic|Roboto Slab:300,300italic,400,400italic,700,700italic|Rosario:300,300italic,400,400italic,700,700italic|PT Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext"
@@ -44,7 +44,7 @@
   <div class="head-top-line"></div>
   <div class="header-box">
     
-<div class="pisces">
+<div class="gemini">
   <header class="header  ">
     <div class="blog-header box-shadow-wrapper bg-color " id="header">
       <div class="nav-toggle" id="nav_toggle">
@@ -170,14 +170,25 @@
   <div class="main-continer">
     
     <div
-      class="section-layout  pisces">
+      class="section-layout  gemini">
       <div class="section-layout-wrapper">
         <div id="sidebarMeta" class="sidebar">
     
 <div class="sidebar-wrapper box-shadow-wrapper bg-color">
   <div class="sidebar-item">
     <img class="site-author-image right-motion" src="/images/avatar.png"/>
-    <p class="site-author-name">不怕风似快刀，不怕沙尘障路，少年汉莫低首，相伴同求道</p>
+    <p class="site-author-name">wjin</p>
+    
+    <div class="site-description right-motion">
+      
+      
+      
+        <p>不怕风似快刀，不怕沙尘障路</p>
+      
+        <p>少年汉莫低首，相伴同求道</p>
+      
+      
+    </div>
     
   </div>
   <div class="sidebar-item side-item-stat right-motion">
@@ -212,7 +223,7 @@
 </div>
 <script>
   let sidebarMeta = document.querySelector('#sidebarMeta');
-  let scheme = 'pisces';
+  let scheme = 'gemini';
   let sidebarWrapper = document.querySelector('.sidebar-wrapper');
   if (sidebarMeta && (scheme === 'pisces' || scheme === 'gemini')) {
     document.addEventListener('scroll', function(e) {
@@ -738,7 +749,7 @@
   </footer>
   
   
-  <div class="pisces back-to-top" id="back_to_top">
+  <div class="gemini back-to-top" id="back_to_top">
     <i class="fa fa-arrow-up"></i>
     
     <span class="scrollpercent">
@@ -1061,7 +1072,7 @@ int MPI_Type_hvector(
     MPIAint stride,         // 各块第一个元素之间相隔的字节数
     MPI_Datatype oldtype,   // 旧数据类型
     MPI_Datatype *newtype   // 新数据类型
-)；
+);
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;两个函数功能相同，区别仅在于：stride在MPI_Type_vector中以oldtype为单位，而在MPI_Type_hvector中以字节为单位。其中MPI_Aint为存放地址或位移的变量，在不同的mpi实现中不同，如msmpi定义为long long，而在mpich中定义为long。&lt;/p&gt;
 &lt;p&gt;MPI_Type_vector的功能是创建一个新数据类型newtype，它由count个数据块构成，每个数据块由blocklength个连续存放的类型为oldtype的数据构成，相邻两个数据块的首地址相差stride个oldtype类型的数据。以下为count=2, blocklength=2, stride=3的示意图，它表示新数据类型有两个不连续的块，块的首地址相差3个oldtype，每块有2个连续的oldtype。&lt;/p&gt;
