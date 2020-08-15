@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+    <meta charset="UTF-8" />
+
+    <meta name="generator" content="Hugo 0.111.2"><meta name="theme-color" content="#fff" />
+    <meta name="color-scheme" content="light dark">
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+    
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>CUDA教程3 -- 执行模型 | wjin</title>
+
+    <link rel="stylesheet" href="/css/meme.min.af7333bfd64891c910fa2d9ad1905cb5289d87665f6fcc49d13183ed852abf3f.css"/>
+
+    
+    
+        <script src="/js/meme.min.b42cc6cc17aac11800d2bb8a71cf39db1f17f54d7f60cf3c1320970b00f1147e.js"></script>
+
+    
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" media="print" onload="this.media='all'" />
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" /></noscript>
+
+    <meta name="author" content="wjin" /><meta name="description" content="硬件架构 GPU的架构是围绕流式多处理器(Streaming Multiprocessor, SM)搭建的，一个GPU……" />
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="wjin" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="wjin" />
+    <meta name="msapplication-starturl" content="../../" />
+    <meta name="msapplication-TileColor" content="#fff" />
+    <meta name="msapplication-TileImage" content="../../icons/mstile-150x150.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    
+    
+
+    
+    <link rel="canonical" href="https://w-jin.github.io/tech/cuda3/" />
+    
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "datePublished": "2020-09-06T14:20:00+08:00",
+        "dateModified": "2020-12-21T23:12:37+08:00",
+        "url": "https://w-jin.github.io/tech/cuda3/",
+        "headline": "CUDA教程3 -- 执行模型",
+        "description": "硬件架构 GPU的架构是围绕流式多处理器(Streaming Multiprocessor, SM)搭建的，一个GPU……",
+        "inLanguage" : "zh-CN",
+        "articleSection": "tech",
+        "wordCount":  5837 ,
+        "image": ["https://w-jin.github.io/assets/sm.png","https://w-jin.github.io/assets/gpu.png","https://w-jin.github.io/assets/gpu_large.png","https://w-jin.github.io/assets/pascal_sm.png","https://w-jin.github.io/assets/cuda_core.png","https://w-jin.github.io/assets/pascal_memory.png","https://w-jin.github.io/assets/soft_hard.png","https://w-jin.github.io/assets/compute_capability.png","https://w-jin.github.io/assets/occupancy_calculator.png","https://w-jin.github.io/assets/occupancy_calculator_large.png","https://w-jin.github.io/assets/reduction1.png","https://w-jin.github.io/assets/reduction.png"],
+        "author": {
+            "@type": "Person",
+            "description": "我空空如也",
+            "email": "wjiner@outlook.com",
+            "image": "https://w-jin.github.io/icons/logo.png",
+            "url": "https://w-jin.github.io/",
+            "name": "wjin"
+        },
+        "license": "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)",
+        "publisher": {
+            "@type": "Organization",
+            "name": "wjin",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://w-jin.github.io/favicon.ico"
+            },
+            "url": "https://w-jin.github.io/"
+        },
+        "mainEntityOfPage": {
+            "@type": "WebSite",
+            "@id": "https://w-jin.github.io/"
+        }
+    }
+</script>
+
+    
+
+<meta name="twitter:card" content="summary_large_image" />
+
+
+
+    
+
+
+
+<meta property="og:title" content="CUDA教程3 -- 执行模型" />
+<meta property="og:description" content="硬件架构 GPU的架构是围绕流式多处理器(Streaming Multiprocessor, SM)搭建的，一个GPU……" />
+<meta property="og:url" content="https://w-jin.github.io/tech/cuda3/" />
+<meta property="og:site_name" content="wjin" />
+<meta property="og:locale" content="zh" /><meta property="og:image" content="https://w-jin.github.io/assets/sm.png" />
+<meta property="og:type" content="article" />
+    <meta property="article:published_time" content="2020-09-06T14:20:00&#43;08:00" />
+    <meta property="article:modified_time" content="2020-12-21T23:12:37&#43;08:00" />
+    
+    <meta property="article:section" content="tech" />
+
+
+
+    
+    
+
+    
+</head>
+
+    <body>
+        <div class="container">
+            
+    <header class="header">
+        
+            <div class="header-wrapper">
+                <div class="header-inner single">
+                    
+    <div class="site-brand">
+        
+            <a href="/" class="brand">wjin</a>
+        
+    </div>
+
+                    <nav class="nav">
+    <ul class="menu" id="menu">
+        
+            
+        
+        
+        
+        
+            
+                <li class="menu-item"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="icon home"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></svg><span class="menu-item-name">首页</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tech/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">技术</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/article/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">文青</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tags/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="icon tags"><path d="M497.941 225.941L286.059 14.059A48 48 0 0 0 252.118 0H48C21.49 0 0 21.49 0 48v204.118a48 48 0 0 0 14.059 33.941l211.882 211.882c18.744 18.745 49.136 18.746 67.882 0l204.118-204.118c18.745-18.745 18.745-49.137 0-67.882zM112 160c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm513.941 133.823L421.823 497.941c-18.745 18.745-49.137 18.745-67.882 0l-.36-.36L527.64 323.522c16.999-16.999 26.36-39.6 26.36-63.64s-9.362-46.641-26.36-63.64L331.397 0h48.721a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882z"/></svg><span class="menu-item-name">标签</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/about/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="icon user-circle"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 96c48.6 0 88 39.4 88 88s-39.4 88-88 88-88-39.4-88-88 39.4-88 88-88zm0 344c-58.7 0-111.3-26.6-146.5-68.2 18.8-35.4 55.6-59.8 98.5-59.8 2.4 0 4.8.4 7.1 1.1 13 4.2 26.6 6.9 40.9 6.9 14.3 0 28-2.7 40.9-6.9 2.3-.7 4.7-1.1 7.1-1.1 42.9 0 79.7 24.4 98.5 59.8C359.3 421.4 306.7 448 248 448z"/></svg><span class="menu-item-name">关于</span></a>
+                </li>
+            
+        
+            
+                
+                    
+                    
+                        <li class="menu-item">
+                            <a id="theme-switcher" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-light"><path d="M193.2 104.5l48.8-97.5a18 18 0 0128 0l48.8 97.5 103.4 -34.5a18 18 0 0119.8 19.8l-34.5 103.4l97.5 48.8a18 18 0 010 28l-97.5 48.8 34.5 103.4a18 18 0 01-19.8 19.8l-103.4-34.5-48.8 97.5a18 18 0 01-28 0l-48.8-97.5l-103.4 34.5a18 18 0 01-19.8-19.8l34.5-103.4-97.5-48.8a18 18 0 010-28l97.5-48.8-34.5-103.4a18 18 0 0119.8-19.8zM256 128a128 128 0 10.01 0M256 160a96 96 0 10.01 0"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-dark"><path d="M27 412a256 256 0 10154-407a11.5 11.5 0 00-5 20a201.5 201.5 0 01-134 374a11.5 11.5 0 00-15 13"/></svg></a>
+                        </li>
+                    
+                
+            
+        
+            
+                
+            
+        
+    </ul>
+</nav>
+
+                    
+                </div>
+            </div>
+            
+    <input type="checkbox" id="nav-toggle" aria-hidden="true" />
+    <label for="nav-toggle" class="nav-toggle"></label>
+    <label for="nav-toggle" class="nav-curtain"></label>
+
+
+        
+    </header>
+
+
+
+
+            
+            
+    <main class="main single" id="main">
+    <div class="main-inner">
+
+        
+
+        <article class="content post h-entry" data-align="justify" data-type="tech" data-toc-num="true">
+
+            <h1 class="post-title p-name">CUDA教程3 -- 执行模型</h1>
+
+            
+
+            
+                
+            
+
+            
+                
+
+<div class="post-meta">
+    
+        
+        <time datetime="2020-09-06T14:20:00&#43;08:00" class="post-meta-item published dt-published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2020.9.6</time>
+    
+    
+        
+        <time datetime="2020-12-21T23:12:37&#43;08:00" class="post-meta-item modified dt-updated"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.12.21</time>
+    
+    
+    
+        
+        
+        
+            
+        
+    
+    
+        
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;5837</span>
+    
+    
+        
+        <span class="post-meta-item reading-time"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></svg>&nbsp;12&nbsp;分钟</span>
+    
+    
+    
+</div>
+
+            
+
+            <nav class="contents">
+  <h2 id="contents" class="contents-title">目录</h2><ol class="toc">
+    <li><a id="contents:硬件架构" href="#硬件架构">硬件架构</a></li>
+    <li><a id="contents:软件架构" href="#软件架构">软件架构</a></li>
+    <li><a id="contents:线程束" href="#线程束">线程束</a>
+      <ol>
+        <li><a id="contents:线程束的划分" href="#线程束的划分">线程束的划分</a></li>
+        <li><a id="contents:线程束分化" href="#线程束分化">线程束分化</a></li>
+        <li><a id="contents:占用率" href="#占用率">占用率</a></li>
+      </ol>
+    </li>
+    <li><a id="contents:并行归约" href="#并行归约">并行归约</a></li>
+    <li><a id="contents:参考" href="#参考">参考</a></li>
+  </ol>
+</nav><div class="post-body e-content">
+                <h2 id="硬件架构"><a href="#硬件架构" class="anchor-link">§</a><a href="#contents:硬件架构" class="headings">硬件架构</a></h2>
+<p>GPU的架构是围绕流式多处理器(Streaming Multiprocessor, SM)搭建的，一个GPU有多个SM，每个SM都可以支持上千个线程并发执行，因此一个GPU可以并发执行数千数万个线程。一个SM关键组件有：CUDA核心、共享内存/一级缓存、寄存器文件、访存单元、特殊功能单元、线程束调度器，如下图所示(Fermi架构)：</p>
+<p><img src="assets/sm.png" alt="sm"></p>
+<p>当启动一个线程网格来执行核函数时，它将被分发到可用的SM上执行。一个线程块一旦被调度到一个SM上，其中的线程将在这个SM上并发执行直到结束，不会再将调度到其它SM上，因此线程块是任务调度的单位。一个SM上可以容纳多个线程块，根据SM可用资源的数量，线程网格中的多个线程块可能被调度到同一个SM上。当SM上有线程块结束时，就会有新的线程块调度进来。</p>
+<p>一个SM可以并发执行上千个线程，为了管理数量庞大的线程，CUDA设计了一种架构叫做SIMT (Single-Instruction, Multiple-Thread)。SIMT类似于SIMD(Single Instruction, Multiple Data)，两者都是在不同的数据上执行相同的指令，但SIMT允许线程独立执行。</p>
+<p>在SIMT架构中，每32个线程为一组，称为线程束(warp)，线程束内的所有线程执行相同的指令，每条指令都有自己的地址计数器和和寄存器状态，利用自身的数据执行当前的指令。每个SM都会将分配给它的线程块划分为多个线程束，然后在SM上执行。</p>
+<p>在硬件上，以Pascal架构为例，一个GPU由多个GPC (Graphics Processing Clusters)组成，一个GPC由多个TPC (Texture Processing Clusters)组成，一个TPC由多个SM和纹理单元组成。如下图所示：</p>
+<p><img src="assets/gpu.png" alt="gpu"></p>
+<p>局部放大如下图：</p>
+<p><img src="assets/gpu_large.png" alt="gpu_large"></p>
+<p>一个SM的结构大致为：</p>
+<p><img src="assets/pascal_sm.png" alt="sp"></p>
+<p>一个SM的硬件资源被分为两组，每组都由CUDA Core(绿色部分，也叫Streaming Processor, SP)、双精度单元(DP Unit)，访存模块(LD/ST)、特殊功能单元(SFU, Special Function Unit)、寄存器文件等组成。除此之外，每个SM都有自己的指令缓存、L1缓存和共享内存。在Fermi架构和Kepler架构中，共享内存和一级缓存是同一个硬件，可以由API配置分配方案，而从Maxwell架构开始，一级缓存和纹理内存合并为一个硬件，而共享内存独立出来，独占64KB。</p>
+<p>在Pascal架构中，一个SM有64个CUDA Core和32个DP Unit，CUDA Core只能做单精度浮点运算和整型运算，因此GPU的双精度计算能力是不如单精度的。一个CUDA Core的结构大致为：</p>
+<p><img src="assets/cuda_core.png" alt="cuda_core"></p>
+<p>Pascal架构中，一个SM中的功能部件变少了，但SM的数量变多了，共享内存和寄存器等资源变得宽裕了，因此整体性能提高了。</p>
+<p>在Pascal架构中，内存体系为：</p>
+<p><img src="assets/pascal_memory.png" alt="pascal_memory"></p>
+<p>L1缓存和纹理内存都是每个SM都有一份，而L2缓存和显存是全局的，为所有SM共享。越靠近SM的储存其容量越低，但速度越快。</p>
+<h2 id="软件架构"><a href="#软件架构" class="anchor-link">§</a><a href="#contents:软件架构" class="headings">软件架构</a></h2>
+<p>从CUDA编程的角度来看，没有硬件的细节丰富。软件和硬件对应关系大致为：</p>
+<p><img src="assets/soft_hard.png" alt="soft_hard"></p>
+<p>在CUDA编程中，线程被组织成网格=&gt;线程块=&gt;线程这几个层次。当一个线程块的网格被启动后，网格中的线程块分布在SM中。一旦线程块被调度到一个SM上，线程块中的线程会被进一步划分为线程束。一个线程块将在一个SM上执行直到结束，多个线程块可能被调度到同一个SM上执行。网格由多个线程块组成，网格内线程块的数量可能会超过硬件所能容纳的上限，不能容纳的部分将等待已被调度执行的线程块退出，让出硬件资源，然后被调度执行。</p>
+<p>每个SM的硬件资源数量都是有限的，在设置线程网格大小时必须考虑到硬件资源数量的限制，这些硬件资源有寄存器、共享内存、SM所能容纳的线程数量等。CUDA使用计算能力(compute capabilities)来描述这些硬件资源的限制，计算能力有两位数字，类似于3.5、5.2等。NVIDIA的GPU有许多型号，性能各不相同，但在进行CUDA编程时不需要考虑到具体的GPU型号，仅需要考虑计算能力即可获得编程所需的基本硬件信息。GPU与其对应的计算能力可以从这个网站获得：https://developer.nvidia.com/cuda-gpus，比如较新一些GPU的计算能力如下表所示：</p>
+<div class="table-container"><table>
+<thead>
+<tr>
+<th><strong>GPU</strong></th>
+<th><strong>Compute Capability</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NVIDIA TITAN RTX</td>
+<td>7.5</td>
+</tr>
+<tr>
+<td>Geforce RTX 2080 Ti</td>
+<td>7.5</td>
+</tr>
+<tr>
+<td>Geforce RTX 2080</td>
+<td>7.5</td>
+</tr>
+<tr>
+<td>Geforce RTX 2070</td>
+<td>7.5</td>
+</tr>
+<tr>
+<td>Geforce RTX 2060</td>
+<td>7.5</td>
+</tr>
+<tr>
+<td>NVIDIA TITAN V</td>
+<td>7.0</td>
+</tr>
+<tr>
+<td>NVIDIA TITAN Xp</td>
+<td>6.1</td>
+</tr>
+<tr>
+<td>NVIDIA TITAN X</td>
+<td>6.1</td>
+</tr>
+<tr>
+<td>GeForce GTX 1080 Ti</td>
+<td>6.1</td>
+</tr>
+<tr>
+<td>GeForce GTX 1080</td>
+<td>6.1</td>
+</tr>
+<tr>
+<td>GeForce GTX 1070</td>
+<td>6.1</td>
+</tr>
+<tr>
+<td>GeForce GTX 1060</td>
+<td>6.1</td>
+</tr>
+<tr>
+<td>GeForce GTX 1050</td>
+<td>6.1</td>
+</tr>
+<tr>
+<td>GeForce GTX TITAN X</td>
+<td>5.2</td>
+</tr>
+<tr>
+<td>GeForce GTX TITAN Z</td>
+<td>3.5</td>
+</tr>
+<tr>
+<td>GeForce GTX TITAN  Black</td>
+<td>3.5</td>
+</tr>
+<tr>
+<td>GeForce GTX TITAN</td>
+<td>3.5</td>
+</tr>
+<tr>
+<td>GeForce GTX 980 Ti</td>
+<td>5.2</td>
+</tr>
+<tr>
+<td>GeForce GTX 980</td>
+<td>5.2</td>
+</tr>
+<tr>
+<td>GeForce GTX 970</td>
+<td>5.2</td>
+</tr>
+<tr>
+<td>GeForce GTX 960</td>
+<td>5.2</td>
+</tr>
+<tr>
+<td>GeForce GTX 950</td>
+<td>5.2</td>
+</tr>
+<tr>
+<td>GeForce GTX 780 Ti</td>
+<td>3.5</td>
+</tr>
+<tr>
+<td>GeForce GTX 780</td>
+<td>3.5</td>
+</tr>
+</tbody>
+</table></div>
+<p>可以看到计算能力不是连续变化的，较新的GPU的计算能力只有十来个，也就是说有些GPU虽然不同，但在CUDA编程时几乎没有区别。此外，计算能力不代表性能高低，如750ti的计算能力是5.0，但它的性能显然不如计算能力为3.5的780。一些常见的计算能力对应的部分硬件信息如下表所示：</p>
+<p><img src="assets/compute_capability.png" alt="compute_capability"></p>
+<p>完整的表见https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#compute-capabilities。</p>
+<p>除了从NVIDIA的网站查询外，CUDA还有一组函数可以在程序中查询硬件信息，如</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="n">__host__</span> <span class="n">cudaError_t</span> <span class="nf">cudaGetDeviceProperties</span><span class="p">(</span><span class="n">cudaDeviceProp</span> <span class="o">*</span><span class="n">prop</span><span class="p">,</span> <span class="kt">int</span> <span class="n">device</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>cudaDeviceProp是一个非常大的结构体，用于返回整个GPU的硬件信息，其部分成员为：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">struct</span> <span class="nc">cudaDeviceProp</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="n">name</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="n">cudaUUID_t</span> <span class="n">uuid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">size_t</span> <span class="n">totalGlobalMem</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">size_t</span> <span class="n">sharedMemPerBlock</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">regsPerBlock</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">warpSize</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">size_t</span> <span class="n">memPitch</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">maxThreadsPerBlock</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">maxThreadsDim</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">maxGridSize</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// ...
+</span></span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>也可以使用cudaDeviceGetAttribute获得某个属性而不用全部返回。这些函数可以在CUDA Runtime API的5.1 Device Management一节中查到，这里不再一一列举。链接：https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__DEVICE.html#group__CUDART__DEVICE。</p>
+<h2 id="线程束"><a href="#线程束" class="anchor-link">§</a><a href="#contents:线程束" class="headings">线程束</a></h2>
+<h3 id="线程束的划分"><a href="#线程束的划分" class="anchor-link">§</a><a href="#contents:线程束的划分" class="headings">线程束的划分</a></h3>
+<p>线程束是SM中最基本的执行单元，线程束内的32个线程执行相同的指令，而操作不同的数据。一个线程块被调度到一个SM上后，会将每相邻32个线程划到一个线程束内。从软件来看，线程网格和线程块都是三维的，但在硬件的角度来看，所有的线程都被组织成了一维的。在一个线程块中，每个线程都有一个唯一的ID。对于一维的线程块，线程ID被存储在内置变量threadIdx.x中，threadIdx.x中拥有连续值的线程被分组到线程束中。如拥有128个线程的一维线程块被划分为4个线程束：</p>
+<ul>
+<li>warp 0: 0, 1, ..., 31</li>
+<li>warp 1: 32, 33, ..., 63</li>
+<li>warp 2: 64, 65, ..., 95</li>
+<li>warp 3: 96, 97, ..., 127</li>
+</ul>
+<p>如果线程块被组织成二维或者三维的，则按照z主序、y主序的顺序计算：</p>
+<ul>
+<li>二维：threadIdx.y * blockDim.x + threadIdx.x</li>
+<li>三维：threadIdx.z * blockDim.x * blockDim.y + threadIdx.y * blockDim.x + threadIdx.x</li>
+</ul>
+<p>硬件划分的线程束的边界是线程块，任何一个线程束不会跨越线程块存在，如果线程块的大小不是32的倍数，那么最后的线程束内有些线程就不是活跃线程，它们从始至终都不会做任何有效操作，但却要消耗寄存器等硬件资源，在设置线程网格大小时应当尽量避免这种情况。如一个二维线程块设置成x方向40个线程，y方向2个线程的大小，则线程块内有80个线程，必须划分成3个线程束，大小为96个线程，因此最后一个线程束内只有16个活跃线程。</p>
+<h3 id="线程束分化"><a href="#线程束分化" class="anchor-link">§</a><a href="#contents:线程束分化" class="headings">线程束分化</a></h3>
+<p>CUDA在GPU端的编程语言类似于c语言，也拥有c语言的控制结构，如循环、条件分支等。CPU拥有复杂的硬件，可以对条件分支进行预测，分支语句对性能的影响非常小。但GPU是相对简单的设备，没有分支预测机制。一个线程束内的所有线程需要同时执行相同的指令，如果在遇到条件分支时，同一线程束内的不同线程通过不同的路径，可能遇到问题。如：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="n">cond</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// ...
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// ...
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>假定一个线程束中有16个线程cond为true，执行if分支，而另外16个线程cond为false，执行else分支，则会产生一个悖论：这32个线程如何执行相同的指令？在CUDA中，如果遇到这样的情况，线程束将依次执行if分支和else分支，在执行if分支将禁用cond为false的16个线程，而执行else分支时将禁用cond为true的16个线程。这种现象称为线程束分化(warp diverge)。线程束分化将导致性能明显地下降，分支越多，性能削弱越严重。</p>
+<p>比如下面的核函数：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">mathKernel</span><span class="p">(</span><span class="kt">float</span> <span class="o">*</span><span class="n">c</span><span class="p">,</span> <span class="kt">int</span> <span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">tid</span> <span class="o">=</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">stride</span> <span class="o">=</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="n">stride</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">float</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">float</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">tid</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">a</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">else</span>
+</span></span><span class="line"><span class="cl">            <span class="n">b</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">        <span class="n">c</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>每个线程束都发生线程束分化。</p>
+<p>在CUDA中，可以使用工具nvprof进行性能分析，自然也可以检测线程束分化，命令为：</p>
+<pre tabindex="0"><code>$ nvprof --metrics branch_efficiency ./a.out
+Invocations          Metric Name        Metric Description   Min      Max      Avg
+          1          branch_efficiency  Branch Efficiency   100.00%  100.00%  100.00%
+</code></pre><p>其中分支效率的计算方法为：</p>
+<ul>
+<li>分支效率 = (分支数 - 分化分支数) / 分支数 x 100%</li>
+</ul>
+<p>此处分支效率异常地高，这是编译器优化的结果，可以使用以下的命令查看线程束分化的次数：</p>
+<pre tabindex="0"><code>$ nvprof --events branch,divergent_branch  ./a.out
+Invocations           Event Name         Min         Max         Avg       Total
+          1           branch             48          48          48          48
+          1           divergent_branch    0           0           0           0
+</code></pre><h3 id="占用率"><a href="#占用率" class="anchor-link">§</a><a href="#contents:占用率" class="headings">占用率</a></h3>
+<p>CUDA Core在执行指令是串行的，当一个线程束阻塞时，SM切换执行其他符合条件的线程束来执行，理想情况下，我们想要每个SM上都有足够的线程束，保证计算资源的充分利用。为此，可以定义占用率的概念：</p>
+<ul>
+<li>占用率 = 活跃线程数量 / 最大线程数量</li>
+</ul>
+<p>占用率是针对SM定义的，它描述了SM中硬件资源的利用程度。一般而言，线程束因为访存而阻塞，此时需要有足够数量的线程才能隐藏访存的延迟，这是因为SM含有数量庞大的寄存器，线程束间的切换几乎没有开销，当一个线程束访存时，切换其它线程束执行可以尽量保证CUDA Core的忙碌。</p>
+<p>一个SM可以容纳的最大线程数量是硬件属性，在计算能力3.0及以后的GPU中，这个数都是2048。而活跃线程数量需要根据核函数所需的硬件资源以及线程网格配置综合来看，更具体地，应当根据硬件资源和核函数的需求设置线程网格，以达到更高的占用率。CUDA提供了一个excel表格可以计算最佳线程网格配置，在windows上位于C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.1\tools\CUDA_Occupancy_Calculator.xls，打开后的界面为：</p>
+<p><img src="assets/occupancy_calculator.png" alt="occupancy_calculator"></p>
+<p>设置部分放大后为：</p>
+<p><img src="assets/occupancy_calculator_large.png" alt="occupancy_calculator_large"></p>
+<p>填好计算能力和核函数对寄存器和共享储存的需求，以及线程块的大小后就可以给出最佳配置。核函数的硬件需求可以通过以下命令查看：</p>
+<pre tabindex="0"><code>$ nvcc --ptxas-options=-v main.cu
+ptxas info    : 14 bytes gmem
+ptxas info    : Compiling entry function &#39;_ZN6thrust8cuda_cub4core13_kernel_agentINS0_14__parallel_for16ParallelForAgentINS0_20__uninitialized_fill7functorINS_10device_ptrIfEEfEEyEES9_yEEvT0_T1_&#39; for &#39;sm_30&#39;
+ptxas info    : Function properties for _ZN6thrust8cuda_cub4core13_kernel_agentINS0_14__parallel_for16ParallelForAgentINS0_20__uninitialized_fill7functorINS_10device_ptrIfEEfEEyEES9_yEEvT0_T1_
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 6 registers, 344 bytes cmem[0]
+ptxas info    : Compiling entry function &#39;_ZN6thrust8cuda_cub3cub11EmptyKernelIvEEvv&#39; for &#39;sm_30&#39;
+ptxas info    : Function properties for _ZN6thrust8cuda_cub3cub11EmptyKernelIvEEvv
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 2 registers, 320 bytes cmem[0]
+ptxas info    : Compiling entry function &#39;_Z10mathKernelPfi&#39; for &#39;sm_30&#39;
+ptxas info    : Function properties for _Z10mathKernelPfi
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 8 registers, 332 bytes cmem[0], 8 bytes cmem[2]
+</code></pre><p>此外，CUDA还提供了一组函数用于在运行时根据实际GPU进行启发式配置，但要注意它们的调用开销，此处不再赘述，参考CUDA Runtime API的5.8 Occupancy一节，链接：https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__OCCUPANCY.html#group__CUDART__OCCUPANCY。</p>
+<h2 id="并行归约"><a href="#并行归约" class="anchor-link">§</a><a href="#contents:并行归约" class="headings">并行归约</a></h2>
+<p>归约问题是对一个序列依次进行二元运算得到一个结果的问题，如数组求和、求最值等。当二元运算满足结合率和交换率时结果与计算次序无关，此时可以进行并行归约。在CPU的并行归约中，一般划分后的任务数量不是太多，对部分和进行归约时即使是串行计算也非常快。但对于GPU而言，情况截然不同，一个GPU可以启动数以万计的线程，如何对这几万个结果进行归约就比较考验算法了。</p>
+<p>此节以最简单地并行求和为例，串行代码大致为：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">sum</span> <span class="o">+=</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>在使用大量线程进行归约时，一般按以下两种方式处理：</p>
+<ul>
+<li>相邻配对</li>
+</ul>
+<p><img src="assets/reduction1.png" alt="reduction1"></p>
+<ul>
+<li>交错配对</li>
+</ul>
+<p><img src="assets/reduction.png" alt="reduction"></p>
+<p>相邻配对将引起一系列的问题，首先是内存不连续的问题，这将导致缓存失效时需要读入更多的数据，其次是判断将哪些元素加到哪些元素上的问题，需要引入if-else分支，可能会导致线程束分化。而采用交错配对则没有这样的问题，因此在CUDA中一般采用交错配对进行并行归约，这样我们可以在O(log n)的时间复杂度内将n个求和。</p>
+<p>交错配对的并行归约实现如下：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="c1">// 需要假定N足够大，否则靠后的线程块内对vec的访问可能越界
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">ReductionKernel</span><span class="p">(</span><span class="kt">float</span> <span class="o">*</span><span class="n">vec</span><span class="p">,</span> <span class="kt">float</span> <span class="o">*</span><span class="n">partial</span><span class="p">,</span> <span class="kt">int</span> <span class="n">N</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">tid</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 首先每个元素计算部分元素加和
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">float</span> <span class="n">t</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">tid</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N</span><span class="p">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">t</span> <span class="o">+=</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="n">vec</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">__syncthreads</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 然后在线程块内进行并行归约
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">int</span> <span class="n">stride</span> <span class="o">=</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">while</span> <span class="p">(</span><span class="n">stride</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">&lt;</span> <span class="n">stride</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">vec</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vec</span><span class="p">[</span><span class="n">tid</span> <span class="o">+</span> <span class="n">stride</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="n">__syncthreads</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">        <span class="n">stride</span> <span class="o">&gt;&gt;=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 0号线程将块内求和的结果写出
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">if</span> <span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">partial</span><span class="p">[</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">vec</span><span class="p">[</span><span class="n">tid</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span> <span class="n">nums</span><span class="p">(</span><span class="n">N</span><span class="p">);</span>     <span class="c1">// 保存需要求和的数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">block_size</span> <span class="o">=</span> <span class="mi">1024</span><span class="p">;</span>  <span class="c1">// 线程块内有1024个线程
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">int</span> <span class="n">grid_size</span> <span class="o">=</span> <span class="mi">26</span><span class="p">;</span>     <span class="c1">// k20m有13个sm，每个sm可容纳2048个线程，总共26个线程块
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    
+</span></span><span class="line"><span class="cl">    <span class="kt">float</span> <span class="o">*</span><span class="n">vec</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">float</span> <span class="o">*</span><span class="n">partial</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>  <span class="c1">// 保存每个线程块的求和结果
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vec</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">)</span> <span class="o">*</span> <span class="n">N</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">partial</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">)</span> <span class="o">*</span> <span class="n">grid_size</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">nums</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">)</span> <span class="o">*</span> <span class="n">N</span><span class="p">,</span> <span class="n">cudaMemcpyHostToDevice</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="n">ReductionKernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">block_size</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">dvec</span><span class="p">,</span> <span class="n">dpartial</span><span class="p">,</span> <span class="n">N</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span> <span class="n">temp</span><span class="p">(</span><span class="n">grid_size</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">temp</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">partial</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">)</span> <span class="o">*</span> <span class="n">grid_size</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">               <span class="n">cudaMemcpyDeviceToHost</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="kt">float</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">grid_size</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">sum</span> <span class="o">+=</span> <span class="n">partial</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="n">cudaFree</span><span class="p">(</span><span class="n">vec</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">cudaFree</span><span class="p">(</span><span class="n">partial</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>这段代码中，每个线程先将超出线程总数的数组元素加到自身对应的数组元素上，然后在线程块内归约，得到26个和，再利用CPU将这26个和加起来。__syncthreads是线程块同步原语，用于对线程块内的所有线程进行同步，以确保进入下一轮之前上一轮的结果都已经写入内存。</p>
+<p>上述核函数还有可以优化的地方，当线程块内的数组长度小于等于64之后，线程块内只有前32个线程是在做有效操作的，而它们本身就执行相同的指令，也不再需要和线程块内其它线程同步。因此可以将循环展开，再对最后几个循环单独处理：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="c1">// 需要假定N足够大，否则靠后的线程块内对vec的访问可能越界
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">ReductionKernel</span><span class="p">(</span><span class="kt">float</span> <span class="o">*</span><span class="n">vec</span><span class="p">,</span> <span class="kt">float</span> <span class="o">*</span><span class="n">partial</span><span class="p">,</span> <span class="kt">int</span> <span class="n">N</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">tid</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 首先每个元素计算部分元素加和
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">float</span> <span class="n">t</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">tid</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N</span><span class="p">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">t</span> <span class="o">+=</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="n">vec</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">__syncthreads</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 然后在线程块内进行并行归约
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>   <span class="k">if</span> <span class="p">(</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">1024</span> <span class="o">&amp;&amp;</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">512</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">       <span class="n">vec</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vec</span><span class="p">[</span><span class="n">tid</span> <span class="o">+</span> <span class="mi">512</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="n">__syncthreads</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">512</span> <span class="o">&amp;&amp;</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">256</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">       <span class="n">vec</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vec</span><span class="p">[</span><span class="n">tid</span> <span class="o">+</span> <span class="mi">256</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="n">__syncthreads</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">256</span> <span class="o">&amp;&amp;</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">128</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">       <span class="n">vec</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vec</span><span class="p">[</span><span class="n">tid</span> <span class="o">+</span> <span class="mi">128</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="n">__syncthreads</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">128</span> <span class="o">&amp;&amp;</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">64</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">       <span class="n">vec</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vec</span><span class="p">[</span><span class="n">tid</span> <span class="o">+</span> <span class="mi">64</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="n">__syncthreads</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">tid</span> <span class="o">&lt;</span> <span class="mi">32</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">volatile</span> <span class="kt">float</span> <span class="o">*</span><span class="n">vmem</span> <span class="o">=</span> <span class="n">vec</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">vmem</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vmem</span><span class="p">[</span><span class="n">tid</span> <span class="o">+</span> <span class="mi">32</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="n">vmem</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vmem</span><span class="p">[</span><span class="n">tid</span> <span class="o">+</span> <span class="mi">16</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="n">vmem</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vmem</span><span class="p">[</span><span class="n">tid</span> <span class="o">+</span> <span class="mi">8</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="n">vmem</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vmem</span><span class="p">[</span><span class="n">tid</span> <span class="o">+</span> <span class="mi">4</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="n">vmem</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vmem</span><span class="p">[</span><span class="n">tid</span> <span class="o">+</span> <span class="mi">2</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="n">vmem</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vmem</span><span class="p">[</span><span class="n">tid</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 0号线程将块内求和的结果写出
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">if</span> <span class="p">(</span><span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">partial</span><span class="p">[</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">vec</span><span class="p">[</span><span class="n">tid</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>volatile关键字用于将内存声明成易变的，即内存的值可能因为本线程行为之外的行为改变，这样保证编译器在生成代码时不对此内存做任何假定，不对它的访问进行优化，每次都从内存中读取它的值。程序的其它部分和之前一样。这个版本的归约仍然存在一些问题，以后会给出一些更优的版本。</p>
+<h2 id="参考"><a href="#参考" class="anchor-link">§</a><a href="#contents:参考" class="headings">参考</a></h2>
+<p>[1] <a href="https://www.nvidia.com/content/dam/en-zz/Solutions/design-visualization/technologies/turing-architecture/NVIDIA-Turing-Architecture-Whitepaper.pdf" target="_blank" rel="noopener">https://www.nvidia.com/content/dam/en-zz/Solutions/design-visualization/technologies/turing-architecture/NVIDIA-Turing-Architecture-Whitepaper.pdf</a>.</p>
+<p>[2] <a href="https://images.nvidia.com/content/pdf/tesla/whitepaper/pascal-architecture-whitepaper.pdf" target="_blank" rel="noopener">https://images.nvidia.com/content/pdf/tesla/whitepaper/pascal-architecture-whitepaper.pdf</a>.</p>
+
+            </div>
+
+            
+    
+    
+        <ul class="post-copyright">
+            <li class="copyright-item author"><span class="copyright-item-text">作者</span>：<a href="https://w-jin.github.io/" class="p-author h-card" target="_blank" rel="noopener">wjin</a></li>
+            
+                
+                
+                
+                
+                <li class="copyright-item link"><span class="copyright-item-text">链接</span>：<a href="/tech/cuda3/" target="_blank" rel="noopener">https://w-jin.github.io/tech/cuda3/</a></li>
+            
+            <li class="copyright-item license"><span class="copyright-item-text">许可</span>：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></li>
+            
+        </ul>
+    
+
+
+
+        </article>
+
+        
+
+        
+
+
+        
+
+
+        
+
+
+        
+    
+    
+        <div class="related-posts">
+            <h2 class="related-title">相关文章：<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon related-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm144 276c0 6.6-5.4 12-12 12h-92v92c0 6.6-5.4 12-12 12h-56c-6.6 0-12-5.4-12-12v-92h-92c-6.6 0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h92v-92c0-6.6 5.4-12 12-12h56c6.6 0 12 5.4 12 12v92h92c6.6 0 12 5.4 12 12v56z"/></svg></h2>
+            <ul class="related-list">
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda10/" class="related-link">CUDA教程10 -- 多GPU编程</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda9/" class="related-link">CUDA教程9 -- 代数多重网格</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/thrust/" class="related-link">CUDA番外 -- thrust简介</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda7/" class="related-link">CUDA教程7 -- 双共轭梯度法</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda6/" class="related-link">CUDA教程6 -- 共轭梯度法</a>
+                    </li>
+                
+            </ul>
+        </div>
+    
+
+
+
+        
+    
+        <div class="post-tags">
+            
+                
+                
+                
+                
+                    
+                    <a href="/tags/cuda/" rel="tag" class="post-tags-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49 0 48 0h204.118a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882 0L14.059 286.059A48 48 0 0 1 0 252.118zM112 64c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>cuda</a>
+                
+            
+        </div>
+    
+
+
+
+        
+
+
+        
+
+
+        
+    
+        
+        
+    
+    
+    
+    
+        <ul class="post-nav">
+            
+                <li class="post-nav-prev">
+                    <a href="/tech/cuda4/" rel="prev">&lt; CUDA教程4 -- 设备端储存</a>
+                </li>
+            
+            
+                <li class="post-nav-next">
+                    <a href="/tech/cuda2/" rel="next">CUDA教程2 -- CPU构架 &gt;</a>
+                </li>
+            
+        </ul>
+    
+
+
+
+        
+    
+
+        
+            <div class="load-comments">
+                <div id="load-comments">加载评论</div>
+            </div>
+        
+
+        
+
+        
+            <div id="vcomments"></div>
+        
+
+        
+
+        
+    
+
+
+
+    </div>
+</main>
+
+
+            
+    <div id="back-to-top" class="back-to-top">
+        <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon arrow-up"><path d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z"/></svg></a>
+    </div>
+
+
+            
+    <footer id="footer" class="footer">
+        <div class="footer-inner">
+            <div class="site-info">©&nbsp;1999–2023&nbsp;<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon footer-icon"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>&nbsp;wjin</div><div class="powered-by">Powered by <a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo</a> | Theme is <a href="https://github.com/reuixiy/hugo-theme-meme" target="_blank" rel="noopener">MemE</a></div><div class="site-copyright"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></div>
+
+            
+
+
+            
+        </div>
+    </footer>
+
+
+        </div>
+        
+
+        
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
+<script>
+    if (typeof renderMathInElement === 'undefined') {
+        const getScript = (options) => {
+            const script = document.createElement('script');
+            script.defer = true;
+            script.crossOrigin = 'anonymous';
+            Object.keys(options).forEach((key) => {
+                script[key] = options[key];
+            });
+            document.body.appendChild(script);
+        };
+        getScript({
+            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/katex.min.js',
+            onload: () => {
+                getScript({
+                    src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/mhchem.min.js',
+                    onload: () => {
+                        getScript({
+                            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/auto-render.min.js',
+                            onload: () => {
+                                renderKaTex();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } else {
+        renderKaTex();
+    }
+    function renderKaTex() {
+        renderMathInElement(
+            document.body,
+            {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ]
+            }
+        );
+    }
+</script>
+
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.8.3/dist/mermaid.min.js"></script>
+<script>
+    const mermaidConfig = {
+        startOnLoad: true,
+        flowchart: {
+            useMaxWidth: false,
+            htmlLabels: true
+        },
+        theme: 'default'
+    };
+    mermaid.initialize(mermaidConfig);
+</script>
+
+
+
+    
+
+        
+
+        
+            <script>
+    function loadComments() {
+        if (!document.getElementById('vcomments')) {
+            return;
+        }
+        if (typeof Valine === 'undefined') {
+            const getScript = (options) => {
+                const script = document.createElement('script');
+                script.defer = true;
+                script.crossOrigin = 'anonymous';
+                Object.keys(options).forEach((key) => {
+                    script[key] = options[key];
+                });
+                document.body.appendChild(script);
+            };
+            getScript({
+                src: 'https:\/\/cdn.jsdelivr.net\/npm\/valine@1.4.14\/dist\/Valine.min.js',
+                onload: () => {
+                    newValine();
+                }
+            });
+        } else {
+            newValine();
+        }
+    }
+    function newValine() {
+        new Valine({
+            el: '#vcomments',
+            appId: 'oJ3I57xnJeHrSYxtwPqE3uFy-gzGzoHsz',
+            appKey: '3IfvJOtcQchX3DRs4zMGxuqv',
+            placeholder: 'Just go go',
+            path: location.pathname,
+            avatar: 'mm',
+            meta: ["nick","mail","link"],
+            pageSize:  10 ,
+            lang: 'zh-cn',
+            visitor:  false ,
+            highlight:  true ,
+            avatarForce:  false ,
+            recordIP:  false ,
+            serverURLs: '',
+            emojiCDN: '',
+            emojiMaps: {},
+            enableQQ:  true ,
+            requiredFields: []
+        });
+    }
+</script>
+
+        
+
+        
+
+        
+
+    
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/medium-zoom@latest/dist/medium-zoom.min.js"></script>
+
+<script>
+    let imgNodes = document.querySelectorAll('div.post-body img');
+    imgNodes = Array.from(imgNodes).filter(node => node.parentNode.tagName !== "A");
+
+    mediumZoom(imgNodes, {
+        background: 'hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.95)'
+    })
+</script>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/instant.page@5.1.0/instantpage.min.js" type="module" defer></script>
+
+
+
+
+
+
+    </body>
+</html>

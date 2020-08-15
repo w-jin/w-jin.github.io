@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+    <meta charset="UTF-8" />
+
+    <meta name="generator" content="Hugo 0.111.2"><meta name="theme-color" content="#fff" />
+    <meta name="color-scheme" content="light dark">
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+    
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>CUDA教程9 -- 代数多重网格 | wjin</title>
+
+    <link rel="stylesheet" href="/css/meme.min.af7333bfd64891c910fa2d9ad1905cb5289d87665f6fcc49d13183ed852abf3f.css"/>
+
+    
+    
+        <script src="/js/meme.min.b42cc6cc17aac11800d2bb8a71cf39db1f17f54d7f60cf3c1320970b00f1147e.js"></script>
+
+    
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" media="print" onload="this.media='all'" />
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" /></noscript>
+
+    <meta name="author" content="wjin" /><meta name="description" content="动机 考虑正弦函数组： $$ f_k(x)=\sin(k \pi x) $$ 它的频率是$k/2$，k越小则频率越低，函数的周期越长……" />
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="wjin" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="wjin" />
+    <meta name="msapplication-starturl" content="../../" />
+    <meta name="msapplication-TileColor" content="#fff" />
+    <meta name="msapplication-TileImage" content="../../icons/mstile-150x150.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    
+    
+
+    
+    <link rel="canonical" href="https://w-jin.github.io/tech/cuda9/" />
+    
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "datePublished": "2020-12-09T10:42:00+08:00",
+        "dateModified": "2020-12-10T15:48:58+08:00",
+        "url": "https://w-jin.github.io/tech/cuda9/",
+        "headline": "CUDA教程9 -- 代数多重网格",
+        "description": "动机 考虑正弦函数组： $$ f_k(x)=\\sin(k \\pi x) $$ 它的频率是$k/2$，k越小则频率越低，函数的周期越长……",
+        "inLanguage" : "zh-CN",
+        "articleSection": "tech",
+        "wordCount":  5400 ,
+        "image": ["https://w-jin.github.io/assets/sinkpix.png","https://w-jin.github.io/assets/image-20201208205332615.png","https://w-jin.github.io/assets/image-20201208205414827.png","https://w-jin.github.io/assets/image-20201208231714521.png","https://w-jin.github.io/assets/image-20201209002140002.png","https://w-jin.github.io/assets/image-20201209004602228.png","https://w-jin.github.io/assets/image-20201209024127197.png"],
+        "author": {
+            "@type": "Person",
+            "description": "我空空如也",
+            "email": "wjiner@outlook.com",
+            "image": "https://w-jin.github.io/icons/logo.png",
+            "url": "https://w-jin.github.io/",
+            "name": "wjin"
+        },
+        "license": "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)",
+        "publisher": {
+            "@type": "Organization",
+            "name": "wjin",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://w-jin.github.io/favicon.ico"
+            },
+            "url": "https://w-jin.github.io/"
+        },
+        "mainEntityOfPage": {
+            "@type": "WebSite",
+            "@id": "https://w-jin.github.io/"
+        }
+    }
+</script>
+
+    
+
+<meta name="twitter:card" content="summary_large_image" />
+
+
+
+    
+
+
+
+<meta property="og:title" content="CUDA教程9 -- 代数多重网格" />
+<meta property="og:description" content="动机 考虑正弦函数组： $$ f_k(x)=\sin(k \pi x) $$ 它的频率是$k/2$，k越小则频率越低，函数的周期越长……" />
+<meta property="og:url" content="https://w-jin.github.io/tech/cuda9/" />
+<meta property="og:site_name" content="wjin" />
+<meta property="og:locale" content="zh" /><meta property="og:image" content="https://w-jin.github.io/assets/sinkpix.png" />
+<meta property="og:type" content="article" />
+    <meta property="article:published_time" content="2020-12-09T10:42:00&#43;08:00" />
+    <meta property="article:modified_time" content="2020-12-10T15:48:58&#43;08:00" />
+    
+    <meta property="article:section" content="tech" />
+
+
+
+    
+    
+
+    
+</head>
+
+    <body>
+        <div class="container">
+            
+    <header class="header">
+        
+            <div class="header-wrapper">
+                <div class="header-inner single">
+                    
+    <div class="site-brand">
+        
+            <a href="/" class="brand">wjin</a>
+        
+    </div>
+
+                    <nav class="nav">
+    <ul class="menu" id="menu">
+        
+            
+        
+        
+        
+        
+            
+                <li class="menu-item"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="icon home"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></svg><span class="menu-item-name">首页</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tech/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">技术</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/article/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">文青</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tags/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="icon tags"><path d="M497.941 225.941L286.059 14.059A48 48 0 0 0 252.118 0H48C21.49 0 0 21.49 0 48v204.118a48 48 0 0 0 14.059 33.941l211.882 211.882c18.744 18.745 49.136 18.746 67.882 0l204.118-204.118c18.745-18.745 18.745-49.137 0-67.882zM112 160c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm513.941 133.823L421.823 497.941c-18.745 18.745-49.137 18.745-67.882 0l-.36-.36L527.64 323.522c16.999-16.999 26.36-39.6 26.36-63.64s-9.362-46.641-26.36-63.64L331.397 0h48.721a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882z"/></svg><span class="menu-item-name">标签</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/about/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="icon user-circle"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 96c48.6 0 88 39.4 88 88s-39.4 88-88 88-88-39.4-88-88 39.4-88 88-88zm0 344c-58.7 0-111.3-26.6-146.5-68.2 18.8-35.4 55.6-59.8 98.5-59.8 2.4 0 4.8.4 7.1 1.1 13 4.2 26.6 6.9 40.9 6.9 14.3 0 28-2.7 40.9-6.9 2.3-.7 4.7-1.1 7.1-1.1 42.9 0 79.7 24.4 98.5 59.8C359.3 421.4 306.7 448 248 448z"/></svg><span class="menu-item-name">关于</span></a>
+                </li>
+            
+        
+            
+                
+                    
+                    
+                        <li class="menu-item">
+                            <a id="theme-switcher" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-light"><path d="M193.2 104.5l48.8-97.5a18 18 0 0128 0l48.8 97.5 103.4 -34.5a18 18 0 0119.8 19.8l-34.5 103.4l97.5 48.8a18 18 0 010 28l-97.5 48.8 34.5 103.4a18 18 0 01-19.8 19.8l-103.4-34.5-48.8 97.5a18 18 0 01-28 0l-48.8-97.5l-103.4 34.5a18 18 0 01-19.8-19.8l34.5-103.4-97.5-48.8a18 18 0 010-28l97.5-48.8-34.5-103.4a18 18 0 0119.8-19.8zM256 128a128 128 0 10.01 0M256 160a96 96 0 10.01 0"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-dark"><path d="M27 412a256 256 0 10154-407a11.5 11.5 0 00-5 20a201.5 201.5 0 01-134 374a11.5 11.5 0 00-15 13"/></svg></a>
+                        </li>
+                    
+                
+            
+        
+            
+                
+            
+        
+    </ul>
+</nav>
+
+                    
+                </div>
+            </div>
+            
+    <input type="checkbox" id="nav-toggle" aria-hidden="true" />
+    <label for="nav-toggle" class="nav-toggle"></label>
+    <label for="nav-toggle" class="nav-curtain"></label>
+
+
+        
+    </header>
+
+
+
+
+            
+            
+    <main class="main single" id="main">
+    <div class="main-inner">
+
+        
+
+        <article class="content post h-entry" data-align="justify" data-type="tech" data-toc-num="true">
+
+            <h1 class="post-title p-name">CUDA教程9 -- 代数多重网格</h1>
+
+            
+
+            
+                
+            
+
+            
+                
+
+<div class="post-meta">
+    
+        
+        <time datetime="2020-12-09T10:42:00&#43;08:00" class="post-meta-item published dt-published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2020.12.9</time>
+    
+    
+        
+        <time datetime="2020-12-10T15:48:58&#43;08:00" class="post-meta-item modified dt-updated"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.12.10</time>
+    
+    
+    
+        
+        
+        
+            
+        
+    
+    
+        
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;5400</span>
+    
+    
+        
+        <span class="post-meta-item reading-time"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></svg>&nbsp;11&nbsp;分钟</span>
+    
+    
+    
+</div>
+
+            
+
+            <nav class="contents">
+  <h2 id="contents" class="contents-title">目录</h2><ol class="toc">
+    <li><a id="contents:动机" href="#动机">动机</a></li>
+    <li><a id="contents:代数多重网格" href="#代数多重网格">代数多重网格</a>
+      <ol>
+        <li><a id="contents:强连接关系" href="#强连接关系">强连接关系</a></li>
+        <li><a id="contents:粗网格点选择" href="#粗网格点选择">粗网格点选择</a></li>
+        <li><a id="contents:插值限制" href="#插值限制">插值/限制</a></li>
+        <li><a id="contents:粗网格系数矩阵" href="#粗网格系数矩阵">粗网格系数矩阵</a></li>
+        <li><a id="contents:求解循环" href="#求解循环">求解循环</a></li>
+      </ol>
+    </li>
+    <li><a id="contents:参考文献" href="#参考文献">参考文献</a></li>
+  </ol>
+</nav><div class="post-body e-content">
+                <h2 id="动机"><a href="#动机" class="anchor-link">§</a><a href="#contents:动机" class="headings">动机</a></h2>
+<p>考虑正弦函数组：
+$$
+f_k(x)=\sin(k \pi x)
+$$
+它的频率是$k/2$，k越小则频率越低，函数的周期越长，图像越平缓。如下图所示：</p>
+<p><img src="assets/sinkpix.png" alt="sinkpix"></p>
+<p>考虑一个齐次线性方程组
+$$
+Au=0
+$$</p>
+<p>其中$A \in R^{N \times N}$，由有限单元法产生。令迭代初始值为
+$$
+u^{(0)}=\left( u_0^{(0)}, u_1^{(0)}, \dots, u_{N-1}^{(0)} \right)
+$$
+其中
+$$
+u_j^{(0)}=\sin\left( \frac{jk\pi}{N} \right), \quad k=1,2,\dots
+$$
+使用以下的迭代方法(Damped Jacobi Iterative Method)
+$$
+u^{(m+1)}=u^{(m)}+\frac{2}{3}D^{-1}r^{(m)}
+$$
+令误差为
+$$
+e^{(m)}=u-u^{(m)}=-u^{(m)}
+$$
+则迭代过程中的误差的无穷范数的下降曲线的形状如下面几张图所示。</p>
+<p><img src="assets/image-20201208205332615.png" alt="image-20201208205332615"></p>
+<p><img src="assets/image-20201208205414827.png" alt="image-20201208205414827"></p>
+<p>从图中可以看出：k越大即误差的频率越高的时候，误差下降越快；k一定时，方程的规模越小则误差下降越快。更具体的分析请参考[1]。</p>
+<p>在实际求解问题时很难预先对近似解的误差作估计，但可以通过多重网格降低方程的规模。</p>
+<h2 id="代数多重网格"><a href="#代数多重网格" class="anchor-link">§</a><a href="#contents:代数多重网格" class="headings">代数多重网格</a></h2>
+<p>一个代数多重网格算法需要考虑这5部分的内容：1、连接关系：估计节点之间的影响强弱以确定它们的连接关系；2、粗网格点选择；3、插值和限制：对当前网格上的残差进行限制得到粗网格上的残差，和对粗网格上的误差进行插值得到细网格上的误差；4、计算粗网格上的系数矩阵；5、求解循环。</p>
+<h3 id="强连接关系"><a href="#强连接关系" class="anchor-link">§</a><a href="#contents:强连接关系" class="headings">强连接关系</a></h3>
+<p>节点i强依赖于j，或者说j强影响i，当且仅当：
+$$
+-a_{ij} \ge \alpha \max_{k \ne i} (-a_{ik})
+$$
+其中$\alpha \in (0,1)$；一般而言，$\alpha$取0.25~0.5，参考文献[3]；而文献[2]提到，2D问题取0.25，3D问题取0.5。对于强连接关系的判定，不同的文献在细节上有所不同，如文献[2]的判定方法是：
+$$
+i=j \quad \text{or} \quad -s_i a_{ij}&gt;\alpha\max_{-s_i a_{ij} &gt; 0} (-s_i a_{ij})
+$$
+其中</p>
+<div>$$
+s_i=\text{sign}(a_{ii})=\begin{cases}
+1, \quad a_{ii}>0 \\
+-1, \quad \text{otherwise}
+\end{cases}
+$$<div>
+<p>本节选择前一种判定方法，例下图中的红色边为强连接的边。</p>
+<p><img src="assets/image-20201208231714521.png" alt="image-20201208231714521"></p>
+<p>由于缺失几何信息，在对系数矩阵所代表的网格信息进行处理时，一般只考虑强连接关系，不考虑非强连接关系，并且，强连接关系存在方向，由强连接关系形成的图是有向图。</p>
+<h3 id="粗网格点选择"><a href="#粗网格点选择" class="anchor-link">§</a><a href="#contents:粗网格点选择" class="headings">粗网格点选择</a></h3>
+<p>粗网格点的质量直接影响到算法的收敛性。目前流行的算法有：RS[3]、CLJP[4]、Falgout[5]、PMIS[6]、HMIS[6]等。RS(Ruge–Stüben)算法是一个串行的算法，CLJP(Cleary–Luby–Jones–Plassman)和Falgout是它的并行变体。PMIS是并行独立集算法(Parallel Modified Independent Set)，效率较高，但选出的粗网格点质量稍差。HMIS(Hybrid Modified Independent Set)组合了CLJP的第一阶段和PMIS算法，是一种折衷方案。本节讲述PMIS算法。</p>
+<p>定义强连接矩阵S为：</p>
+<div>$$
+S_{ij}=\begin{cases}
+1 \quad \text{if}\ i \ne j \ \text{and} -a_{ij} \ge \alpha \max\limits_{k \ne i} (-a_{ik}), \\
+0 \quad \text{otherwise}.
+\end{cases}
+$$<div>
+也就是说$S_{ij}=1$当且仅当节点i强依赖于节点j，或者说j强影响i。
+<p>我们需要考虑的点集为$v={0,1,2,\dots,N-1}$。令
+$$
+S_i=\{j \in v | S_{ij}=1 \}, \quad S_i^T=\{j \in v | S_{ji}=1\}.
+$$
+则$S_i$是影响i的集合，$S_i^T$是i影响的集合。由于只考虑强连接，因此，对应的图为
+$$
+G=(v,E), \quad E=\{ (i,j) \in v \times v | S_{ij}=1\ \text{or}\ S_{ji}=1 \}.
+$$
+G是一个无向图，无论是i影响j或者j影响i，它们之间都存在一条边。PMIS算法在图G中选择最大独立集。</p>
+<p>独立集的定义为：$I \subset v$是独立集，当且仅当$\forall i,j \in I: (i,j) \notin E$。</p>
+<p>最大独立集的定义为：$I \subset v$是最大独立集，当且仅当I是独立集且$\forall j \in V-I, I \cup \{j\}$不是独立集。</p>
+<p>PMIS算法可以描述为：</p>
+<p><img src="assets/image-20201209002140002.png" alt="image-20201209002140002"></p>
+<p>其想法在于计算每个节点影响了多少个其它节点，每次选择影响的节点个数比邻居都多的节点加入独立集，然后将独立集中的节点都标记为粗网格节点，其邻居都标记为细网格节点，然后删除它们再考虑剩余的节点。</p>
+<p>这里面有一个问题，如果某个节点和它的某个邻居影响的节点数量是相同的，就会被同时选作粗网格节点，然后把对方标记为细网格节点。解决办法是为每个节点的权重加上一个0到1之间的随机值，这样比较大小的时候仍然比较的是影响的节点数量，但如果两个节点互为邻居且影响的节点的数量相同，则此随机值可大概率保证只选出一个节点。</p>
+<p>例：</p>
+<p><img src="assets/image-20201209004602228.png" alt="image-20201209004602228"></p>
+<p>实现：(不用深究，太复杂了，此处代码并不全，关注如何利用弱一致性实现无争用的算法，以及如何调用curand生成随机数)</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="kt">void</span> <span class="n">AMG</span><span class="o">::</span><span class="n">Selector</span><span class="p">(</span><span class="kt">int</span> <span class="n">level</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="n">CsrMatrix</span> <span class="o">&amp;</span><span class="n">A</span> <span class="o">=</span> <span class="n">level</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">?</span> <span class="nl">_A</span> <span class="p">:</span> <span class="n">_coarseA</span><span class="p">[</span><span class="n">level</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="c1">// 节点个数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">const</span> <span class="n">IndexType</span> <span class="n">N</span> <span class="o">=</span> <span class="n">A</span><span class="p">.</span><span class="n">num_rows</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 初始化为0，即未标记
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">_nodes_prop</span><span class="p">[</span><span class="n">level</span><span class="p">],</span> <span class="n">N</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemset</span><span class="p">(</span><span class="n">_nodes_prop</span><span class="p">[</span><span class="n">level</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">N</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 为每个节点生成一个与它影响的节点个数相关的权重
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">float</span> <span class="o">*</span><span class="n">weight</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">weight</span><span class="p">,</span> <span class="n">N</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">)));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">curandGenerator_t</span> <span class="n">gen</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CURAND</span><span class="p">(</span><span class="n">curandCreateGenerator</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="o">&amp;</span><span class="n">gen</span><span class="p">,</span> <span class="n">CURAND_RNG_PSEUDO_DEFAULT</span>
+</span></span><span class="line"><span class="cl">    <span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 选择一个随机数种子然后生成随机数，由于不需要真正的伪随机数，只是为了
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// 给度相同的节点赋予不同的权重，所以种子不需要随机性
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">CHECK_CURAND</span><span class="p">(</span><span class="n">curandSetPseudoRandomGeneratorSeed</span><span class="p">(</span><span class="n">gen</span><span class="p">,</span> <span class="mi">1234ULL</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CURAND</span><span class="p">(</span><span class="n">curandGenerateUniform</span><span class="p">(</span><span class="n">gen</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="n">N</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 计算每个节点的强影响出度，加到权重上。即#Si^T = #{j | Sji = 1}
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// Sij = 1, iff i!=j &amp;&amp; -Aij &gt; alpha * max_{k!=i} { -Aik }。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// Sij=1表示i强依赖于j或者j强影响i，Si^T就是i强影响的点集。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// 遍历矩阵，如果-Aij满足上述要求，则将weight[j]加1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">LaunchKernelWithNumThreads</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">PMISCalWeightKernel</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">weight</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">_thresholds</span><span class="p">[</span><span class="n">level</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span> <span class="n">N</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 使用归约来计算有多少节点被标记了
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">IndexType</span> <span class="n">num_marked</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">max_grid</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">block</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">LaunchConfig</span><span class="p">(</span><span class="o">&amp;</span><span class="n">max_grid</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">block</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">grid</span> <span class="o">=</span> <span class="p">(</span><span class="n">N</span> <span class="o">+</span> <span class="n">block</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">block</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">grid</span> <span class="o">&gt;</span> <span class="n">max_grid</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">grid</span> <span class="o">=</span> <span class="n">max_grid</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">IndexType</span> <span class="o">*</span><span class="n">counts</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">counts</span><span class="p">,</span> <span class="n">grid</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">IndexType</span><span class="p">)));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="o">&gt;</span> <span class="n">h_counts</span><span class="p">(</span><span class="n">grid</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 首先将#Si^T为0的的节点标记为细网格节点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">LaunchKernelWithNumThreads</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">PMISMarkFineIfSiTEqualZeroKernel</span><span class="o">&lt;&gt;</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">_nodes_prop</span><span class="p">[</span><span class="n">level</span><span class="p">],</span> <span class="n">counts</span><span class="p">,</span> <span class="n">weight</span><span class="p">,</span> <span class="n">N</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">h_counts</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">counts</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                     <span class="n">grid</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">IndexType</span><span class="p">),</span> <span class="n">cudaMemcpyDeviceToHost</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="nl">n</span> <span class="p">:</span> <span class="n">h_counts</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">num_marked</span> <span class="o">+=</span> <span class="n">n</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 将拥有局部最大权重的节点标记为粗网格节点，将它的邻居标记为细网格节点。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// 在每一轮，为消除不同线程间标记的影响，使每轮的标记逐次增大，奇数为粗网格，
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// 偶数为细网格，全部标记后再将它们转换成1(粗)和2(细)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">CsrMatrix</span> <span class="n">At</span> <span class="o">=</span> <span class="n">A</span><span class="p">.</span><span class="n">transpose</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">mark</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">mark</span> <span class="o">&lt;=</span> <span class="n">N</span><span class="p">;</span> <span class="o">++</span><span class="n">mark</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">LaunchKernelWithNumThreads</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                <span class="n">PMISSelectorMarkCoarseKernel</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="n">_nodes_prop</span><span class="p">[</span><span class="n">level</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">                <span class="n">A</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="n">_thresholds</span><span class="p">[</span><span class="n">level</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span> <span class="n">weight</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">mark</span>
+</span></span><span class="line"><span class="cl">        <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">LaunchKernelWithNumThreads</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                <span class="n">PMISCountMarkedKernel</span><span class="o">&lt;&gt;</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="n">counts</span><span class="p">,</span> <span class="n">_nodes_prop</span><span class="p">[</span><span class="n">level</span><span class="p">],</span> <span class="n">N</span>
+</span></span><span class="line"><span class="cl">        <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">h_counts</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">counts</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                         <span class="n">grid</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">IndexType</span><span class="p">),</span> <span class="n">cudaMemcpyDeviceToHost</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">num_marked</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="nl">n</span> <span class="p">:</span> <span class="n">h_counts</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">num_marked</span> <span class="o">+=</span> <span class="n">n</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">num_marked</span> <span class="o">==</span> <span class="n">N</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">break</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 计算有多少个粗网格和细网格，并将标记转换成1(粗)和2(细)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">LaunchKernelWithNumThreads</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">PMISCountCoarseKernel</span><span class="o">&lt;&gt;</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">counts</span><span class="p">,</span> <span class="n">_nodes_prop</span><span class="p">[</span><span class="n">level</span><span class="p">],</span> <span class="n">N</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">h_counts</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">counts</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                     <span class="n">grid</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">IndexType</span><span class="p">),</span> <span class="n">cudaMemcpyDeviceToHost</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">_num_coarse</span><span class="p">[</span><span class="n">level</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="nl">n</span> <span class="p">:</span> <span class="n">h_counts</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">_num_coarse</span><span class="p">[</span><span class="n">level</span><span class="p">]</span> <span class="o">+=</span> <span class="n">n</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">weight</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">counts</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>其中关键的选择最大独立集的算法实现为：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="c1">// 一个线程处理一行
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">PMISSelectorMarkCoarseKernel</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">IndexType</span> <span class="o">*</span><span class="n">nodes_prop</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">A_values</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">A_row_offsets</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">A_column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">threshold</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="kt">float</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">weight</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_rows</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">mark</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="n">IndexType</span> <span class="n">odd</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">mark</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="n">IndexType</span> <span class="n">even</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">mark</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">IndexType</span> <span class="n">row</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">stride</span> <span class="o">=</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(;</span> <span class="n">row</span> <span class="o">&lt;</span> <span class="n">num_rows</span><span class="p">;</span> <span class="n">row</span> <span class="o">+=</span> <span class="n">stride</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// 已经标记的点跳过
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="p">(</span><span class="n">nodes_prop</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 计算row这个节点是否为局部最大权重的点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="kt">bool</span> <span class="n">is_local_max</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">j</span> <span class="o">=</span> <span class="n">A_row_offsets</span><span class="p">[</span><span class="n">row</span><span class="p">];</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">A_row_offsets</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">IndexType</span> <span class="n">col</span> <span class="o">=</span> <span class="n">A_column_indices</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="c1">// 自身，已经标记的(不能是本轮标记的)，非强影响i且i不强影响它的，都不考虑
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="k">if</span> <span class="p">(</span><span class="n">row</span> <span class="o">==</span> <span class="n">col</span>
+</span></span><span class="line"><span class="cl">                <span class="o">||</span> <span class="p">(</span><span class="n">nodes_prop</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>           <span class="c1">// 读
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                    <span class="o">&amp;&amp;</span> <span class="n">nodes_prop</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">!=</span> <span class="n">even</span>     <span class="c1">// 读，旧值新值条件判断结果一样
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                    <span class="o">&amp;&amp;</span> <span class="n">nodes_prop</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">!=</span> <span class="n">odd</span><span class="p">)</span>     <span class="c1">// 读，弱一致性即可
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                <span class="o">||</span> <span class="p">(</span><span class="o">-</span><span class="n">A_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">                    <span class="o">&amp;&amp;</span> <span class="o">-</span><span class="n">A_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">[</span><span class="n">col</span><span class="p">]))</span>
+</span></span><span class="line"><span class="cl">                <span class="k">continue</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="c1">// 只要有一个邻居的权重比它大，它就不是局部最大节点
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="k">if</span> <span class="p">(</span><span class="n">weight</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">weight</span><span class="p">[</span><span class="n">col</span><span class="p">])</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="n">is_local_max</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="k">break</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 如果它是局部最大节点，将它标记为粗网格，将它的未标记的邻居标记为细网格
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="p">(</span><span class="n">is_local_max</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">nodes_prop</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">odd</span><span class="p">;</span>    <span class="c1">// 写
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">            <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">j</span> <span class="o">=</span> <span class="n">A_row_offsets</span><span class="p">[</span><span class="n">row</span><span class="p">];</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">A_row_offsets</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="n">IndexType</span> <span class="n">col</span> <span class="o">=</span> <span class="n">A_column_indices</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="p">(</span><span class="n">row</span> <span class="o">!=</span> <span class="n">col</span> <span class="o">&amp;&amp;</span> <span class="n">nodes_prop</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl">                    <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="o">-</span><span class="n">A_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">                        <span class="o">||</span> <span class="o">-</span><span class="n">A_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">[</span><span class="n">col</span><span class="p">]))</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">nodes_prop</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">even</span><span class="p">;</span>   <span class="c1">// 写
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><h3 id="插值限制"><a href="#插值限制" class="anchor-link">§</a><a href="#contents:插值限制" class="headings">插值/限制</a></h3>
+<p>限制(Restriction)矩阵用于将残差传递到下层网格，插值(Interpolation)矩阵用于将误差插值到本层网格，它们互为转置关系。一般而言，从插值矩阵来考虑怎样选择这两个矩阵。</p>
+<p>选择插值矩阵的原则是平滑误差($Ae \approx 0$)，推导过程可以参考文献[5]。插值的表达式为：
+$$
+e_i=\sum_{j \in C_i}w_{ij}e_j
+$$
+其中i为细网格节点，$C_i \subset C$为用于向i插值的粗网格节点，一般选择为G中与i相邻的粗网格节点，权重的计算表达式为：
+$$
+w_{ij}=-\cfrac{1}{a_{ii} + \sum\limits_{k\in D_i^w}a_{ik}}\left( a_{ij} + \sum_{k \in D_i^s} \cfrac{a_{ik}a_{kj}}{\sum\limits_{m \in C_i} a_{km}} \right)
+$$
+其中$D_i^s$是影响i但不在粗网格中的点集，$D_i^w$是与i有连接但不影响i的点集。那么$\sum\limits_{m \in C_i} a_{km}$选出的m是i和k的共同邻居且在粗网格中。注意此处的连接或邻居指的都是原始矩阵中的连接关系，不考虑强连接(仅$a_{im},a_{km} \ne 0$)。</p>
+<p>这个插值表达式有一个问题，PMIS算法选出的网格点无法保证括号内的分式中的每个k，其分母上的和式都不为0，因此可能发生除0的错误。解决办法是使用文献[5]提出的一种插值方法：
+$$
+w_{ij}=-\cfrac{1}{a_{ii} + \sum\limits_{k\in D_i^w \cup F_i}a_{ik}}\left( a_{ij} + \sum_{k \in D_i^s-F_i} \cfrac{a_{ik} \hat{a}<em>{kj}}{\sum\limits</em>{m \in C_i} \hat{a}_{km}} \right)
+$$
+其中</p>
+<div>$$
+\hat{a}_{ij}=\begin{cases}
+0 \quad \text{if sign}(a_{ij})=\text{sign}(a_{ii}) \\
+a_{ij} \quad \text{otherwise}
+\end{cases}
+$$<div>
+$F_i$为强影响i且为细网格，且和i无共同粗网格邻居的点集。这样，括号内的和式中，分母的和式为0的k都移到了括号外面，就不会发生除0错误了。
+<p>理论分析到此为此，在实现上，首先面临的第一个问题是到底应该如何生成插值矩阵P。假定原始网格节点数量为N，粗网格节点数量为M，那么矩阵P的维度应当为$N \times M$，对误差插值的表达式应当为$e_N=Pe_M$，其中$e_M$仅有M个分量，不可能符合前述插值过程的下标要求。实际上，前述过程中的下标都是原始网格中的下标。因此选出粗网格后的第一步应当是对粗网格节点进行编号，编号应当为：0, 1, 2, ..., M-1。然后计算出$w_{ij}$后，将列号j映射到粗网格中的编号，以此来决定它在插值矩阵P中的位置。</p>
+<p>实际计算时，和计算转置等方法一样，先确定每行非零元素个数，生成row_offsets，然后分配空间，再逐个计算填入。具体代码太长、太复杂，这里不再给出，可以参考文件kernels.cu中的函数CalInterpolatorKernel和SingleDeviceAMG.cu中的函数Interpolator。</p>
+<p>最后限制矩阵R可由P转置得到：$R=P^T \in \mathbb{R}^{M \times N}$，计算粗网格的残差向量：$r_M=Rr_N$。</p>
+<h3 id="粗网格系数矩阵"><a href="#粗网格系数矩阵" class="anchor-link">§</a><a href="#contents:粗网格系数矩阵" class="headings">粗网格系数矩阵</a></h3>
+<p>若当前网格上的方程为
+$$
+A_Nx_N=b_N
+$$
+残差为$r_N$，则粗网格的残差为：$r_M=R^{M \times N} r_N$，方程为
+$$
+A_M e_M = r_M = R^{M \times N} r_N
+$$
+解得的误差$e_M$回传的表达式为
+$$
+e_N=P^{N \times M}e_M
+$$
+由于当前网格的方程等价于$A_N e_N=r_N$，因此
+$$
+A_N P^{N \times M} e_M=r_N
+$$
+两边左乘$R^{M \times N}$可得
+$$
+R^{M \times N} A_N P^{N \times M} e_M = R^{M \times N} r_N = r_M
+$$
+因此粗网格的系数矩阵为
+$$
+A_M = R^{M \times N} A_N P^{N \times M}
+$$
+这里需要做两次矩阵乘法。稀疏矩阵乘法的实现比较复杂，这里使用cusparse库来完成。</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span><span class="lnt">143
+</span><span class="lnt">144
+</span><span class="lnt">145
+</span><span class="lnt">146
+</span><span class="lnt">147
+</span><span class="lnt">148
+</span><span class="lnt">149
+</span><span class="lnt">150
+</span><span class="lnt">151
+</span><span class="lnt">152
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="c1">// .h
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">class</span> <span class="nc">Context</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="k">public</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="n">cusparseHandle_t</span> <span class="o">&amp;</span><span class="n">getCusparseHandle</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">context</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">context</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Context</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">context</span><span class="o">-&gt;</span><span class="n">cusparse_handle</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">void</span> <span class="nf">destroyInstance</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">delete</span> <span class="n">context</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">context</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">private</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">cusparseHandle_t</span> <span class="n">cusparse_handle</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 默认为nullptr，使用时才创建实例，避免cusparseCreate浪费时间
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">static</span> <span class="n">Context</span> <span class="o">*</span><span class="n">context</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">Context</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="o">~</span><span class="n">Context</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="n">Context</span><span class="p">(</span><span class="k">const</span> <span class="n">Context</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">delete</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">Context</span> <span class="o">&amp;</span><span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">Context</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">delete</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// .cu文件
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">Context</span> <span class="o">*</span><span class="n">Context</span><span class="o">::</span><span class="n">context</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Context</span><span class="o">::</span><span class="n">Context</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cusparse_handle</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Context</span><span class="o">::~</span><span class="n">Context</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseDestroy</span><span class="p">(</span><span class="n">cusparse_handle</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// C = A * B
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">static</span> <span class="n">CsrMatrix</span> <span class="nf">CsrMatrixMultiply</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">CsrMatrix</span> <span class="o">&amp;</span><span class="n">A</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">CsrMatrix</span> <span class="o">&amp;</span><span class="n">B</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// 使用cusparse计算矩阵乘法，此处使用cusparseDcsrgemm2，需要注意此函数在
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// cuda11中标记为deprecated，将于cuda12移除，取而代之的是cusparseSpGEMM，
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// 但这个函数只有cuda11才有，所以仍然使用cusparseDcsrgemm2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// cuda8.0中已经有cusparseDcsrgemm2，而cuda6.5中只有cusparseDcsrgemm，
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// 因此cuda8.0及之后的cuda使用cusparseDcsrgemm2，而cuda7.5及之前使
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// 用cusparseDcsrgemm。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// TODO:cuda11及之后使用cusparseSpGEMM
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">A</span><span class="p">.</span><span class="n">num_cols</span> <span class="o">!=</span> <span class="n">B</span><span class="p">.</span><span class="n">num_rows</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">{</span><span class="s">&#34;A.num_rows != B.num_cols&#34;</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">m</span> <span class="o">=</span> <span class="n">A</span><span class="p">.</span><span class="n">num_rows</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="n">B</span><span class="p">.</span><span class="n">num_cols</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="n">A</span><span class="p">.</span><span class="n">num_cols</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CsrMatrix</span> <span class="n">C</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">C</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseSetPointerMode</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">Context</span><span class="o">::</span><span class="n">getCusparseHandle</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">CUSPARSE_POINTER_MODE_HOST</span>
+</span></span><span class="line"><span class="cl">    <span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">cusparseMatDescr_t</span> <span class="n">descr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseCreateMatDescr</span><span class="p">(</span><span class="o">&amp;</span><span class="n">descr</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseSetMatType</span><span class="p">(</span><span class="n">descr</span><span class="p">,</span> <span class="n">CUSPARSE_MATRIX_TYPE_GENERAL</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseSetMatIndexBase</span><span class="p">(</span><span class="n">descr</span><span class="p">,</span> <span class="n">CUSPARSE_INDEX_BASE_ZERO</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// cuda8.0及以后的版本。cuda版本，为1000 * major + 10 * minor，如cuda9.2是9020
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">#if CUDART_VERSION &gt;= 8000
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl">    <span class="kt">double</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">csrgemm2Info_t</span> <span class="n">info</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseCreateCsrgemm2Info</span><span class="p">(</span><span class="o">&amp;</span><span class="n">info</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">size_t</span> <span class="n">buffer_size</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseDcsrgemm2_bufferSizeExt</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">Context</span><span class="o">::</span><span class="n">getCusparseHandle</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">alpha</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">num_entries</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">A</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">num_entries</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">B</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="k">nullptr</span><span class="p">,</span> <span class="n">descr</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">info</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">buffer_size</span>
+</span></span><span class="line"><span class="cl">    <span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">void</span> <span class="o">*</span><span class="n">buffer</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">buffer</span><span class="p">,</span> <span class="n">buffer_size</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseXcsrgemm2Nnz</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">Context</span><span class="o">::</span><span class="n">getCusparseHandle</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">num_entries</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">A</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">num_entries</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">B</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">C</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">C</span><span class="p">.</span><span class="n">num_entries</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">info</span><span class="p">,</span> <span class="n">buffer</span>
+</span></span><span class="line"><span class="cl">    <span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">C</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span> <span class="o">*</span> <span class="n">C</span><span class="p">.</span><span class="n">num_entries</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">C</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="o">*</span> <span class="n">C</span><span class="p">.</span><span class="n">num_entries</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseDcsrgemm2</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">Context</span><span class="o">::</span><span class="n">getCusparseHandle</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">alpha</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">num_entries</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">A</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">num_entries</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">B</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="k">nullptr</span><span class="p">,</span> <span class="n">descr</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">C</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="n">C</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">C</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">info</span><span class="p">,</span> <span class="n">buffer</span>
+</span></span><span class="line"><span class="cl">    <span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseDestroyCsrgemm2Info</span><span class="p">(</span><span class="n">info</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">buffer</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#else  </span><span class="c1">// cuda7.5及以前的版本
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseXcsrgemmNnz</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">Context</span><span class="o">::</span><span class="n">getCusparseHandle</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">CUSPARSE_OPERATION_NON_TRANSPOSE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">CUSPARSE_OPERATION_NON_TRANSPOSE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">num_entries</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">num_entries</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">C</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">C</span><span class="p">.</span><span class="n">num_entries</span>
+</span></span><span class="line"><span class="cl">    <span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">C</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span> <span class="o">*</span> <span class="n">C</span><span class="p">.</span><span class="n">num_entries</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">C</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="o">*</span> <span class="n">C</span><span class="p">.</span><span class="n">num_entries</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK_CUSPARSE</span><span class="p">(</span><span class="n">cusparseDcsrgemm</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">Context</span><span class="o">::</span><span class="n">getCusparseHandle</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">CUSPARSE_OPERATION_NON_TRANSPOSE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">CUSPARSE_OPERATION_NON_TRANSPOSE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">num_entries</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">num_entries</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">B</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">descr</span><span class="p">,</span> <span class="n">C</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="n">C</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">C</span><span class="p">.</span><span class="n">column_indices</span>
+</span></span><span class="line"><span class="cl">    <span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">C</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>版本兼容性的问题可以通过CUDART_VERSION宏来解决。</p>
+<p><strong>问题</strong>：CUDA11已将上述代码中的cusparseDcsrgemm2等函数标记为deprecated，并将于CUDA12移除，改用cusparseSpGEMM，请考虑如何为cuda11及未来更高版本提供兼容的CsrMatrixMultiply。</p>
+<h3 id="求解循环"><a href="#求解循环" class="anchor-link">§</a><a href="#contents:求解循环" class="headings">求解循环</a></h3>
+<p>常见的求解循环有v-cycle、w-cycle和f-cycle，其中v-cycle使用最多，其算法为：</p>
+<p><img src="assets/image-20201209024127197.png" alt="image-20201209024127197"></p>
+<p>其中涉及到光滑器($S_k$)，常见的光滑器有DILU、DIC、Gauss Seidel、Symmetric Gauss Seidel等。以DILU为例，和预处理方法类似，构造矩阵
+$$
+M=(E+L)E^{-1}(E+U)
+$$
+对传入的近似解$x_k$，先计算$r_k=b-Ax_k$，然后按DILU预处理方法中的算法计算$M^{-1}r_k$，最后计算$x_{k+1}=x_k+M^{-1}r_k$，这样就完成了一次光滑。其它算法类似，这里面没有太多新内容，不再赘述。</p>
+<h2 id="参考文献"><a href="#参考文献" class="anchor-link">§</a><a href="#contents:参考文献" class="headings">参考文献</a></h2>
+<p>[1] Volker John. Multigrid Methods. 2013/14.</p>
+<p>[2] Rajesh Gandham a,∗, Kenneth Esler b, Yongpeng Zhang b. A GPU accelerated aggregation algebraic multigrid method. Computers and Mathematics with Applications. 2014.</p>
+<p>[3] J. W. Ruge and K. Stuben, Algebraic multigrid (AMG), in : S. F. McCormick, ed., Multigrid Methods, vol. 3 of Frontiers in Applied Mathematics (SIAM, Philadelphia, 1987) 73–130.</p>
+<p>[4] A. J. Cleary, R. D. Falgout, V. E. Henson, and J. E. Jones, Coarse grid selection for parallel algebraic multigrid, in Proceedings of the fifth international symposium on solving irregularly structured problems in parallel (Springer-Verlag, New York, 1998).</p>
+<p>[5] V. E. Henson and U. M. Yang, BoomerAMG: a parallel algebraic multigrid solver and preconditioner, Applied Numerical Mathematics 41 (2002) 155–177.</p>
+<p>[6] H. De Sterck, U.M. Yang, J. Heys, Reducing complexity in parallel algebraic multigrid preconditioners, LLNL technical report UCRL-JRNL-206780, 2004.</p>
+<p>[7] K. Stüben. An introduction to algebraic multigrid, Multigrid (2001) 413–532.</p>
+
+            </div>
+
+            
+    
+    
+        <ul class="post-copyright">
+            <li class="copyright-item author"><span class="copyright-item-text">作者</span>：<a href="https://w-jin.github.io/" class="p-author h-card" target="_blank" rel="noopener">wjin</a></li>
+            
+                
+                
+                
+                
+                <li class="copyright-item link"><span class="copyright-item-text">链接</span>：<a href="/tech/cuda9/" target="_blank" rel="noopener">https://w-jin.github.io/tech/cuda9/</a></li>
+            
+            <li class="copyright-item license"><span class="copyright-item-text">许可</span>：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></li>
+            
+        </ul>
+    
+
+
+
+        </article>
+
+        
+
+        
+
+
+        
+
+
+        
+
+
+        
+    
+    
+        <div class="related-posts">
+            <h2 class="related-title">相关文章：<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon related-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm144 276c0 6.6-5.4 12-12 12h-92v92c0 6.6-5.4 12-12 12h-56c-6.6 0-12-5.4-12-12v-92h-92c-6.6 0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h92v-92c0-6.6 5.4-12 12-12h56c6.6 0 12 5.4 12 12v92h92c6.6 0 12 5.4 12 12v56z"/></svg></h2>
+            <ul class="related-list">
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda10/" class="related-link">CUDA教程10 -- 多GPU编程</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/thrust/" class="related-link">CUDA番外 -- thrust简介</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda7/" class="related-link">CUDA教程7 -- 双共轭梯度法</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda6/" class="related-link">CUDA教程6 -- 共轭梯度法</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda5/" class="related-link">CUDA教程5 -- 共享内存</a>
+                    </li>
+                
+            </ul>
+        </div>
+    
+
+
+
+        
+    
+        <div class="post-tags">
+            
+                
+                
+                
+                
+                    
+                    <a href="/tags/cuda/" rel="tag" class="post-tags-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49 0 48 0h204.118a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882 0L14.059 286.059A48 48 0 0 1 0 252.118zM112 64c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>cuda</a>
+                
+            
+                
+                
+                
+                
+                    
+                    <a href="/tags/amg/" rel="tag" class="post-tags-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49 0 48 0h204.118a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882 0L14.059 286.059A48 48 0 0 1 0 252.118zM112 64c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>amg</a>
+                
+            
+        </div>
+    
+
+
+
+        
+
+
+        
+
+
+        
+    
+        
+        
+    
+    
+    
+    
+        <ul class="post-nav">
+            
+                <li class="post-nav-prev">
+                    <a href="/tech/cuda10/" rel="prev">&lt; CUDA教程10 -- 多GPU编程</a>
+                </li>
+            
+            
+                <li class="post-nav-next">
+                    <a href="/tech/cuda8/" rel="next">CUDA教程8 -- 预处理方法 &gt;</a>
+                </li>
+            
+        </ul>
+    
+
+
+
+        
+    
+
+        
+            <div class="load-comments">
+                <div id="load-comments">加载评论</div>
+            </div>
+        
+
+        
+
+        
+            <div id="vcomments"></div>
+        
+
+        
+
+        
+    
+
+
+
+    </div>
+</main>
+
+
+            
+    <div id="back-to-top" class="back-to-top">
+        <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon arrow-up"><path d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z"/></svg></a>
+    </div>
+
+
+            
+    <footer id="footer" class="footer">
+        <div class="footer-inner">
+            <div class="site-info">©&nbsp;1999–2023&nbsp;<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon footer-icon"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>&nbsp;wjin</div><div class="powered-by">Powered by <a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo</a> | Theme is <a href="https://github.com/reuixiy/hugo-theme-meme" target="_blank" rel="noopener">MemE</a></div><div class="site-copyright"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></div>
+
+            
+
+
+            
+        </div>
+    </footer>
+
+
+        </div>
+        
+
+        
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
+<script>
+    if (typeof renderMathInElement === 'undefined') {
+        const getScript = (options) => {
+            const script = document.createElement('script');
+            script.defer = true;
+            script.crossOrigin = 'anonymous';
+            Object.keys(options).forEach((key) => {
+                script[key] = options[key];
+            });
+            document.body.appendChild(script);
+        };
+        getScript({
+            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/katex.min.js',
+            onload: () => {
+                getScript({
+                    src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/mhchem.min.js',
+                    onload: () => {
+                        getScript({
+                            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/auto-render.min.js',
+                            onload: () => {
+                                renderKaTex();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } else {
+        renderKaTex();
+    }
+    function renderKaTex() {
+        renderMathInElement(
+            document.body,
+            {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ]
+            }
+        );
+    }
+</script>
+
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.8.3/dist/mermaid.min.js"></script>
+<script>
+    const mermaidConfig = {
+        startOnLoad: true,
+        flowchart: {
+            useMaxWidth: false,
+            htmlLabels: true
+        },
+        theme: 'default'
+    };
+    mermaid.initialize(mermaidConfig);
+</script>
+
+
+
+    
+
+        
+
+        
+            <script>
+    function loadComments() {
+        if (!document.getElementById('vcomments')) {
+            return;
+        }
+        if (typeof Valine === 'undefined') {
+            const getScript = (options) => {
+                const script = document.createElement('script');
+                script.defer = true;
+                script.crossOrigin = 'anonymous';
+                Object.keys(options).forEach((key) => {
+                    script[key] = options[key];
+                });
+                document.body.appendChild(script);
+            };
+            getScript({
+                src: 'https:\/\/cdn.jsdelivr.net\/npm\/valine@1.4.14\/dist\/Valine.min.js',
+                onload: () => {
+                    newValine();
+                }
+            });
+        } else {
+            newValine();
+        }
+    }
+    function newValine() {
+        new Valine({
+            el: '#vcomments',
+            appId: 'oJ3I57xnJeHrSYxtwPqE3uFy-gzGzoHsz',
+            appKey: '3IfvJOtcQchX3DRs4zMGxuqv',
+            placeholder: 'Just go go',
+            path: location.pathname,
+            avatar: 'mm',
+            meta: ["nick","mail","link"],
+            pageSize:  10 ,
+            lang: 'zh-cn',
+            visitor:  false ,
+            highlight:  true ,
+            avatarForce:  false ,
+            recordIP:  false ,
+            serverURLs: '',
+            emojiCDN: '',
+            emojiMaps: {},
+            enableQQ:  true ,
+            requiredFields: []
+        });
+    }
+</script>
+
+        
+
+        
+
+        
+
+    
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/medium-zoom@latest/dist/medium-zoom.min.js"></script>
+
+<script>
+    let imgNodes = document.querySelectorAll('div.post-body img');
+    imgNodes = Array.from(imgNodes).filter(node => node.parentNode.tagName !== "A");
+
+    mediumZoom(imgNodes, {
+        background: 'hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.95)'
+    })
+</script>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/instant.page@5.1.0/instantpage.min.js" type="module" defer></script>
+
+
+
+
+
+
+    </body>
+</html>

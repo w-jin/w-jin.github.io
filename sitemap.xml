@@ -1,114 +1,125 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  
   <url>
-    <loc>https://w-jin.gitee.com/about/</loc>
-    <lastmod>2020-08-15T23:02:12+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/</loc>
-    <lastmod>2020-08-15T23:02:12+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/tags/mpi/</loc>
-    <lastmod>2020-08-15T22:24:56+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/posts/mpi%E6%95%99%E7%A8%8B4/</loc>
-    <lastmod>2020-08-15T22:24:56+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/posts/</loc>
-    <lastmod>2020-08-15T22:24:56+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/tags/</loc>
-    <lastmod>2020-08-15T22:24:56+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/tags/%E5%B9%B6%E8%A1%8C%E8%AE%A1%E7%AE%97/</loc>
-    <lastmod>2020-08-15T22:24:56+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/posts/mpi%E6%95%99%E7%A8%8B3/</loc>
-    <lastmod>2020-08-15T22:24:35+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/posts/mpi%E6%95%99%E7%A8%8B2/</loc>
-    <lastmod>2020-08-15T22:24:16+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/posts/mpi%E6%95%99%E7%A8%8B1/</loc>
-    <lastmod>2020-08-15T22:23:49+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/tags/c-/</loc>
-    <lastmod>2020-08-15T22:22:23+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/posts/c&#43;&#43;%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B%E5%92%8Ctbb%E6%95%99%E7%A8%8B/</loc>
-    <lastmod>2020-08-15T22:22:23+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/tags/tbb/</loc>
-    <lastmod>2020-08-15T22:22:23+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/tags/openmp/</loc>
-    <lastmod>2020-08-15T21:26:46+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/posts/openmp%E6%95%99%E7%A8%8B/</loc>
-    <lastmod>2020-08-15T21:26:46+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/posts/%E5%A0%86/</loc>
-    <lastmod>2020-08-15T22:21:27+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/tags/%E7%AE%97%E6%B3%95/</loc>
-    <lastmod>2020-08-15T22:21:27+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/posts/%E7%BA%A2%E9%BB%91%E6%A0%91/</loc>
-    <lastmod>2020-08-15T22:20:35+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/posts/%E5%B9%B3%E8%A1%A1%E4%BA%8C%E5%8F%89%E6%A0%91/</loc>
-    <lastmod>2020-08-15T22:20:25+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/tags/cuda/</loc>
+    <loc>https://w-jin.github.io/article/</loc>
+    <lastmod>2021-10-17T22:00:30+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/</loc>
+    <lastmod>2023-03-12T14:19:33+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/article/%E9%81%A3%E6%82%B2%E6%80%80%E4%B8%89%E9%A6%96-%E5%85%B6%E4%B8%89/</loc>
+    <lastmod>2021-10-17T22:00:30+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/article/%E9%9D%99%E5%A5%B3/</loc>
+    <lastmod>2021-09-25T17:00:54+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tags/cuda/</loc>
+    <lastmod>2020-12-21T23:12:37+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cuda10/</loc>
+    <lastmod>2020-12-20T20:29:46+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tags/</loc>
+    <lastmod>2023-03-12T14:19:33+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/</loc>
+    <lastmod>2023-03-12T14:19:33+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tags/amg/</loc>
+    <lastmod>2020-12-10T15:48:58+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cuda9/</loc>
+    <lastmod>2020-12-10T15:48:58+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cuda8/</loc>
+    <lastmod>2020-11-25T14:49:38+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/thrust/</loc>
+    <lastmod>2020-11-23T23:25:19+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cuda7/</loc>
+    <lastmod>2020-11-19T15:01:24+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cuda6/</loc>
+    <lastmod>2020-11-03T11:01:42+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tags/tbb/</loc>
+    <lastmod>2020-11-03T11:01:42+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cuda5/</loc>
+    <lastmod>2020-09-24T10:45:36+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cuda4/</loc>
+    <lastmod>2020-09-10T00:48:54+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cuda3/</loc>
+    <lastmod>2020-12-21T23:12:37+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tags/cpu/</loc>
+    <lastmod>2020-08-27T00:37:50+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cuda2/</loc>
+    <lastmod>2020-08-27T00:37:50+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tags/c-/</loc>
+    <lastmod>2020-08-22T12:37:24+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cpp-ctime-calendar-library/</loc>
+    <lastmod>2020-08-22T12:37:24+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cpp-chrono-time-library/</loc>
+    <lastmod>2020-08-20T22:52:03+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cuda1/</loc>
+    <lastmod>2020-08-20T21:56:49+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tags/math/</loc>
+    <lastmod>2023-03-12T14:19:33+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/norm/</loc>
+    <lastmod>2023-03-12T14:19:33+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/about/</loc>
+    <lastmod>2020-08-16T11:14:14+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tags/mpi/</loc>
+    <lastmod>2020-12-04T17:18:10+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/mpi4/</loc>
+    <lastmod>2020-08-16T10:44:50+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/mpi3/</loc>
+    <lastmod>2020-08-27T00:28:24+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/mpi2/</loc>
+    <lastmod>2020-08-16T10:44:42+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/mpi1/</loc>
+    <lastmod>2020-12-04T17:18:10+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cpp-functional-style-and-tbb/</loc>
+    <lastmod>2020-08-16T10:44:30+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tags/openmp/</loc>
+    <lastmod>2023-02-20T14:03:43+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/openmp/</loc>
+    <lastmod>2023-02-20T14:03:43+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tags/algorithm/</loc>
+    <lastmod>2020-08-16T17:46:34+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/binary-heap/</loc>
+    <lastmod>2020-08-16T10:46:16+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/red-black-tree/</loc>
+    <lastmod>2020-08-16T17:46:34+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/avl/</loc>
+    <lastmod>2020-08-16T10:48:33+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cuda-driver-api/</loc>
     <lastmod>2020-08-15T22:18:48+08:00</lastmod>
   </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/posts/cuda-driver-api%E7%9A%84%E4%BD%BF%E7%94%A8/</loc>
-    <lastmod>2020-08-15T22:18:48+08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://w-jin.gitee.com/categories/</loc>
-  </url>
-  
 </urlset>

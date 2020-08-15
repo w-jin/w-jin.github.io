@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+    <meta charset="UTF-8" />
+
+    <meta name="generator" content="Hugo 0.111.2"><meta name="theme-color" content="#fff" />
+    <meta name="color-scheme" content="light dark">
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+    
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>CUDA教程7 -- 双共轭梯度法 | wjin</title>
+
+    <link rel="stylesheet" href="/css/meme.min.af7333bfd64891c910fa2d9ad1905cb5289d87665f6fcc49d13183ed852abf3f.css"/>
+
+    
+    
+        <script src="/js/meme.min.b42cc6cc17aac11800d2bb8a71cf39db1f17f54d7f60cf3c1320970b00f1147e.js"></script>
+
+    
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" media="print" onload="this.media='all'" />
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" /></noscript>
+
+    <meta name="author" content="wjin" /><meta name="description" content="稀疏矩阵的表示 以下面的矩阵为例： $$ A=\begin{bmatrix} 1 &amp; 2 &amp; 0 &amp; 0 \\ 0 &amp; 3 &amp; 4 &amp; 5 \\ 0 &amp; 6 &amp; 7 &amp; 0 \\……" />
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="wjin" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="wjin" />
+    <meta name="msapplication-starturl" content="../../" />
+    <meta name="msapplication-TileColor" content="#fff" />
+    <meta name="msapplication-TileImage" content="../../icons/mstile-150x150.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    
+    
+
+    
+    <link rel="canonical" href="https://w-jin.github.io/tech/cuda7/" />
+    
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "datePublished": "2020-11-18T09:29:00+08:00",
+        "dateModified": "2020-11-19T15:01:24+08:00",
+        "url": "https://w-jin.github.io/tech/cuda7/",
+        "headline": "CUDA教程7 -- 双共轭梯度法",
+        "description": "稀疏矩阵的表示 以下面的矩阵为例： $$ A=\\begin{bmatrix} 1 \u0026 2 \u0026 0 \u0026 0 \\\\ 0 \u0026 3 \u0026 4 \u0026 5 \\\\ 0 \u0026 6 \u0026 7 \u0026 0 \\\\……",
+        "inLanguage" : "zh-CN",
+        "articleSection": "tech",
+        "wordCount":  5243 ,
+        "image": "https://w-jin.github.io/favicon.ico",
+        "author": {
+            "@type": "Person",
+            "description": "我空空如也",
+            "email": "wjiner@outlook.com",
+            "image": "https://w-jin.github.io/icons/logo.png",
+            "url": "https://w-jin.github.io/",
+            "name": "wjin"
+        },
+        "license": "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)",
+        "publisher": {
+            "@type": "Organization",
+            "name": "wjin",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://w-jin.github.io/favicon.ico"
+            },
+            "url": "https://w-jin.github.io/"
+        },
+        "mainEntityOfPage": {
+            "@type": "WebSite",
+            "@id": "https://w-jin.github.io/"
+        }
+    }
+</script>
+
+    
+
+<meta name="twitter:card" content="summary" />
+
+
+    
+
+
+
+<meta property="og:title" content="CUDA教程7 -- 双共轭梯度法" />
+<meta property="og:description" content="稀疏矩阵的表示 以下面的矩阵为例： $$ A=\begin{bmatrix} 1 &amp; 2 &amp; 0 &amp; 0 \\ 0 &amp; 3 &amp; 4 &amp; 5 \\ 0 &amp; 6 &amp; 7 &amp; 0 \\……" />
+<meta property="og:url" content="https://w-jin.github.io/tech/cuda7/" />
+<meta property="og:site_name" content="wjin" />
+<meta property="og:locale" content="zh" /><meta property="og:image" content="https://w-jin.github.io/favicon.ico" />
+    <meta property="og:type" content="article" />
+    <meta property="article:published_time" content="2020-11-18T09:29:00&#43;08:00" />
+    <meta property="article:modified_time" content="2020-11-19T15:01:24&#43;08:00" />
+    
+    <meta property="article:section" content="tech" />
+
+
+
+    
+    
+
+    
+</head>
+
+    <body>
+        <div class="container">
+            
+    <header class="header">
+        
+            <div class="header-wrapper">
+                <div class="header-inner single">
+                    
+    <div class="site-brand">
+        
+            <a href="/" class="brand">wjin</a>
+        
+    </div>
+
+                    <nav class="nav">
+    <ul class="menu" id="menu">
+        
+            
+        
+        
+        
+        
+            
+                <li class="menu-item"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="icon home"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></svg><span class="menu-item-name">首页</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tech/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">技术</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/article/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">文青</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tags/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="icon tags"><path d="M497.941 225.941L286.059 14.059A48 48 0 0 0 252.118 0H48C21.49 0 0 21.49 0 48v204.118a48 48 0 0 0 14.059 33.941l211.882 211.882c18.744 18.745 49.136 18.746 67.882 0l204.118-204.118c18.745-18.745 18.745-49.137 0-67.882zM112 160c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm513.941 133.823L421.823 497.941c-18.745 18.745-49.137 18.745-67.882 0l-.36-.36L527.64 323.522c16.999-16.999 26.36-39.6 26.36-63.64s-9.362-46.641-26.36-63.64L331.397 0h48.721a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882z"/></svg><span class="menu-item-name">标签</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/about/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="icon user-circle"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 96c48.6 0 88 39.4 88 88s-39.4 88-88 88-88-39.4-88-88 39.4-88 88-88zm0 344c-58.7 0-111.3-26.6-146.5-68.2 18.8-35.4 55.6-59.8 98.5-59.8 2.4 0 4.8.4 7.1 1.1 13 4.2 26.6 6.9 40.9 6.9 14.3 0 28-2.7 40.9-6.9 2.3-.7 4.7-1.1 7.1-1.1 42.9 0 79.7 24.4 98.5 59.8C359.3 421.4 306.7 448 248 448z"/></svg><span class="menu-item-name">关于</span></a>
+                </li>
+            
+        
+            
+                
+                    
+                    
+                        <li class="menu-item">
+                            <a id="theme-switcher" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-light"><path d="M193.2 104.5l48.8-97.5a18 18 0 0128 0l48.8 97.5 103.4 -34.5a18 18 0 0119.8 19.8l-34.5 103.4l97.5 48.8a18 18 0 010 28l-97.5 48.8 34.5 103.4a18 18 0 01-19.8 19.8l-103.4-34.5-48.8 97.5a18 18 0 01-28 0l-48.8-97.5l-103.4 34.5a18 18 0 01-19.8-19.8l34.5-103.4-97.5-48.8a18 18 0 010-28l97.5-48.8-34.5-103.4a18 18 0 0119.8-19.8zM256 128a128 128 0 10.01 0M256 160a96 96 0 10.01 0"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-dark"><path d="M27 412a256 256 0 10154-407a11.5 11.5 0 00-5 20a201.5 201.5 0 01-134 374a11.5 11.5 0 00-15 13"/></svg></a>
+                        </li>
+                    
+                
+            
+        
+            
+                
+            
+        
+    </ul>
+</nav>
+
+                    
+                </div>
+            </div>
+            
+    <input type="checkbox" id="nav-toggle" aria-hidden="true" />
+    <label for="nav-toggle" class="nav-toggle"></label>
+    <label for="nav-toggle" class="nav-curtain"></label>
+
+
+        
+    </header>
+
+
+
+
+            
+            
+    <main class="main single" id="main">
+    <div class="main-inner">
+
+        
+
+        <article class="content post h-entry" data-align="justify" data-type="tech" data-toc-num="true">
+
+            <h1 class="post-title p-name">CUDA教程7 -- 双共轭梯度法</h1>
+
+            
+
+            
+                
+            
+
+            
+                
+
+<div class="post-meta">
+    
+        
+        <time datetime="2020-11-18T09:29:00&#43;08:00" class="post-meta-item published dt-published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2020.11.18</time>
+    
+    
+        
+        <time datetime="2020-11-19T15:01:24&#43;08:00" class="post-meta-item modified dt-updated"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.11.19</time>
+    
+    
+    
+        
+        
+        
+            
+        
+    
+    
+        
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;5243</span>
+    
+    
+        
+        <span class="post-meta-item reading-time"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></svg>&nbsp;11&nbsp;分钟</span>
+    
+    
+    
+</div>
+
+            
+
+            <nav class="contents">
+  <h2 id="contents" class="contents-title">目录</h2><ol class="toc">
+    <li><a id="contents:稀疏矩阵的表示" href="#稀疏矩阵的表示">稀疏矩阵的表示</a></li>
+    <li><a id="contents:矩阵转置" href="#矩阵转置">矩阵转置</a>
+      <ol>
+        <li><a id="contents:稠密矩阵" href="#稠密矩阵">稠密矩阵</a></li>
+        <li><a id="contents:coo格式" href="#coo格式">COO格式</a></li>
+        <li><a id="contents:csr格式" href="#csr格式">CSR格式</a></li>
+      </ol>
+    </li>
+    <li><a id="contents:双共轭梯度法" href="#双共轭梯度法">双共轭梯度法</a></li>
+    <li><a id="contents:参考文献" href="#参考文献">参考文献</a></li>
+    <li><a id="contents:思考问题" href="#思考问题">思考问题</a></li>
+  </ol>
+</nav><div class="post-body e-content">
+                <h2 id="稀疏矩阵的表示"><a href="#稀疏矩阵的表示" class="anchor-link">§</a><a href="#contents:稀疏矩阵的表示" class="headings">稀疏矩阵的表示</a></h2>
+<p>以下面的矩阵为例：</p>
+<div>$$
+A=\begin{bmatrix}
+1 & 2 & 0 & 0 \\
+0 & 3 & 4 & 5 \\
+0 & 6 & 7 & 0 \\
+0 & 0 & 8 & 9
+\end{bmatrix}
+$$<div>
+<p>COO(Coordinate)格式将它存储在三个数组中：</p>
+<pre tabindex="0"><code>row: 0  0  1  1  1  2  2  3  3
+col: 0  1  1  2  3  1  2  2  3
+val: 1  2  3  4  5  6  7  8  9
+</code></pre><p>将行号进行压缩可以得到CSR(Compressed Sparse Row)格式：</p>
+<pre tabindex="0"><code>row: 0  2  5  7  9
+col: 0  1  1  2  3  1  2  2  3
+val: 1  2  3  4  5  6  7  8  9
+</code></pre><p>相邻的两个元素标识了矩阵一行的非零元素在col和val中的下标范围[row[i], row[i+1])。为保证最后一行也不越界，一般在row末尾再添加一个哨兵元素，它的值是矩阵非零元素个数，如上面的9。</p>
+<h2 id="矩阵转置"><a href="#矩阵转置" class="anchor-link">§</a><a href="#contents:矩阵转置" class="headings">矩阵转置</a></h2>
+<h3 id="稠密矩阵"><a href="#稠密矩阵" class="anchor-link">§</a><a href="#contents:稠密矩阵" class="headings">稠密矩阵</a></h3>
+<p>稠密矩阵的转置比较简单，将上三角的元素与下三角逐一交换即可：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">Transpose</span><span class="p">(</span><span class="kt">double</span> <span class="o">*</span><span class="n">A</span><span class="p">,</span> <span class="kt">int</span> <span class="n">M</span><span class="p">,</span> <span class="kt">int</span> <span class="n">N</span><span class="p">,</span> <span class="kt">int</span> <span class="n">lda</span> <span class="o">=</span> <span class="n">N</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// MxN的矩阵，一行需要跳过lda个元素
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">M</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">i</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// swap(A[i, j], A[j, i])
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="n">std</span><span class="o">::</span><span class="n">swap</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">lda</span> <span class="o">+</span> <span class="n">j</span><span class="p">],</span> <span class="n">A</span><span class="p">[</span><span class="n">j</span> <span class="o">*</span> <span class="n">lda</span> <span class="o">+</span> <span class="n">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">Transpose</span><span class="p">(</span><span class="kt">double</span> <span class="o">*</span><span class="n">A</span><span class="p">,</span> <span class="kt">double</span> <span class="o">*</span><span class="n">At</span><span class="p">,</span> <span class="kt">int</span> <span class="n">M</span><span class="p">,</span> <span class="kt">int</span> <span class="n">N</span><span class="p">,</span> <span class="kt">int</span> <span class="n">lda</span> <span class="o">=</span> <span class="n">N</span><span class="p">,</span> <span class="kt">int</span> <span class="n">ldat</span> <span class="o">=</span> <span class="n">M</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// MxN的矩阵A，一行需要跳过lda个元素
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// 输出到NxM的矩阵At,一行需要跳过ldat个元素
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">M</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">i</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">At</span><span class="p">[</span><span class="n">j</span> <span class="o">*</span> <span class="n">ldat</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">lda</span> <span class="o">+</span> <span class="n">j</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><h3 id="coo格式"><a href="#coo格式" class="anchor-link">§</a><a href="#contents:coo格式" class="headings">COO格式</a></h3>
+<p>稀疏矩阵的转置就不太容易了。对于COO格式的矩阵，如果算法对元素存储顺序没有要求，那么可以简单地交换每个元素的行号和列号，如矩阵</p>
+<div>$$
+A=\begin{bmatrix}
+1 & 2 & 0 & 0 \\
+0 & 3 & 4 & 5 \\
+0 & 6 & 7 & 0 \\
+0 & 0 & 8 & 9
+\end{bmatrix}
+$$<div>
+<p>的转置为：</p>
+<div>$$
+A^T=\begin{bmatrix}
+1 & 0 & 0 & 0 \\
+2 & 3 & 6 & 0 \\
+0 & 4 & 7 & 8 \\
+0 & 5 & 0 & 9
+\end{bmatrix}
+$$<div>
+它们的COO格式分别表示为：
+<pre tabindex="0"><code>A:
+row: 0  0  1  1  1  2  2  3  3
+col: 0  1  1  2  3  1  2  2  3
+val: 1  2  3  4  5  6  7  8  9
+
+At:
+row: 0  1  1  2  3  1  2  2  3
+col: 0  0  1  1  1  2  2  3  3
+val: 1  2  3  4  5  6  7  8  9
+</code></pre><p>用代码表示即为：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">Transpose</span><span class="p">(</span><span class="n">IndexType</span> <span class="o">*</span><span class="n">rows</span><span class="p">,</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">cols</span><span class="p">,</span> <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_entries</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_entries</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">std</span><span class="o">::</span><span class="n">swap</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">cols</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// COO格式矩阵的转置乘向量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">void</span> <span class="nf">SpMTvCOO</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Vector</span> <span class="o">*</span><span class="n">result</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">rows</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">cols</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">ValueType</span> <span class="o">*</span><span class="n">vals</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_rows</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_cols</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_entries</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">Vector</span> <span class="o">&amp;</span><span class="n">v</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">num_cols</span> <span class="o">!=</span> <span class="n">v</span><span class="p">.</span><span class="n">size</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">{</span><span class="s">&#34;SpMTvCOO: 矩阵的列数和向量长度不一致！&#34;</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="c1">// 仅交换指针
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">std</span><span class="o">::</span><span class="n">swap</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="n">result</span><span class="o">-&gt;</span><span class="n">resize</span><span class="p">(</span><span class="n">num_cols</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_cols</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">(</span><span class="o">*</span><span class="n">result</span><span class="p">)[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_entries</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">(</span><span class="o">*</span><span class="n">result</span><span class="p">)[</span><span class="n">rows</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">v</span><span class="p">[</span><span class="n">cols</span><span class="p">[</span><span class="n">i</span><span class="p">]];</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><h3 id="csr格式"><a href="#csr格式" class="anchor-link">§</a><a href="#contents:csr格式" class="headings">CSR格式</a></h3>
+<p>对于CSR格式就不能简单地交换行号和列号了，可以使用按行填充的办法来进行转置。算法的基本想法是：按行遍历矩阵，对每个非零元素，可以得知其行号和列号，列号为它在转置矩阵中的行号，行号为它在转置矩阵中的列号，把非零元素逐个填充到转置矩阵中对应行的位置。此处有两个问题：1、转置矩阵中某行的起始下标是多少；2、如何保证填充过去的元素有序。</p>
+<p>第一，转置矩阵中各行的起始下标在数值上等于它前面行的非零元素个数之和，因此可以这样计算：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="n">CsrMatrix</span> <span class="n">CsrMatrix</span><span class="o">::</span><span class="n">transpose</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CsrMatrix</span> <span class="nf">At</span><span class="p">(</span><span class="n">num_cols</span><span class="p">,</span> <span class="n">num_rows</span><span class="p">,</span> <span class="n">num_entries</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">std</span><span class="o">::</span><span class="n">fill</span><span class="p">(</span><span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 计算A^T每行有多少个非零元素
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_entries</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="o">++</span><span class="p">(</span><span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">[</span><span class="n">column_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]]);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 计算A^T每行首个非零元素偏移量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">At</span><span class="p">.</span><span class="n">num_rows</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">IndexType</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sum</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">sum</span> <span class="o">+=</span> <span class="n">temp</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">[</span><span class="n">At</span><span class="p">.</span><span class="n">num_rows</span><span class="p">]</span> <span class="o">=</span> <span class="n">At</span><span class="p">.</span><span class="n">num_entries</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="c1">// ...
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>第二，转置矩阵的元素顺序需要先按行号排序，行内按列号排序，遍历原矩阵时，从第0行逐行遍历到最后一行，则填充到转置矩阵时列号就是逐渐增大的，因此只需要按行主序遍历原矩阵，得到的转置矩阵就已经满足顺序要求了。完整的算法如下：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">namespace</span> <span class="n">Host</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="n">CsrMatrix</span> <span class="n">CsrMatrix</span><span class="o">::</span><span class="n">transpose</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CsrMatrix</span> <span class="nf">At</span><span class="p">(</span><span class="n">num_cols</span><span class="p">,</span> <span class="n">num_rows</span><span class="p">,</span> <span class="n">num_entries</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">std</span><span class="o">::</span><span class="n">fill</span><span class="p">(</span><span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 计算A^T每行有多少个非零元素
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_entries</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="o">++</span><span class="p">(</span><span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">[</span><span class="n">column_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]]);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 计算A^T每行首个非零元素偏移量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">At</span><span class="p">.</span><span class="n">num_rows</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">IndexType</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">        <span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sum</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">sum</span> <span class="o">+=</span> <span class="n">temp</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">[</span><span class="n">At</span><span class="p">.</span><span class="n">num_rows</span><span class="p">]</span> <span class="o">=</span> <span class="n">At</span><span class="p">.</span><span class="n">num_entries</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 使用curr记录各行已填充到哪个位置
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="o">&gt;</span> <span class="n">curr</span> <span class="o">=</span> <span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 将非零元素复制到A^T中
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_rows</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">j</span> <span class="o">=</span> <span class="n">row_offsets</span><span class="p">[</span><span class="n">i</span><span class="p">];</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">row_offsets</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="n">IndexType</span> <span class="n">col</span> <span class="o">=</span> <span class="n">column_indices</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">            <span class="n">At</span><span class="p">.</span><span class="n">values</span><span class="p">[</span><span class="n">curr</span><span class="p">[</span><span class="n">col</span><span class="p">]]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">            <span class="n">At</span><span class="p">.</span><span class="n">column_indices</span><span class="p">[</span><span class="n">curr</span><span class="p">[</span><span class="n">col</span><span class="p">]]</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="o">++</span><span class="p">(</span><span class="n">curr</span><span class="p">[</span><span class="n">col</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">At</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="c1">// namespace Host
+</span></span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>仍然以矩阵</p>
+<div>$$
+A=\begin{bmatrix}
+1 & 2 & 0 & 0 \\
+0 & 3 & 4 & 5 \\
+0 & 6 & 7 & 0 \\
+0 & 0 & 8 & 9
+\end{bmatrix}
+$$<div>
+<p>为例，其CSR格式存储为：</p>
+<pre tabindex="0"><code>row: 0  2  5  7  9
+col: 0  1  1  2  3  1  2  2  3
+val: 1  2  3  4  5  6  7  8  9
+</code></pre><p>根据列号计算得到转置的每行元素个数为：</p>
+<pre tabindex="0"><code>rowT: 1 3 3 2
+</code></pre><p>对它累和得到转置矩阵的row:</p>
+<pre tabindex="0"><code>rowT: 0 1 4 7 9
+</code></pre><p>将原矩阵的元素逐个拷贝到转置矩阵中，过程为：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="nl">ind</span><span class="p">:</span> <span class="mi">0</span>  <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">3</span>  <span class="mi">4</span>  <span class="mi">5</span>  <span class="mi">6</span>  <span class="mi">7</span>  <span class="mi">8</span>
+</span></span><span class="line"><span class="cl"><span class="nl">col</span><span class="p">:</span> <span class="n">_</span>  <span class="n">_</span>        <span class="n">_</span>        <span class="n">_</span>
+</span></span><span class="line"><span class="cl"><span class="nl">val</span><span class="p">:</span> <span class="n">_</span>  <span class="n">_</span>        <span class="n">_</span>        <span class="n">_</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="nl">col</span><span class="p">:</span> <span class="mi">0</span>  <span class="n">_</span>        <span class="n">_</span>        <span class="n">_</span>
+</span></span><span class="line"><span class="cl"><span class="nl">val</span><span class="p">:</span> <span class="mi">1</span>  <span class="n">_</span>        <span class="n">_</span>        <span class="n">_</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="nl">col</span><span class="p">:</span> <span class="mi">0</span>  <span class="mi">0</span>        <span class="n">_</span>        <span class="n">_</span>
+</span></span><span class="line"><span class="cl"><span class="nl">val</span><span class="p">:</span> <span class="mi">1</span>  <span class="mi">2</span>        <span class="n">_</span>        <span class="n">_</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="nl">col</span><span class="p">:</span> <span class="mi">0</span>  <span class="mi">0</span>  <span class="mi">1</span>     <span class="n">_</span>        <span class="n">_</span>
+</span></span><span class="line"><span class="cl"><span class="nl">val</span><span class="p">:</span> <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">3</span>     <span class="n">_</span>        <span class="n">_</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="nl">col</span><span class="p">:</span> <span class="mi">0</span>  <span class="mi">0</span>  <span class="mi">1</span>     <span class="mi">1</span>        <span class="n">_</span>
+</span></span><span class="line"><span class="cl"><span class="nl">val</span><span class="p">:</span> <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">3</span>     <span class="mi">4</span>        <span class="n">_</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="nl">col</span><span class="p">:</span> <span class="mi">0</span>  <span class="mi">0</span>  <span class="mi">1</span>     <span class="mi">1</span>        <span class="mi">1</span>
+</span></span><span class="line"><span class="cl"><span class="nl">val</span><span class="p">:</span> <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">3</span>     <span class="mi">4</span>        <span class="mi">5</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="nl">col</span><span class="p">:</span> <span class="mi">0</span>  <span class="mi">0</span>  <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">1</span>        <span class="mi">1</span>
+</span></span><span class="line"><span class="cl"><span class="nl">val</span><span class="p">:</span> <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">3</span>  <span class="mi">6</span>  <span class="mi">4</span>        <span class="mi">5</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="nl">col</span><span class="p">:</span> <span class="mi">0</span>  <span class="mi">0</span>  <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">1</span>  <span class="mi">2</span>     <span class="mi">1</span>
+</span></span><span class="line"><span class="cl"><span class="nl">val</span><span class="p">:</span> <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">3</span>  <span class="mi">6</span>  <span class="mi">4</span>  <span class="mi">7</span>     <span class="mi">5</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="nl">col</span><span class="p">:</span> <span class="mi">0</span>  <span class="mi">0</span>  <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">3</span>  <span class="mi">1</span>
+</span></span><span class="line"><span class="cl"><span class="nl">val</span><span class="p">:</span> <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">3</span>  <span class="mi">6</span>  <span class="mi">4</span>  <span class="mi">7</span>  <span class="mi">8</span>  <span class="mi">5</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="nl">col</span><span class="p">:</span> <span class="mi">0</span>  <span class="mi">0</span>  <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">3</span>  <span class="mi">1</span>  <span class="mi">3</span>
+</span></span><span class="line"><span class="cl"><span class="nl">val</span><span class="p">:</span> <span class="mi">1</span>  <span class="mi">2</span>  <span class="mi">3</span>  <span class="mi">6</span>  <span class="mi">4</span>  <span class="mi">7</span>  <span class="mi">8</span>  <span class="mi">5</span>  <span class="mi">9</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>其中下划线是各行第一个非零元素所在位置，其它未填充的位置留白。</p>
+<p>这种算法是串行算法中工作得最好的，因为它只需要遍历矩阵一次，时间复杂度为O(M+NNZ)，其中M为矩阵行数，NNZ为非零元素个数。</p>
+<p>另一个简单的思路是将CSR格式中压缩的行还原成COO格式，交换行号和列号，再按行号排序、行内按列号排序，再将它压缩成稀疏矩阵，这个算法的时间复杂度为O(NNZ log NNZ)，明显高于前一个算法，它的好处在于可以更方便地实现为并行算法。此处给出使用CUDA设计的算法：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">namespace</span> <span class="n">SingleGPU</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">Csr2CooKernel</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">IndexType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">row_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">row_offsets</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_rows</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">thread_id</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">lane</span> <span class="o">=</span> <span class="n">thread_id</span> <span class="o">&amp;</span> <span class="mi">15</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">num_rows_per_block</span> <span class="o">=</span> <span class="p">(</span><span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="mi">16</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">row</span> <span class="o">=</span> <span class="n">thread_id</span> <span class="o">/</span> <span class="mi">16</span><span class="p">;</span> <span class="n">row</span> <span class="o">&lt;</span> <span class="n">num_rows</span><span class="p">;</span> <span class="n">row</span> <span class="o">+=</span> <span class="n">num_rows_per_block</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">j</span> <span class="o">=</span> <span class="n">row_offsets</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">+</span> <span class="n">lane</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">row_offsets</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span> <span class="n">j</span> <span class="o">+=</span> <span class="mi">16</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">row_indices</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">Coo2CsrKernel</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">IndexType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">row_offsets</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">sorted_row_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_rows</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_entries</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">row_offsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">num_entries</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;=</span> <span class="n">sorted_row_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="n">row_offsets</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">stride</span> <span class="o">=</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_entries</span><span class="p">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="n">stride</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">IndexType</span> <span class="n">start</span> <span class="o">=</span> <span class="n">sorted_row_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">IndexType</span> <span class="n">end</span> <span class="o">=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_entries</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">?</span> <span class="n">sorted_row_indices</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">:</span> <span class="n">num_rows</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">j</span> <span class="o">=</span> <span class="n">start</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;=</span> <span class="n">end</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">row_offsets</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">CsrMatrix</span> <span class="n">CsrMatrix</span><span class="o">::</span><span class="n">transpose</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// csr转为coo，只需要将row_offsets转为row_indices
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">IndexType</span> <span class="o">*</span><span class="n">row_indices</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">row_indices</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">IndexType</span><span class="p">)</span> <span class="o">*</span> <span class="n">num_entries</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">LaunchKernel</span><span class="p">(</span><span class="n">Csr2CooKernel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">row_indices</span><span class="p">,</span> <span class="n">row_offsets</span><span class="p">,</span> <span class="n">num_rows</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 交换row_indices和column_indices
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">CsrMatrix</span> <span class="nf">At</span><span class="p">(</span><span class="n">num_cols</span><span class="p">,</span> <span class="n">num_rows</span><span class="p">,</span> <span class="n">num_entries</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">At</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">ValueType</span><span class="p">)</span> <span class="o">*</span> <span class="n">num_entries</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">cudaMemcpyDeviceToDevice</span>
+</span></span><span class="line"><span class="cl">    <span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">At</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span> <span class="n">row_indices</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">IndexType</span><span class="p">)</span> <span class="o">*</span> <span class="n">num_entries</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">cudaMemcpyDeviceToDevice</span>
+</span></span><span class="line"><span class="cl">    <span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 按照行排序，At的行即A的列
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">IndexType</span> <span class="o">*</span><span class="n">At_row_indices</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">At_row_indices</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">IndexType</span><span class="p">)</span> <span class="o">*</span> <span class="n">num_entries</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">At_row_indices</span><span class="p">,</span> <span class="n">column_indices</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">IndexType</span><span class="p">)</span> <span class="o">*</span> <span class="n">num_entries</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">cudaMemcpyDeviceToDevice</span>
+</span></span><span class="line"><span class="cl">    <span class="p">));</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="n">thrust</span><span class="o">::</span><span class="n">stable_sort_by_key</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">thrust</span><span class="o">::</span><span class="n">device_ptr</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">At_row_indices</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">thrust</span><span class="o">::</span><span class="n">device_ptr</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">At_row_indices</span> <span class="o">+</span> <span class="n">num_entries</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">thrust</span><span class="o">::</span><span class="n">device_ptr</span><span class="o">&lt;</span><span class="n">ValueType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">At</span><span class="p">.</span><span class="n">values</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">At_row_indices</span><span class="p">,</span> <span class="n">column_indices</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">IndexType</span><span class="p">)</span> <span class="o">*</span> <span class="n">num_entries</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">cudaMemcpyDeviceToDevice</span>
+</span></span><span class="line"><span class="cl">    <span class="p">));</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="n">thrust</span><span class="o">::</span><span class="n">stable_sort_by_key</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">thrust</span><span class="o">::</span><span class="n">device_ptr</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">At_row_indices</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">thrust</span><span class="o">::</span><span class="n">device_ptr</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">At_row_indices</span> <span class="o">+</span> <span class="n">num_entries</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">thrust</span><span class="o">::</span><span class="n">device_ptr</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">At</span><span class="p">.</span><span class="n">column_indices</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 将At_row_indices转换成At.row_offsets，由于At_row_indices已经排好序了，直接
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// 找各个数字第一次出现的位置即可。如0 0 0 1 1 2 2 2 =&gt; 0 3 5 8
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">LaunchKernelWithNumThreads</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">Coo2CsrKernel</span><span class="p">,</span> <span class="n">At</span><span class="p">.</span><span class="n">num_entries</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">At_row_indices</span><span class="p">,</span> <span class="n">At</span><span class="p">.</span><span class="n">num_rows</span><span class="p">,</span> <span class="n">At</span><span class="p">.</span><span class="n">num_entries</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">row_indices</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">At_row_indices</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">At</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="c1">// namespace SingleGPU
+</span></span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>首先第一步是将CSR格式中压缩的行再展开成COO格式中的行号，这个非常简单，按行遍历矩阵，将[row[i], row[i+1])范围内的行号都置为i即可，如</p>
+<pre tabindex="0"><code>row: 0 1 4 7 9
+</code></pre><p>展开成</p>
+<pre tabindex="0"><code>row: 0 1 1 1 2 2 2 3 3
+</code></pre><p>这一步由核函数Csr2CooKernel来做。</p>
+<p>其次是交换行号和列号，即将上一步展开的行号作为转置矩阵的列号，将原矩阵的列号作为行号。</p>
+<p>然后是对转置矩阵的非零元素排序，先按行号排序，同行号按列号排序。由于排序之前，行号相同的元素其列号已经是从小到大排列的，只是不相邻而已，因此使用稳定的排序算法排序可以直接得到行内列号有序的结果。也可以使用自定义的比较函数进行排序，这个比较函数的比较方法为先比较行号，如果行号相等再比较列号，大致为：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">struct</span> <span class="nc">RowCol</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">IndexType</span> <span class="n">row</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">IndexType</span> <span class="n">col</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">bool</span> <span class="nf">cmp</span><span class="p">(</span><span class="n">RowCol</span> <span class="n">a</span><span class="p">,</span> <span class="n">RowCol</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">row</span> <span class="o">==</span> <span class="n">b</span><span class="p">.</span><span class="n">row</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">a</span><span class="p">.</span><span class="n">col</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">.</span><span class="n">col</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">else</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">a</span><span class="p">.</span><span class="n">row</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">.</span><span class="n">row</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">RowCol</span><span class="o">&gt;</span> <span class="n">coordinates</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">ValueType</span><span class="o">&gt;</span> <span class="n">values</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">sort_by_key</span><span class="p">(</span><span class="n">coordinates</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">coordinates</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="n">values</span><span class="p">.</span><span class="n">begin</span><span class="p">());</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>此处选用第一种方案，原因很简单：不想多引入一个结构体，在GPU上对结构体的操作不好封装，而且对结构体数组的访问性能一般不如数组结构体。</p>
+<p>串行的排序算法我们已经很熟悉了，比如：快速排序、归并排序、堆排序等，时间复杂度都是O(n log n)。当然快速排序最坏情况下是O(n^2)，可以通过一些策略来改善其性能，比如GNU stl(SGI stl)的采用的方案为内省式排序(Introspective Sort)，由Musser在1997年[1]提出，GNU stl的实现细节可以参考[2]。</p>
+<p>然后并行的排序算法基本都不能直接由快速排序等经典排序算法并行化而来，必须专门设计。比较常见的并行排序方法有：奇偶排序[3]、双调排序[4]、基数排序[5]等。实现这些算法太过复杂，此处调用thrust库完成排序。thrust库是一个类似于stl的模板库，已经集成在CUDA安装包中，默认会安装。其使用方法与stl类似，可以参考其文档[6]。thrust库的排序方法使用基数排序，拥有非常好的性能，此处直接调用。</p>
+<p>排完序后，最后一步是将COO格式的行号压缩成CSR格式。一个简单地办法是统计各行的非零元素个数，然后进行扫描生成各行第一个非零元素的偏移：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">CountNNZKernel</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">IndexType</span> <span class="o">*</span><span class="n">nnz_per_rows</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">row</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_entries</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">stride</span> <span class="o">=</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_entries</span><span class="p">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="n">stride</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">atomicAdd</span><span class="p">(</span><span class="o">&amp;</span><span class="n">nnz_per_rows</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemset</span><span class="p">(</span><span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">IndexType</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">At</span><span class="p">.</span><span class="n">num_rows</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">LaunchKernel</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">CountNNZKernel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">column_indices</span><span class="p">,</span> <span class="n">At</span><span class="p">.</span><span class="n">num_entries</span>
+</span></span><span class="line"><span class="cl"><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">thrust</span><span class="o">::</span><span class="n">exclusive_scan</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">thrust</span><span class="o">::</span><span class="n">device_ptr</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="n">thrust</span><span class="o">::</span><span class="n">device_ptr</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span> <span class="o">+</span> <span class="n">At</span><span class="p">.</span><span class="n">num_rows</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="n">thrust</span><span class="o">::</span><span class="n">device_ptr</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="o">&gt;</span><span class="p">(</span><span class="n">At</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">);</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>或者利用这样的性质：行号变化的位置就是对应行的第一个非零元素所在的位置。如</p>
+<pre tabindex="0"><code>ind: 0 1 2 3 4 5 6 7 8
+row: 0 1 1 1 2 2 2 3 3
+</code></pre><p>行号在下标为1、4、7的位置变化，它们就是对应行的第一个非零元素，因此不难得到row_offsets为：0, 1, 4, 7, 9。这个过程由核函数Coo2CsrKernel完成。需要注意：这个算法虽然简单，但边界条件非常多，要写正确非常困难，比如一个稍微极端的例子：</p>
+<pre tabindex="0"><code>ind: 0 1 2 3 4 5 6 7 8
+row: 0 0 0 0 2 2 2 4 4
+</code></pre><p>压缩后应为：</p>
+<pre tabindex="0"><code>row: 0 4 4 7 7 9
+</code></pre><p>而不是：</p>
+<pre tabindex="0"><code>row: 0 4 7 9
+</code></pre><p>这个矩阵有5行，压缩后的行号应当有6个元素，第1、3两行没有非零元素。此外还要考虑第1个0以及最后一个哨兵元素的生成，还有注意下标不要越界！</p>
+<h2 id="双共轭梯度法"><a href="#双共轭梯度法" class="anchor-link">§</a><a href="#contents:双共轭梯度法" class="headings">双共轭梯度法</a></h2>
+<p>双共轭梯度法可以求解非对称、非正定的方程组，其思想在于同时求解$Ax=b$和$A^Tx=b$，详细过程如下：</p>
+<div>$$
+\begin{aligned}
+& r_0=b-Ax^{(0)} \\
+& choose\ r_0^*:(r_0, r_0^*) \ne 0 \\
+& p_1=r_0 \\
+& p_1^*=r_0^* \\
+& for\ k=1,2,\dots,n \\
+&\qquad \xi_k=(r_{k-1},r_{k-1}^*)/(Ap_k,p_k^*) \\
+&\qquad x^{(k)}=x^{(k-1)}+\xi_k p_k \\
+&\qquad r_k=r_{k-1}-\xi_k Ap_k \\
+&\qquad if\ \|r_k\| < error \\
+&\qquad\qquad break \\
+&\qquad end \\
+&\qquad r_k^*=r_{k-1}^*-\xi_k A^Tp_k^* \\
+&\qquad \theta_k=(r_k,r_k^*)/(r_{k-1},r_{k-1}^*) \\
+&\qquad p_{k+1}=r_{k} + \theta_k p_k \\
+&\qquad p_{k+1}^*=r_k^*+\theta_k p_k^* \\
+& end
+\end{aligned}
+$$<div>
+其中除了涉及到共轭梯度法需要矩阵和向量基本操作外，还涉及到矩阵的转置乘向量。为实现矩阵的转置乘向量，一是可以直接用原矩阵进行计算，方法为用向量的各个元素作为系数对矩阵的各行作线性组合：
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="cp">#if !defined(__CUDA_ARCH__) || __CUDA_ARCH__ &gt;= 600
+</span></span></span><span class="line"><span class="cl"><span class="cp">#else
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="k">static</span> <span class="n">__inline__</span> <span class="n">__device__</span> <span class="kt">double</span> <span class="nf">atomicAdd</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">double</span> <span class="o">*</span><span class="n">address</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">double</span> <span class="n">val</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="kt">long</span> <span class="o">*</span><span class="n">address_as_ull</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">long</span> <span class="kt">long</span> <span class="o">*</span><span class="p">)</span> <span class="n">address</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="kt">long</span> <span class="n">old</span> <span class="o">=</span> <span class="o">*</span><span class="n">address_as_ull</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="kt">long</span> <span class="n">expected</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">do</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">expected</span> <span class="o">=</span> <span class="n">old</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">old</span> <span class="o">=</span> <span class="n">atomicCAS</span><span class="p">(</span><span class="n">address_as_ull</span><span class="p">,</span> <span class="n">expected</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">__double_as_longlong</span><span class="p">(</span><span class="n">val</span> <span class="o">+</span> <span class="n">__longlong_as_double</span><span class="p">(</span><span class="n">expected</span><span class="p">)));</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">expected</span> <span class="o">!=</span> <span class="n">old</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">__longlong_as_double</span><span class="p">(</span><span class="n">old</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">SpMTvKernel</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">result</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">values</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">row_offsets</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">column_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_rows</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">vec</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">thread_id</span> <span class="o">=</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">lane</span> <span class="o">=</span> <span class="n">thread_id</span> <span class="o">&amp;</span> <span class="mi">15</span><span class="p">;</span>           <span class="c1">// 线程束内偏移量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">const</span> <span class="kt">int</span> <span class="n">num_warps</span> <span class="o">=</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">/</span> <span class="mi">16</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">row</span> <span class="o">=</span> <span class="n">thread_id</span> <span class="o">/</span> <span class="mi">16</span><span class="p">;</span> <span class="n">row</span> <span class="o">&lt;</span> <span class="n">num_rows</span><span class="p">;</span> <span class="n">row</span> <span class="o">+=</span> <span class="n">num_warps</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="n">row_offsets</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">+</span> <span class="n">lane</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">row_offsets</span><span class="p">[</span><span class="n">row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span> <span class="n">j</span> <span class="o">+=</span> <span class="mi">16</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">atomicAdd</span><span class="p">(</span><span class="o">&amp;</span><span class="n">result</span><span class="p">[</span><span class="n">column_indices</span><span class="p">[</span><span class="n">j</span><span class="p">]],</span> <span class="n">vec</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">*</span> <span class="n">values</span><span class="p">[</span><span class="n">j</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">SpMTv</span><span class="p">(</span><span class="n">Vector</span> <span class="o">*</span><span class="n">result</span><span class="p">,</span> <span class="k">const</span> <span class="n">CsrMatrix</span> <span class="o">&amp;</span><span class="n">A</span><span class="p">,</span> <span class="k">const</span> <span class="n">Vector</span> <span class="o">&amp;</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">A</span><span class="p">.</span><span class="n">num_rows</span> <span class="o">!=</span> <span class="n">v</span><span class="p">.</span><span class="n">size</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="s">&#34;SingleGPU::SpMTv: 参与运算的矩阵行数与向量维度不一致！&#34;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">result</span><span class="o">-&gt;</span><span class="n">resize</span><span class="p">(</span><span class="n">A</span><span class="p">.</span><span class="n">num_cols</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">result</span><span class="o">-&gt;</span><span class="n">fill</span><span class="p">(</span><span class="mf">0.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">LaunchKernel</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">SpMTvKernel</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">result</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">            <span class="n">A</span><span class="p">.</span><span class="n">values</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">row_offsets</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">column_indices</span><span class="p">,</span> <span class="n">A</span><span class="p">.</span><span class="n">num_rows</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>由于计算能力6.0以下的设备无双精度浮点类型的原子操作，所以需要自己实现一个，可以参考CUDA文档Programming Guide的B.14节Atomic Functions。</p>
+<p>这种方案的缺点是需要使用原子操作，在数万甚至数十万个线程并发时非常影响性能，而且这个操作在循环中，需要反复调用，很容易成为性能瓶颈。因此此处使用第二种方案：先将矩阵转置，直接使用转置矩阵乘向量：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span><span class="lnt">79
+</span><span class="lnt">80
+</span><span class="lnt">81
+</span><span class="lnt">82
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="kt">bool</span> <span class="nf">BiCG</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Vector</span> <span class="o">*</span><span class="n">x</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">CsrMatrix</span> <span class="o">&amp;</span><span class="n">A</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">CsrMatrix</span> <span class="o">&amp;</span><span class="n">At</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">Vector</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ValueType</span> <span class="n">error</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">IndexType</span> <span class="n">max_steps</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">ValueType</span> <span class="n">int_bound</span> <span class="o">=</span> <span class="mf">1e-15</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="n">IndexType</span> <span class="n">N</span> <span class="o">=</span> <span class="n">b</span><span class="p">.</span><span class="n">size</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// r_0 = b - Ax_0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">Vector</span> <span class="n">r</span><span class="p">(</span><span class="n">N</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">Residual</span><span class="p">(</span><span class="o">&amp;</span><span class="n">r</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">ValueType</span> <span class="n">norm_r</span> <span class="o">=</span> <span class="n">Norm2</span><span class="p">(</span><span class="n">r</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">max_steps</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">max_steps</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">numeric_limits</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="o">&gt;::</span><span class="n">max</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 初始解精度已经足够高
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">if</span> <span class="p">(</span><span class="n">norm_r</span> <span class="o">&lt;</span> <span class="n">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 取r*_0 = r_0，以满足r*_0与r_0不正交
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">Vector</span> <span class="n">r_star</span> <span class="o">=</span> <span class="n">r</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// p_1 = r_0, p*_1 = r*_0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">Vector</span> <span class="n">p</span> <span class="o">=</span> <span class="n">r</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">Vector</span> <span class="n">p_star</span> <span class="o">=</span> <span class="n">r_star</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// r_k^T * r*_k and r_{k-1}^T * r*_{k-1}
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">ValueType</span> <span class="n">rho0</span> <span class="o">=</span> <span class="n">Dot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">r_star</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">ValueType</span> <span class="n">rho1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// A * p_k and A^T * p_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">Vector</span> <span class="n">q</span><span class="p">(</span><span class="n">N</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">Vector</span> <span class="n">q_star</span><span class="p">(</span><span class="n">N</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="n">max_steps</span><span class="p">;</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// q_k = A * p_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">SpMv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">q</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">p</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// xi_k = (r_{k-1}^T * r*_{k-1}) / (p*_k^T * q_k)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">ValueType</span> <span class="n">xi</span> <span class="o">=</span> <span class="n">rho0</span> <span class="o">/</span> <span class="n">Dot</span><span class="p">(</span><span class="n">p_star</span><span class="p">,</span> <span class="n">q</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// xi = 0时算法中断
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="p">(</span><span class="n">xi</span> <span class="o">&gt;</span> <span class="o">-</span><span class="n">int_bound</span> <span class="o">&amp;&amp;</span> <span class="n">xi</span> <span class="o">&lt;</span> <span class="n">int_bound</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// x_k = x_{k-1} + xi_k * p_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">Add</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">xi</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// r_k = r{k-1} - xi_k * q_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">Add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">r</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="o">-</span><span class="n">xi</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">norm_r</span> <span class="o">=</span> <span class="n">Norm2</span><span class="p">(</span><span class="n">r</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">norm_r</span> <span class="o">&lt;</span> <span class="n">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">break</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// q*_k = A^T * p*_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">SpMv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">q_star</span><span class="p">,</span> <span class="n">At</span><span class="p">,</span> <span class="n">p_star</span><span class="p">);</span>  <span class="c1">// A的转置乘向量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// r*_k = r*_{k-1} - xi_k * A^T * p*_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">Add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">r_star</span><span class="p">,</span> <span class="n">r_star</span><span class="p">,</span> <span class="n">q_star</span><span class="p">,</span> <span class="o">-</span><span class="n">xi</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">rho1</span> <span class="o">=</span> <span class="n">rho0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">rho0</span> <span class="o">=</span> <span class="n">Dot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">r_star</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// theta_k = (r_k, r*_k) / (r_{k-1}, r*_{k-1})
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">ValueType</span> <span class="n">theta</span> <span class="o">=</span> <span class="n">rho0</span> <span class="o">/</span> <span class="n">rho1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// p_{k+1} = r_k + theta_k * p_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">Add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">theta</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// p*_{k+1} = r*_k + theta_k * p*_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">Add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p_star</span><span class="p">,</span> <span class="n">r_star</span><span class="p">,</span> <span class="n">p_star</span><span class="p">,</span> <span class="n">theta</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>A和转置通过参数传入，因此调用方法为：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="n">Host</span><span class="o">::</span><span class="n">CsrMatrix</span> <span class="n">A</span><span class="p">;</span>     <span class="c1">// generate A
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">Host</span><span class="o">::</span><span class="n">Vector</span> <span class="n">b</span><span class="p">;</span>        <span class="c1">// generate b
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 数据传输
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">SingleGPU</span><span class="o">::</span><span class="n">CsrMatrix</span> <span class="n">d_A</span><span class="p">(</span><span class="n">A</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="n">d_b</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 计算转置
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">SingleGPU</span><span class="o">::</span><span class="n">CsrMatrix</span> <span class="n">d_At</span> <span class="o">=</span> <span class="n">d_A</span><span class="p">.</span><span class="n">transpose</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="n">d_x</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">);</span>   <span class="c1">// init x with N ones, and solve Ax=b
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="n">SingleGPU</span><span class="o">::</span><span class="n">BiCG</span><span class="p">(</span><span class="o">&amp;</span><span class="n">d_x</span><span class="p">,</span> <span class="n">d_A</span><span class="p">,</span> <span class="n">d_At</span><span class="p">,</span> <span class="n">d_b</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="mi">100</span><span class="p">);</span>  <span class="c1">// 残量小于1e-6或者迭代100次后退出
+</span></span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>需要注意：计算出来的浮点数在判断等于时不能用==，只有判断它们的差是否足够接近于0。这是因为浮点数的计算有舍入误差，除非是直接赋值，计算出来的浮点数结果和真实结果一般都有误差，所以不能使用==来逐二进制位比较。具体细节可以参考IEEE 754浮点数标准[7,8]。</p>
+<h2 id="参考文献"><a href="#参考文献" class="anchor-link">§</a><a href="#contents:参考文献" class="headings">参考文献</a></h2>
+<p>[1] Musser, David. (1997). Introspective Sorting and Selection Algorithms. Software Practice and Experience.</p>
+<p>[2] <a href="http://feihu.me/blog/2014/sgi-std-sort/" target="_blank" rel="noopener">http://feihu.me/blog/2014/sgi-std-sort/</a>.</p>
+<p>[3] <a href="https://zh.wikipedia.org/wiki/%E5%A5%87%E5%81%B6%E6%8E%92%E5%BA%8F" target="_blank" rel="noopener">https://zh.wikipedia.org/wiki/奇偶排序</a>.</p>
+<p>[4] <a href="https://en.wikipedia.org/wiki/Bitonic_sorter" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Bitonic_sorter</a>.</p>
+<p>[5] <a href="https://en.wikipedia.org/wiki/Radix_sort" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Radix_sort</a>.</p>
+<p>[6] <a href="https://thrust.github.io/doc/modules.html" target="_blank" rel="noopener">https://thrust.github.io/doc/modules.html</a>.</p>
+<p>[7] IEEE Standard for Binary Floating-Point Arithmetic.</p>
+<p>[8] <a href="https://zh.wikipedia.org/wiki/IEEE_754" target="_blank" rel="noopener">https://zh.wikipedia.org/wiki/IEEE_754</a>.</p>
+<h2 id="思考问题"><a href="#思考问题" class="anchor-link">§</a><a href="#contents:思考问题" class="headings">思考问题</a></h2>
+<p>尝试使用CUDA在CSR存储格式下实现<a href="https://zh.wikipedia.org/wiki/%E7%A8%B3%E5%AE%9A%E5%8F%8C%E5%85%B1%E8%BD%AD%E6%A2%AF%E5%BA%A6%E6%B3%95" target="_blank" rel="noopener">稳定双共轭梯度法(BiCGStab)</a>。</p>
+
+            </div>
+
+            
+    
+    
+        <ul class="post-copyright">
+            <li class="copyright-item author"><span class="copyright-item-text">作者</span>：<a href="https://w-jin.github.io/" class="p-author h-card" target="_blank" rel="noopener">wjin</a></li>
+            
+                
+                
+                
+                
+                <li class="copyright-item link"><span class="copyright-item-text">链接</span>：<a href="/tech/cuda7/" target="_blank" rel="noopener">https://w-jin.github.io/tech/cuda7/</a></li>
+            
+            <li class="copyright-item license"><span class="copyright-item-text">许可</span>：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></li>
+            
+        </ul>
+    
+
+
+
+        </article>
+
+        
+
+        
+
+
+        
+
+
+        
+
+
+        
+    
+    
+        <div class="related-posts">
+            <h2 class="related-title">相关文章：<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon related-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm144 276c0 6.6-5.4 12-12 12h-92v92c0 6.6-5.4 12-12 12h-56c-6.6 0-12-5.4-12-12v-92h-92c-6.6 0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h92v-92c0-6.6 5.4-12 12-12h56c6.6 0 12 5.4 12 12v92h92c6.6 0 12 5.4 12 12v56z"/></svg></h2>
+            <ul class="related-list">
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda10/" class="related-link">CUDA教程10 -- 多GPU编程</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda9/" class="related-link">CUDA教程9 -- 代数多重网格</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/thrust/" class="related-link">CUDA番外 -- thrust简介</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda6/" class="related-link">CUDA教程6 -- 共轭梯度法</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda5/" class="related-link">CUDA教程5 -- 共享内存</a>
+                    </li>
+                
+            </ul>
+        </div>
+    
+
+
+
+        
+    
+        <div class="post-tags">
+            
+                
+                
+                
+                
+                    
+                    <a href="/tags/cuda/" rel="tag" class="post-tags-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49 0 48 0h204.118a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882 0L14.059 286.059A48 48 0 0 1 0 252.118zM112 64c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>cuda</a>
+                
+            
+        </div>
+    
+
+
+
+        
+
+
+        
+
+
+        
+    
+        
+        
+    
+    
+    
+    
+        <ul class="post-nav">
+            
+                <li class="post-nav-prev">
+                    <a href="/tech/thrust/" rel="prev">&lt; CUDA番外 -- thrust简介</a>
+                </li>
+            
+            
+                <li class="post-nav-next">
+                    <a href="/tech/cuda6/" rel="next">CUDA教程6 -- 共轭梯度法 &gt;</a>
+                </li>
+            
+        </ul>
+    
+
+
+
+        
+    
+
+        
+            <div class="load-comments">
+                <div id="load-comments">加载评论</div>
+            </div>
+        
+
+        
+
+        
+            <div id="vcomments"></div>
+        
+
+        
+
+        
+    
+
+
+
+    </div>
+</main>
+
+
+            
+    <div id="back-to-top" class="back-to-top">
+        <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon arrow-up"><path d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z"/></svg></a>
+    </div>
+
+
+            
+    <footer id="footer" class="footer">
+        <div class="footer-inner">
+            <div class="site-info">©&nbsp;1999–2023&nbsp;<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon footer-icon"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>&nbsp;wjin</div><div class="powered-by">Powered by <a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo</a> | Theme is <a href="https://github.com/reuixiy/hugo-theme-meme" target="_blank" rel="noopener">MemE</a></div><div class="site-copyright"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></div>
+
+            
+
+
+            
+        </div>
+    </footer>
+
+
+        </div>
+        
+
+        
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
+<script>
+    if (typeof renderMathInElement === 'undefined') {
+        const getScript = (options) => {
+            const script = document.createElement('script');
+            script.defer = true;
+            script.crossOrigin = 'anonymous';
+            Object.keys(options).forEach((key) => {
+                script[key] = options[key];
+            });
+            document.body.appendChild(script);
+        };
+        getScript({
+            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/katex.min.js',
+            onload: () => {
+                getScript({
+                    src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/mhchem.min.js',
+                    onload: () => {
+                        getScript({
+                            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/auto-render.min.js',
+                            onload: () => {
+                                renderKaTex();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } else {
+        renderKaTex();
+    }
+    function renderKaTex() {
+        renderMathInElement(
+            document.body,
+            {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ]
+            }
+        );
+    }
+</script>
+
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.8.3/dist/mermaid.min.js"></script>
+<script>
+    const mermaidConfig = {
+        startOnLoad: true,
+        flowchart: {
+            useMaxWidth: false,
+            htmlLabels: true
+        },
+        theme: 'default'
+    };
+    mermaid.initialize(mermaidConfig);
+</script>
+
+
+
+    
+
+        
+
+        
+            <script>
+    function loadComments() {
+        if (!document.getElementById('vcomments')) {
+            return;
+        }
+        if (typeof Valine === 'undefined') {
+            const getScript = (options) => {
+                const script = document.createElement('script');
+                script.defer = true;
+                script.crossOrigin = 'anonymous';
+                Object.keys(options).forEach((key) => {
+                    script[key] = options[key];
+                });
+                document.body.appendChild(script);
+            };
+            getScript({
+                src: 'https:\/\/cdn.jsdelivr.net\/npm\/valine@1.4.14\/dist\/Valine.min.js',
+                onload: () => {
+                    newValine();
+                }
+            });
+        } else {
+            newValine();
+        }
+    }
+    function newValine() {
+        new Valine({
+            el: '#vcomments',
+            appId: 'oJ3I57xnJeHrSYxtwPqE3uFy-gzGzoHsz',
+            appKey: '3IfvJOtcQchX3DRs4zMGxuqv',
+            placeholder: 'Just go go',
+            path: location.pathname,
+            avatar: 'mm',
+            meta: ["nick","mail","link"],
+            pageSize:  10 ,
+            lang: 'zh-cn',
+            visitor:  false ,
+            highlight:  true ,
+            avatarForce:  false ,
+            recordIP:  false ,
+            serverURLs: '',
+            emojiCDN: '',
+            emojiMaps: {},
+            enableQQ:  true ,
+            requiredFields: []
+        });
+    }
+</script>
+
+        
+
+        
+
+        
+
+    
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/medium-zoom@latest/dist/medium-zoom.min.js"></script>
+
+<script>
+    let imgNodes = document.querySelectorAll('div.post-body img');
+    imgNodes = Array.from(imgNodes).filter(node => node.parentNode.tagName !== "A");
+
+    mediumZoom(imgNodes, {
+        background: 'hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.95)'
+    })
+</script>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/instant.page@5.1.0/instantpage.min.js" type="module" defer></script>
+
+
+
+
+
+
+    </body>
+</html>

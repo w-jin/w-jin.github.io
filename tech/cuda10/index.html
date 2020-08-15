@@ -1,0 +1,2204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+    <meta charset="UTF-8" />
+
+    <meta name="generator" content="Hugo 0.111.2"><meta name="theme-color" content="#fff" />
+    <meta name="color-scheme" content="light dark">
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+    
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>CUDA教程10 -- 多GPU编程 | wjin</title>
+
+    <link rel="stylesheet" href="/css/meme.min.af7333bfd64891c910fa2d9ad1905cb5289d87665f6fcc49d13183ed852abf3f.css"/>
+
+    
+    
+        <script src="/js/meme.min.b42cc6cc17aac11800d2bb8a71cf39db1f17f54d7f60cf3c1320970b00f1147e.js"></script>
+
+    
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" media="print" onload="this.media='all'" />
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" /></noscript>
+
+    <meta name="author" content="wjin" /><meta name="description" content="多GPU编程模型 在超级计算机上，一个系统可能安装有多个GPU，如何利用这些GPU协同……" />
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="wjin" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="wjin" />
+    <meta name="msapplication-starturl" content="../../" />
+    <meta name="msapplication-TileColor" content="#fff" />
+    <meta name="msapplication-TileImage" content="../../icons/mstile-150x150.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    
+    
+
+    
+    <link rel="canonical" href="https://w-jin.github.io/tech/cuda10/" />
+    
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "datePublished": "2020-12-16T09:36:00+08:00",
+        "dateModified": "2020-12-20T20:29:46+08:00",
+        "url": "https://w-jin.github.io/tech/cuda10/",
+        "headline": "CUDA教程10 -- 多GPU编程",
+        "description": "多GPU编程模型 在超级计算机上，一个系统可能安装有多个GPU，如何利用这些GPU协同……",
+        "inLanguage" : "zh-CN",
+        "articleSection": "tech",
+        "wordCount":  7519 ,
+        "image": ["https://w-jin.github.io/assets/couple_interface.png"],
+        "author": {
+            "@type": "Person",
+            "description": "我空空如也",
+            "email": "wjiner@outlook.com",
+            "image": "https://w-jin.github.io/icons/logo.png",
+            "url": "https://w-jin.github.io/",
+            "name": "wjin"
+        },
+        "license": "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)",
+        "publisher": {
+            "@type": "Organization",
+            "name": "wjin",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://w-jin.github.io/favicon.ico"
+            },
+            "url": "https://w-jin.github.io/"
+        },
+        "mainEntityOfPage": {
+            "@type": "WebSite",
+            "@id": "https://w-jin.github.io/"
+        }
+    }
+</script>
+
+    
+
+<meta name="twitter:card" content="summary_large_image" />
+
+
+
+    
+
+
+
+<meta property="og:title" content="CUDA教程10 -- 多GPU编程" />
+<meta property="og:description" content="多GPU编程模型 在超级计算机上，一个系统可能安装有多个GPU，如何利用这些GPU协同……" />
+<meta property="og:url" content="https://w-jin.github.io/tech/cuda10/" />
+<meta property="og:site_name" content="wjin" />
+<meta property="og:locale" content="zh" /><meta property="og:image" content="https://w-jin.github.io/assets/couple_interface.png" />
+<meta property="og:type" content="article" />
+    <meta property="article:published_time" content="2020-12-16T09:36:00&#43;08:00" />
+    <meta property="article:modified_time" content="2020-12-20T20:29:46&#43;08:00" />
+    
+    <meta property="article:section" content="tech" />
+
+
+
+    
+    
+
+    
+</head>
+
+    <body>
+        <div class="container">
+            
+    <header class="header">
+        
+            <div class="header-wrapper">
+                <div class="header-inner single">
+                    
+    <div class="site-brand">
+        
+            <a href="/" class="brand">wjin</a>
+        
+    </div>
+
+                    <nav class="nav">
+    <ul class="menu" id="menu">
+        
+            
+        
+        
+        
+        
+            
+                <li class="menu-item"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="icon home"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></svg><span class="menu-item-name">首页</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tech/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">技术</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/article/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">文青</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tags/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="icon tags"><path d="M497.941 225.941L286.059 14.059A48 48 0 0 0 252.118 0H48C21.49 0 0 21.49 0 48v204.118a48 48 0 0 0 14.059 33.941l211.882 211.882c18.744 18.745 49.136 18.746 67.882 0l204.118-204.118c18.745-18.745 18.745-49.137 0-67.882zM112 160c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm513.941 133.823L421.823 497.941c-18.745 18.745-49.137 18.745-67.882 0l-.36-.36L527.64 323.522c16.999-16.999 26.36-39.6 26.36-63.64s-9.362-46.641-26.36-63.64L331.397 0h48.721a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882z"/></svg><span class="menu-item-name">标签</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/about/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="icon user-circle"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 96c48.6 0 88 39.4 88 88s-39.4 88-88 88-88-39.4-88-88 39.4-88 88-88zm0 344c-58.7 0-111.3-26.6-146.5-68.2 18.8-35.4 55.6-59.8 98.5-59.8 2.4 0 4.8.4 7.1 1.1 13 4.2 26.6 6.9 40.9 6.9 14.3 0 28-2.7 40.9-6.9 2.3-.7 4.7-1.1 7.1-1.1 42.9 0 79.7 24.4 98.5 59.8C359.3 421.4 306.7 448 248 448z"/></svg><span class="menu-item-name">关于</span></a>
+                </li>
+            
+        
+            
+                
+                    
+                    
+                        <li class="menu-item">
+                            <a id="theme-switcher" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-light"><path d="M193.2 104.5l48.8-97.5a18 18 0 0128 0l48.8 97.5 103.4 -34.5a18 18 0 0119.8 19.8l-34.5 103.4l97.5 48.8a18 18 0 010 28l-97.5 48.8 34.5 103.4a18 18 0 01-19.8 19.8l-103.4-34.5-48.8 97.5a18 18 0 01-28 0l-48.8-97.5l-103.4 34.5a18 18 0 01-19.8-19.8l34.5-103.4-97.5-48.8a18 18 0 010-28l97.5-48.8-34.5-103.4a18 18 0 0119.8-19.8zM256 128a128 128 0 10.01 0M256 160a96 96 0 10.01 0"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-dark"><path d="M27 412a256 256 0 10154-407a11.5 11.5 0 00-5 20a201.5 201.5 0 01-134 374a11.5 11.5 0 00-15 13"/></svg></a>
+                        </li>
+                    
+                
+            
+        
+            
+                
+            
+        
+    </ul>
+</nav>
+
+                    
+                </div>
+            </div>
+            
+    <input type="checkbox" id="nav-toggle" aria-hidden="true" />
+    <label for="nav-toggle" class="nav-toggle"></label>
+    <label for="nav-toggle" class="nav-curtain"></label>
+
+
+        
+    </header>
+
+
+
+
+            
+            
+    <main class="main single" id="main">
+    <div class="main-inner">
+
+        
+
+        <article class="content post h-entry" data-align="justify" data-type="tech" data-toc-num="true">
+
+            <h1 class="post-title p-name">CUDA教程10 -- 多GPU编程</h1>
+
+            
+
+            
+                
+            
+
+            
+                
+
+<div class="post-meta">
+    
+        
+        <time datetime="2020-12-16T09:36:00&#43;08:00" class="post-meta-item published dt-published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2020.12.16</time>
+    
+    
+        
+        <time datetime="2020-12-20T20:29:46&#43;08:00" class="post-meta-item modified dt-updated"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.12.20</time>
+    
+    
+    
+        
+        
+        
+            
+        
+    
+    
+        
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;7519</span>
+    
+    
+        
+        <span class="post-meta-item reading-time"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></svg>&nbsp;16&nbsp;分钟</span>
+    
+    
+    
+</div>
+
+            
+
+            <nav class="contents">
+  <h2 id="contents" class="contents-title">目录</h2><ol class="toc">
+    <li><a id="contents:多gpu编程模型" href="#多gpu编程模型">多GPU编程模型</a></li>
+    <li><a id="contents:cuda流" href="#cuda流">cuda流</a></li>
+    <li><a id="contents:单线程和多线程模型" href="#单线程和多线程模型">单线程和多线程模型</a></li>
+    <li><a id="contents:异步传输" href="#异步传输">异步传输</a></li>
+    <li><a id="contents:多进程模型和cuda-aware-mpi" href="#多进程模型和cuda-aware-mpi">多进程模型和CUDA-aware MPI</a></li>
+    <li><a id="contents:选择gpu" href="#选择gpu">选择GPU</a></li>
+    <li><a id="contents:openfoam-processor-boundary" href="#openfoam-processor-boundary">OpenFOAM Processor Boundary</a></li>
+    <li><a id="contents:矩阵和向量基本操作" href="#矩阵和向量基本操作">矩阵和向量基本操作</a></li>
+    <li><a id="contents:预处理共轭梯度法" href="#预处理共轭梯度法">预处理共轭梯度法</a></li>
+    <li><a id="contents:集成" href="#集成">集成</a></li>
+  </ol>
+</nav><div class="post-body e-content">
+                <h2 id="多gpu编程模型"><a href="#多gpu编程模型" class="anchor-link">§</a><a href="#contents:多gpu编程模型" class="headings">多GPU编程模型</a></h2>
+<p>在超级计算机上，一个系统可能安装有多个GPU，如何利用这些GPU协同工作需要我们在代码上作出一定处理。GPU属于计算设备，本身与操作系统内程序的执行流程互不相干。无论程序以单线程运行、多线程运行，亦或以多进程运行，甚至跨操作系统协作，GPU对于程序而言都只是一个外设，CUDA提供的接口使我们可以方便地操纵GPU而已。</p>
+<p>典型的多GPU编程模型有单线程对应多GPU、多线程对应多GPU、多进程对应多GPU，这几种模型之间的区别我们将一一讲述。在实践中，选择哪种模型要看计算机的类型，如果是多机系统就必须选择多进程模型，如果是单机系统应当看调用者使用哪种模型。</p>
+<h2 id="cuda流"><a href="#cuda流" class="anchor-link">§</a><a href="#contents:cuda流" class="headings">cuda流</a></h2>
+<p>CUDA在执行GPU代码时是以任务队列的形式异步执行的，这个任务队列在CUDA中被称为cuda流。每当我们通过启动核函数的语法在GPU上执行一个函数时，仅仅是将任务提交给了任务队列，函数不一定是立即执行的，程序的执行流程也会立即返回，继续执行后续代码，不会等待核函数执行完成。</p>
+<p>在CUDA中，任务队列的数据结构是cudaStream，这个类型的细节无须关心，我们只使用其指针类型cudaStream_t来操作任务队列。和cudaStream_t相关的常用接口有：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="c1">// 创建一个cuda流
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">cudaError_t</span> <span class="nf">cudaStreamCreate</span><span class="p">(</span><span class="n">cudaStream_t</span> <span class="o">*</span><span class="n">pStream</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 销毁一个cuda流
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">cudaError_t</span> <span class="nf">cudaStreamDestroy</span><span class="p">(</span><span class="n">cudaStream_t</span> <span class="n">stream</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 等待一个cuda流中的任务全部完成
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">cudaError_t</span> <span class="nf">cudaStreamSynchronize</span><span class="p">(</span><span class="n">cudaStream_t</span> <span class="n">stream</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 等待cuda流中的某个事件的发生，flags必须为0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">cudaError_t</span> <span class="nf">cudaStreamWaitEvent</span><span class="p">(</span><span class="n">cudaStream_t</span> <span class="n">stream</span><span class="p">,</span> <span class="n">cudaEvent_t</span> <span class="n">event</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                                <span class="kt">unsigned</span> <span class="kt">int</span>  <span class="n">flags</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>一个cuda流就是一个任务队列，因此通过创建多个cuda流就可以将GPU的执行流程分成互不干扰的多个流程，使不同的GPU同时执行任务。</p>
+<h2 id="单线程和多线程模型"><a href="#单线程和多线程模型" class="anchor-link">§</a><a href="#contents:单线程和多线程模型" class="headings">单线程和多线程模型</a></h2>
+<p>单线程操作多个GPU通过设置cuda流，然后在循环中依次操作不同的GPU来实现。例如一个向量加法的实现：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="c1">// 查询GPU的数量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">int</span> <span class="n">num_devices</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">CHECK</span><span class="p">(</span><span class="n">cudaGetDeviceCount</span><span class="p">(</span><span class="o">&amp;</span><span class="n">num_devices</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 创建cuda流
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">cudaStream_t</span><span class="o">&gt;</span> <span class="n">streams</span><span class="p">(</span><span class="n">num_devices</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_devices</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaSetDevice</span><span class="p">(</span><span class="n">i</span><span class="p">));</span>   <span class="c1">// 设置当前使用的GPU
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaStreamCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">streams</span><span class="p">[</span><span class="n">i</span><span class="p">]));</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">constexpr</span> <span class="kt">int</span> <span class="n">N</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span> <span class="n">A</span><span class="p">(</span><span class="n">N</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span> <span class="n">B</span><span class="p">(</span><span class="n">N</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 传输到GPU上
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 每个GPU上的数据个数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">length</span><span class="p">(</span><span class="n">num_devices</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N</span> <span class="o">%</span> <span class="n">num_devices</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">/</span> <span class="n">num_devices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">N</span> <span class="o">%</span> <span class="n">num_devices</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_devices</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">/</span> <span class="n">num_devices</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 每个GPU上第一个数据的偏移
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">offset</span><span class="p">(</span><span class="n">num_devices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_devices</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">offset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">s</span> <span class="o">+=</span> <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="n">offset</span><span class="p">.</span><span class="n">back</span><span class="p">()</span> <span class="o">=</span> <span class="n">N</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// GPU上的向量只有一部分
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span> <span class="o">*&gt;</span> <span class="n">dev_A</span><span class="p">(</span><span class="n">num_devices</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span> <span class="o">*&gt;</span> <span class="n">dev_B</span><span class="p">(</span><span class="n">num_devices</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_devices</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaSetDevice</span><span class="p">(</span><span class="n">i</span><span class="p">));</span>      <span class="c1">// 设置GPU
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev_B</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)));</span>  <span class="c1">// 分配显存
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev_B</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)));</span>  <span class="c1">// 分配显存
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// CHECK(cudaMemcpy(&amp;dev_A[i], &amp;A[offset[i]],
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">//                 length[i] * sizeof(double),
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">//                 cudaMemcpyHostToDevice));   // 复制数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// CHECK(cudaMemcpy(&amp;dev_B[i], &amp;B[offset[i]],
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">//                 length[i] * sizeof(double),
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">//                 cudaMemcpyHostToDevice));   // 复制数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 复制数据不需要设置需要使用的GPU，因为不同GPU的编址空间不相交，与内存也不相交，
+</span></span></span><span class="line"><span class="cl"><span class="c1">// CUDA是可以从指针本身判断出它指针的显存位于哪个GPU的
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_devices</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev_A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">A</span><span class="p">[</span><span class="n">offset</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">cudaMemcpyHostToDevice</span><span class="p">));</span>   <span class="c1">// 复制数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev_B</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">B</span><span class="p">[</span><span class="n">offset</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">cudaMemcpyHostToDevice</span><span class="p">));</span>   <span class="c1">// 复制数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 计算C = A + B
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span> <span class="o">*&gt;</span> <span class="n">dev_C</span><span class="p">(</span><span class="n">num_devices</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_devices</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaSetDevice</span><span class="p">(</span><span class="n">i</span><span class="p">));</span>      <span class="c1">// 设置GPU
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev_C</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)));</span>  <span class="c1">// 分配显存
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_devices</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaSetDevice</span><span class="p">(</span><span class="n">i</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">AddKernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">grid</span><span class="p">,</span> <span class="n">block</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">streams</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span>   <span class="c1">// 不同GPU在不同的cuda流上执行
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">dev_C</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dev_A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dev_B</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 销毁cuda流
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_devices</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaStreamDestroy</span><span class="p">(</span><span class="n">streams</span><span class="p">[</span><span class="n">i</span><span class="p">]));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">dev_A</span><span class="p">[</span><span class="n">i</span><span class="p">]));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">dev_B</span><span class="p">[</span><span class="n">i</span><span class="p">]));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">dev_C</span><span class="p">[</span><span class="n">i</span><span class="p">]));</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>其中的AddKernel和单GPU的完全一样：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">AddKernel</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">double</span> <span class="o">*</span><span class="n">result</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="kt">double</span> <span class="o">*</span><span class="n">v1</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="kt">double</span> <span class="o">*</span><span class="n">v2</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="kt">int</span> <span class="n">N</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">stride</span> <span class="o">=</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N</span><span class="p">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="n">stride</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">v1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">v2</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>多线程的方法和单线程类似，在实践中，一般需要执行很多个核函数，因此最好采用线程池或者openmp、tbb等技术来实现，以降低创建线程的开销。多线程模型中也需要创建多个cuda流来实现GPU间的并行，向量加法的多线程多GPU实现留作<strong>思考问题</strong>。</p>
+<h2 id="异步传输"><a href="#异步传输" class="anchor-link">§</a><a href="#contents:异步传输" class="headings">异步传输</a></h2>
+<p>前面说过，核函数的执行与CPU的执行流是异步的，具体表现在<code>&lt;&lt;&lt;&gt;&gt;&gt;</code>的调用将立即返回，任务进入cuda流排队完成。那么分配显存和数据传输是不是异步的呢？答案是否定的，并且在进行数据传输时，为了保证被传输的数据已经正确无误的生成在了指针指向的内存里面，cuda将对设备进行同步，其效果等价于调用cudaDeviceSynchronize，这显然妨碍了我们用计算掩盖数据传输的手段。为此，cuda引入了异步传输接口cudaMemcpyAsync，其原型如下：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="n">cudaError_t</span> <span class="nf">cudaMemcpyAsync</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">dst</span><span class="p">,</span> <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">src</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                            <span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">cudaMemcpyKind</span> <span class="n">kind</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                            <span class="n">cudaStream_t</span> <span class="n">stream</span> <span class="o">=</span> <span class="mi">0</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>需要注意，不是所有内存都能用于异步传输的，因为现代计算机的内存都使用请求调页系统，程序中的内存地址都是虚拟地址，运行时通过MMU翻译成物理地址，如果物理地址对应的页面不在内存中，则发出缺页异常，由操作系统负责将其调入内存再继续运行程序，而长久不用的内存则会被替换到磁盘上的swap文件或者swap分区。这就导致一个问题，如何保证异步传输时指针所指的内存页面始终有效呢？操作系统一般都提供了分配锁页内存的接口，以保证分配的内存始终在物理内存中不被换出。cuda为我们提供了cudaMallocHost和cudaFreeHost为我们屏蔽了操作系统间的差异，其原型为：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="c1">// 分配锁页内存
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">cudaError_t</span> <span class="nf">cudaMallocHost</span><span class="p">(</span><span class="kt">void</span> <span class="o">**</span><span class="n">ptr</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">size</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 释放锁页内存
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">cudaError_t</span> <span class="nf">cudaFreeHost</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">ptr</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>使用示例：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="c1">// 创建cuda流
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">double</span> <span class="o">*</span><span class="n">A</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="kt">double</span> <span class="o">*</span><span class="n">B</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="kt">double</span> <span class="o">*</span><span class="n">C</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 分配内存
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMallocHost</span><span class="p">(</span><span class="o">&amp;</span><span class="n">A</span><span class="p">,</span> <span class="n">N</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)));</span>
+</span></span><span class="line"><span class="cl"><span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMallocHost</span><span class="p">(</span><span class="o">&amp;</span><span class="n">B</span><span class="p">,</span> <span class="n">N</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)));</span>
+</span></span><span class="line"><span class="cl"><span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMallocHost</span><span class="p">(</span><span class="o">&amp;</span><span class="n">C</span><span class="p">,</span> <span class="n">N</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 生成数据
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 计算length、offset，分配显存
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 传输并计算
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_devices</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaSetDevice</span><span class="p">(</span><span class="n">i</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemcpyAsync</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev_A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">A</span><span class="p">[</span><span class="n">offset</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span>
+</span></span><span class="line"><span class="cl">                          <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">                          <span class="n">cudaMemcpyHostToDevice</span><span class="p">,</span> <span class="n">streams</span><span class="p">[</span><span class="n">i</span><span class="p">]));</span>   <span class="c1">// 异步复制数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemcpyAsync</span><span class="p">(</span><span class="o">&amp;</span><span class="n">dev_B</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">B</span><span class="p">[</span><span class="n">offset</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span>
+</span></span><span class="line"><span class="cl">                          <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">                          <span class="n">cudaMemcpyHostToDevice</span><span class="p">,</span> <span class="n">streams</span><span class="p">[</span><span class="n">i</span><span class="p">]));</span>   <span class="c1">// 异步复制数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    
+</span></span><span class="line"><span class="cl">    <span class="n">AddKernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">grid</span><span class="p">,</span> <span class="n">block</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">streams</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span>   <span class="c1">// 不同GPU在不同的cuda流上执行
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">dev_C</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dev_A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dev_B</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaMemcpyAsync</span><span class="p">(</span><span class="o">&amp;</span><span class="n">C</span><span class="p">[</span><span class="n">offset</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span> <span class="o">&amp;</span><span class="n">dev_C</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">                          <span class="n">length</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">                          <span class="n">cudaMemcpyHostToDevice</span><span class="p">,</span> <span class="n">streams</span><span class="p">[</span><span class="n">i</span><span class="p">]));</span>   <span class="c1">// 异步传输回来
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 释放内存
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">CHECK</span><span class="p">(</span><span class="n">cudaFreeHost</span><span class="p">(</span><span class="n">A</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="n">CHECK</span><span class="p">(</span><span class="n">cudaFreeHost</span><span class="p">(</span><span class="n">B</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="n">CHECK</span><span class="p">(</span><span class="n">cudaFreeHost</span><span class="p">(</span><span class="n">C</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 销毁cuda流
+</span></span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>值得注意是的显存有虚拟内存但没有请求调页机制，因此在显存间传输数据可以直接使用异步接口。</p>
+<h2 id="多进程模型和cuda-aware-mpi"><a href="#多进程模型和cuda-aware-mpi" class="anchor-link">§</a><a href="#contents:多进程模型和cuda-aware-mpi" class="headings">多进程模型和CUDA-aware MPI</a></h2>
+<p>多进程模型就简单多了，由于进程间的数据是完全隔离的，因此不需要创建cuda流，和单GPU编程基本没有区别，但有个问题是如何在进程间交换数据。普通的MPI接口并不能直接用于GPU，因为数据都在显存上保存着，无法通过memcpy这样的经典函数进行复制，因此必须设置一个内存中的缓冲区，用于交换数据，但这样做的问题在于数据传输时总是需要在内存中转存一遍，非常影响性能。</p>
+<p>为了解决这个问题，产生了CUDA-aware MPI技术。CUDA-aware MPI可以将MPI的接口直接用于显存，尽量避免了在内存中的转存，并且针对可能的硬件作了优化，如infiniband、nvlink等。本文中，我们选用openmpi，编译时需要加上参数--with-cuda=/path/to/cuda，如果更换了MPI(如将bashrc中的WM_MPLIB更改成SYSTEMOPENMPI)导致OpenFOAM报错可以重新编译Pstream，切换到目录OpenFOAM/src/Pstream，加载bashrc，然后执行wmake即可。</p>
+<p>接下来我们将采用CUDA-aware MPI为OpenFOAM编写一个多GPU的预处理共轭梯度法。</p>
+<h2 id="选择gpu"><a href="#选择gpu" class="anchor-link">§</a><a href="#contents:选择gpu" class="headings">选择GPU</a></h2>
+<p>和单/多线程模型类似，我们还是需要使用cudaSetDevice来为后续的计算代码设置一个合适的GPU。前面已经说过，系统中GPU的编号为0,1,...,n-1，其中n是GPU的数量。但这仅限于单机系统，单/多线程模型也只能用于单机系统，不可能有两个GPU编号相同，而对于多机系统就不一样了，每个节点机上的GPU编号都是0到n-1，如节点1上有4个GPU，那么节点1上的GPU编号就是0-3，节点2上有6个GPU，则节点2上的GPU编号为0-5，那么如何为进程选择合适的GPU呢？</p>
+<p>首先，各节点机上的进程数量不是随机安排的，我们应当看节点的硬件如何，此处当然就是看节点上的GPU数量，如节点1和节点2分别有4和6个GPU，那么我们应当分别给节点1和节点4安排4和6个进程，算法的思路非常简单，我们将MPI进程号模GPU数量传给cudaSetDevice即可。但要注意一个问题，如果进程号在节点上不是连续分布的，那么分配的结果不太好了，如节点1的4个进程编号为0、1、4、8，则节点1分配的GPU为0、1、0、0，负载严重不均。我们应当先计算进程在节点机内的编号，然后再计算应当使用哪个GPU。</p>
+<p>这里，我们将进程按照是否可以共享内存进行分组，一般而言，组内进程就会位于同一个节点机上，然后我们使用组内的进程号选择GPU就可以避免前面说的负载不均的问题了。代码如下：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="c1">//========================= GPUSelector.h =========================
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">class</span> <span class="nc">GPUSelector</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="k">public</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">void</span> <span class="n">Select</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">private</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">_gpu_no</span><span class="p">;</span>   <span class="c1">// 本进程使用哪个GPU
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">    <span class="n">GPUSelector</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="n">GPUSelector</span> <span class="o">*</span><span class="n">_gpu_selector</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">//========================= GPUSelector.cpp =========================
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">GPUSelector</span> <span class="o">*</span><span class="n">GPUSelector</span><span class="o">::</span><span class="n">_gpu_selector</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">GPUSelector</span><span class="o">::</span><span class="n">GPUSelector</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// 按照进程间是否可以共享内存来拆分通信器，如果可以共享内存则是同一个节点机
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">MPI_Comm</span> <span class="n">local_comm</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">MPI_Comm_split_type</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">MPI_COMM_WORLD</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">MPI_COMM_TYPE_SHARED</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="mi">0</span><span class="p">,</span> <span class="n">MPI_INFO_NULL</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="o">&amp;</span><span class="n">local_comm</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">local_rank</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">MPI_Comm_rank</span><span class="p">(</span><span class="n">local_comm</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">local_rank</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">MPI_Comm_free</span><span class="p">(</span><span class="o">&amp;</span><span class="n">local_comm</span><span class="p">);</span>  <span class="c1">// 只需要_local_rank，不需要通信器
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 获取本机GPU数量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">int</span> <span class="n">num_devices</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaGetDeviceCount</span><span class="p">(</span><span class="o">&amp;</span><span class="n">num_devices</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">_gpu_no</span> <span class="o">=</span> <span class="n">local_rank</span> <span class="o">%</span> <span class="n">num_devices</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="n">GPUSelector</span><span class="o">::</span><span class="n">Select</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">_gpu_selector</span> <span class="o">==</span> <span class="k">nullptr</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">_gpu_selector</span> <span class="o">=</span> <span class="k">new</span> <span class="n">GPUSelector</span><span class="p">{};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaSetDevice</span><span class="p">(</span><span class="n">_gpu_selector</span><span class="o">-&gt;</span><span class="n">_gpu_no</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><h2 id="openfoam-processor-boundary"><a href="#openfoam-processor-boundary" class="anchor-link">§</a><a href="#contents:openfoam-processor-boundary" class="headings">OpenFOAM Processor Boundary</a></h2>
+<p>在OpenFOAM中，有许多各类的边界，我们在此关注一类称为Processor的边界。Processor边界不是由人设置的，而是在执行decomposePar时由OpenFOAM生成的，它是那些原本是内部的边经过OpenFOAM拆分计算区域后变成外部的边，保存在processor0、processor1等文件夹下的constant/polyMesh中。例如windAroudBuildings的constant/polyMesh/boundary内容为：</p>
+<pre tabindex="0"><code>// ...
+5
+(
+    inlet
+    {
+        type            patch;
+        nFaces          494;
+        startFace       558513;
+    }
+    outlet
+    {
+        type            patch;
+        nFaces          200;
+        startFace       559007;
+    }
+    ground
+    {
+        type            wall;
+        inGroups        1(wall);
+        nFaces          6310;
+        startFace       559207;
+    }
+    frontAndBack
+    {
+        type            symmetry;
+        inGroups        1(symmetry);
+        nFaces          1000;
+        startFace       565517;
+    }
+    buildings
+    {
+        type            wall;
+        inGroups        1(wall);
+        nFaces          22721;
+        startFace       566517;
+    }
+)
+</code></pre><p>而processor1/constant/polyMesh/boundary的内容为：</p>
+<pre tabindex="0"><code>// ...
+9
+(
+    inlet
+    {
+        type            patch;
+        nFaces          311;
+        startFace       91498;
+    }
+    outlet
+    {
+        type            patch;
+        nFaces          0;
+        startFace       91809;
+    }
+    ground
+    {
+        type            wall;
+        inGroups        1(wall);
+        nFaces          1060;
+        startFace       91809;
+    }
+    frontAndBack
+    {
+        type            symmetry;
+        inGroups        1(symmetry);
+        nFaces          215;
+        startFace       92869;
+    }
+    buildings
+    {
+        type            wall;
+        inGroups        1(wall);
+        nFaces          2311;
+        startFace       93084;
+    }
+    procBoundary1to0
+    {
+        type            processor;
+        inGroups        1(processor);
+        nFaces          702;
+        startFace       95395;
+        matchTolerance  0.0001;
+        transform       unknown;
+        myProcNo        1;
+        neighbProcNo    0;
+    }
+    procBoundary1to2
+    {
+        type            processor;
+        inGroups        1(processor);
+        nFaces          1469;
+        startFace       96097;
+        matchTolerance  0.0001;
+        transform       unknown;
+        myProcNo        1;
+        neighbProcNo    2;
+    }
+    procBoundary1to3
+    {
+        type            processor;
+        inGroups        1(processor);
+        nFaces          2;
+        startFace       97566;
+        matchTolerance  0.0001;
+        transform       unknown;
+        myProcNo        1;
+        neighbProcNo    3;
+    }
+    procBoundary1to4
+    {
+        type            processor;
+        inGroups        1(processor);
+        nFaces          400;
+        startFace       97568;
+        matchTolerance  0.0001;
+        transform       unknown;
+        myProcNo        1;
+        neighbProcNo    4;
+    }
+)
+</code></pre><p>Processor Boundary对应的数据结构为Foam::processorFvPatchField，其详细信息请参考<a href="https://www.openfoam.com/documentation/guides/latest/doc/guide-bcs-constraint-processor.html" target="_blank" rel="noopener">https://www.openfoam.com/documentation/guides/latest/doc/guide-bcs-constraint-processor.html</a>，此处不再赘述。我们关注一下怎样保存和处理Processor边界信息。</p>
+<p>对于一个线性方程而言，如果将其未知数拆分为多个，然后按未知数的个数将矩阵拆分成多个块，则非对角块就对应Processor Boundary，如下图所示：</p>
+<p><img src="assets/couple_interface.png" alt="couple_interface"></p>
+<p>非对角块的特点是非常稀疏且某些行没有非零元素，如windAroundBuildings中，进程1对应的几个块的非零元素个数仅为702、1469、2、400、0，而进程1对应的未知数有37086个，对角块的非零元素个数为97969。这就启示我们不必将它们当成普通的矩阵存储和计算，且在进行矩阵与向量乘法时，不必将它们对应的向量元素全部传输过来。</p>
+<p>这里设计了一个类型Interface用于保存这些边界，Interface不仅保存边界，同时还负责进程间的数据传输，以及进行矩阵向量乘法时的部分运算。</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">namespace</span> <span class="n">MultiGPU</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">Interfaces</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="k">public</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// 本进程ID
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">int</span> <span class="n">my_proc_no</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 有多少个进程与此进程的区域有共同边界
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">int</span> <span class="n">n_par_interfaces</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 与此进程有共同边界的进程id
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">neighbour_proc_no</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 边界上各个面对应的单元行号，在对面进程中的行号是本进程的列号
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">SingleGPU</span><span class="o">::</span><span class="n">VectorInt</span><span class="o">&gt;</span> <span class="n">row_indices</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 边界上各个面的非零元素值
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span><span class="o">&gt;</span> <span class="n">values</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 向各个进程发送数据时的发送缓冲区，根据行号进行压缩
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span><span class="o">&gt;</span> <span class="n">send_buffers</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 从各个进程接收数据的接收缓冲区
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span><span class="o">&gt;</span> <span class="n">recv_buffers</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 使用非阻塞的方式发送和接收数据，记录发送状态和接收状态
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">MPI_Request</span><span class="o">&gt;</span> <span class="n">send_requests</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">MPI_Request</span><span class="o">&gt;</span> <span class="n">recv_requests</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 是否是第一次发送，如果是则发送缓冲区空闲，不需要待前面的发送操作完成
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">bool</span> <span class="n">is_first_send</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 根据共同边界的个数设置各种缓冲区的数量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">void</span> <span class="nf">resize</span><span class="p">(</span><span class="kt">int</span> <span class="n">num_interfaces</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 压缩并发送数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">void</span> <span class="nf">initMatrixInterfaces</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">&amp;</span><span class="n">v</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 作用到矩阵上，矩阵与向量乘法的add传入false，残量传入true
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">void</span> <span class="nf">updateMatrixInterfaces</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">&amp;</span><span class="n">Av</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="kt">bool</span> <span class="n">add</span> <span class="o">=</span> <span class="nb">false</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="c1">// namespace MultiGPU
+</span></span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>Interfaces有个前置条件：边界上的面在其两侧进程中的编号顺序完全相同，即左侧进程中的row_indices[i]是非零元素的行号，则右侧进程中的row_indices[i]是对应元素的列号，反之亦然。因此进程可以根据自已的row_indices[i]来决定对面的进程在做矩阵与向量乘法时需要向量的哪些元素，我们按照顺序将这些元素放入send_buffers[i]中，然后使用MPI的接口将它发送出去。在此处，我们采用非阻塞的MPI接口，以尽量保证传输过程被计算掩盖。</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span><span class="lnt">143
+</span><span class="lnt">144
+</span><span class="lnt">145
+</span><span class="lnt">146
+</span><span class="lnt">147
+</span><span class="lnt">148
+</span><span class="lnt">149
+</span><span class="lnt">150
+</span><span class="lnt">151
+</span><span class="lnt">152
+</span><span class="lnt">153
+</span><span class="lnt">154
+</span><span class="lnt">155
+</span><span class="lnt">156
+</span><span class="lnt">157
+</span><span class="lnt">158
+</span><span class="lnt">159
+</span><span class="lnt">160
+</span><span class="lnt">161
+</span><span class="lnt">162
+</span><span class="lnt">163
+</span><span class="lnt">164
+</span><span class="lnt">165
+</span><span class="lnt">166
+</span><span class="lnt">167
+</span><span class="lnt">168
+</span><span class="lnt">169
+</span><span class="lnt">170
+</span><span class="lnt">171
+</span><span class="lnt">172
+</span><span class="lnt">173
+</span><span class="lnt">174
+</span><span class="lnt">175
+</span><span class="lnt">176
+</span><span class="lnt">177
+</span><span class="lnt">178
+</span><span class="lnt">179
+</span><span class="lnt">180
+</span><span class="lnt">181
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">namespace</span> <span class="n">MultiGPU</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">CompressVectorKernel</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">compressed</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">vec</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">row_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_entries</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">stride</span> <span class="o">=</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_entries</span><span class="p">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="n">stride</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">compressed</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">vec</span><span class="p">[</span><span class="n">row_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]];</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="n">Interfaces</span><span class="o">::</span><span class="n">initMatrixInterfaces</span><span class="p">(</span><span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">&amp;</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">is_first_send</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n_par_interfaces</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">const</span> <span class="kt">int</span> <span class="n">num_entries</span> <span class="o">=</span> <span class="n">row_indices</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">size</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="n">send_buffers</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">resize</span><span class="p">(</span><span class="n">num_entries</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="n">recv_buffers</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">resize</span><span class="p">(</span><span class="n">num_entries</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="c1">// 压缩数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="n">LaunchKernelWithNumThreads</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">CompressVectorKernel</span><span class="p">,</span> <span class="n">num_entries</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">send_buffers</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">row_indices</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span> <span class="n">num_entries</span>
+</span></span><span class="line"><span class="cl">            <span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">is_first_send</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">finished</span><span class="p">(</span><span class="n">n_par_interfaces</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="k">while</span> <span class="p">(</span><span class="n">count</span> <span class="o">&lt;</span> <span class="n">n_par_interfaces</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="kt">int</span> <span class="n">out_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">            <span class="n">MPI_Waitsome</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                    <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">send_requests</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">send_requests</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">                    <span class="o">&amp;</span><span class="n">out_count</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">finished</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">MPI_STATUSES_IGNORE</span>
+</span></span><span class="line"><span class="cl">            <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="n">count</span> <span class="o">+=</span> <span class="n">out_count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">out_count</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="kt">int</span> <span class="n">proc</span> <span class="o">=</span> <span class="n">finished</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="k">const</span> <span class="kt">int</span> <span class="n">num_entries</span> <span class="o">=</span> <span class="n">row_indices</span><span class="p">[</span><span class="n">proc</span><span class="p">].</span><span class="n">size</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">                <span class="n">send_buffers</span><span class="p">[</span><span class="n">proc</span><span class="p">].</span><span class="n">resize</span><span class="p">(</span><span class="n">num_entries</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                <span class="c1">// 压缩数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                <span class="n">LaunchKernelWithNumThreads</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">CompressVectorKernel</span><span class="p">,</span> <span class="n">num_entries</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">send_buffers</span><span class="p">[</span><span class="n">proc</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">v</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">row_indices</span><span class="p">[</span><span class="n">proc</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span> <span class="n">num_entries</span>
+</span></span><span class="line"><span class="cl">                <span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 使用cuda with mpi，则无需将数据传输到Host，可以直接在GPU之间交换数据，
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// 由MPI决定传输细节
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// 使用非阻塞接口通信必须保证数据已经计算到缓冲内了，
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// MPI_Send会调用cuDeviceSynchronize进行同步，所以非阻塞接口不需要
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">CHECK</span><span class="p">(</span><span class="n">cudaStreamSynchronize</span><span class="p">(</span><span class="mi">0</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n_par_interfaces</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="kt">int</span> <span class="n">num_entries</span> <span class="o">=</span> <span class="n">row_indices</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">size</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">recv_buffers</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">resize</span><span class="p">(</span><span class="n">num_entries</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">my_proc_no</span> <span class="o">&gt;</span> <span class="n">neighbour_proc_no</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// 将压缩后的数据发送给对方
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="n">MPI_Isend</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">send_buffers</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span> <span class="n">num_entries</span><span class="p">,</span> <span class="n">MPI_DOUBLE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">neighbour_proc_no</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">MPI_COMM_WORLD</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">send_requests</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">            <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="c1">// 从对方接收数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="n">MPI_Irecv</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">recv_buffers</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span> <span class="n">num_entries</span><span class="p">,</span> <span class="n">MPI_DOUBLE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">neighbour_proc_no</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">MPI_COMM_WORLD</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">recv_requests</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">            <span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// 从对方接收数据
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="n">MPI_Irecv</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">recv_buffers</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span> <span class="n">num_entries</span><span class="p">,</span> <span class="n">MPI_DOUBLE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">neighbour_proc_no</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">MPI_COMM_WORLD</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">recv_requests</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">            <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="c1">// 将压缩后的数据发送给对方
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="n">MPI_Isend</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">send_buffers</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span> <span class="n">num_entries</span><span class="p">,</span> <span class="n">MPI_DOUBLE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">neighbour_proc_no</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">MPI_COMM_WORLD</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">send_requests</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">            <span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">UpdateInterfacesAddKernel</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">Av</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">values</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">row_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">vec</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_entries</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">stride</span> <span class="o">=</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_entries</span><span class="p">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="n">stride</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ValueType</span> <span class="n">t</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">atomicAdd</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Av</span><span class="p">[</span><span class="n">row_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span> <span class="n">t</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">__global__</span> <span class="kt">void</span> <span class="nf">UpdateInterfacesMinusKernel</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">Av</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">values</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">row_indices</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">ValueType</span> <span class="o">*</span><span class="n">__restrict__</span> <span class="n">vec</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_entries</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">IndexType</span> <span class="n">i</span> <span class="o">=</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">stride</span> <span class="o">=</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">gridDim</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">num_entries</span><span class="p">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="n">stride</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ValueType</span> <span class="n">t</span> <span class="o">=</span> <span class="o">-</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">vec</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">atomicAdd</span><span class="p">(</span><span class="o">&amp;</span><span class="n">Av</span><span class="p">[</span><span class="n">row_indices</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span> <span class="n">t</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="n">Interfaces</span><span class="o">::</span><span class="n">updateMatrixInterfaces</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">&amp;</span><span class="n">Av</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">bool</span> <span class="n">add</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">finished</span><span class="p">(</span><span class="n">n_par_interfaces</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">while</span> <span class="p">(</span><span class="n">count</span> <span class="o">&lt;</span> <span class="n">n_par_interfaces</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="kt">int</span> <span class="n">out_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">MPI_Waitsome</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">recv_requests</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">                <span class="n">recv_requests</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">                <span class="o">&amp;</span><span class="n">out_count</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="n">finished</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">                <span class="n">MPI_STATUSES_IGNORE</span>
+</span></span><span class="line"><span class="cl">        <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">count</span> <span class="o">+=</span> <span class="n">out_count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">out_count</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="kt">int</span> <span class="n">proc</span> <span class="o">=</span> <span class="n">finished</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="k">const</span> <span class="n">IndexType</span> <span class="n">num_entries</span> <span class="o">=</span> <span class="n">recv_buffers</span><span class="p">[</span><span class="n">proc</span><span class="p">].</span><span class="n">size</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="c1">// 矩阵与向量乘法，用减法
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">add</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="n">LaunchKernelWithNumThreads</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">UpdateInterfacesMinusKernel</span><span class="p">,</span> <span class="n">num_entries</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">Av</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">values</span><span class="p">[</span><span class="n">proc</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span> <span class="n">row_indices</span><span class="p">[</span><span class="n">proc</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">recv_buffers</span><span class="p">[</span><span class="n">proc</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span> <span class="n">num_entries</span>
+</span></span><span class="line"><span class="cl">                <span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>  <span class="c1">// 残量用加法
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                <span class="n">LaunchKernelWithNumThreads</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">UpdateInterfacesAddKernel</span><span class="p">,</span> <span class="n">num_entries</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">Av</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">values</span><span class="p">[</span><span class="n">proc</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span> <span class="n">row_indices</span><span class="p">[</span><span class="n">proc</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">                        <span class="n">recv_buffers</span><span class="p">[</span><span class="n">proc</span><span class="p">].</span><span class="n">data</span><span class="p">(),</span> <span class="n">num_entries</span>
+</span></span><span class="line"><span class="cl">                <span class="p">);</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="c1">// namespace MultiGPU
+</span></span></span></code></pre></td></tr></table></div>
+</div>
+</div><h2 id="矩阵和向量基本操作"><a href="#矩阵和向量基本操作" class="anchor-link">§</a><a href="#contents:矩阵和向量基本操作" class="headings">矩阵和向量基本操作</a></h2>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">namespace</span> <span class="n">MultiGPU</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// 向量加法不需要进程间通信，和单GPU完全一样
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// return v1^T * v2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">ValueType</span> <span class="nf">Dot</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">&amp;</span><span class="n">v1</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">&amp;</span><span class="n">v2</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">ValueType</span> <span class="n">local_dot</span> <span class="o">=</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">ValueType</span> <span class="n">global_dot</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 支持CUDA-aware MPI的MPI接口也可以用于内存
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">MPI_Allreduce</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="o">&amp;</span><span class="n">local_dot</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">global_dot</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">MPI_DOUBLE</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="n">MPI_SUM</span><span class="p">,</span> <span class="n">MPI_COMM_WORLD</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">global_dot</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">ValueType</span> <span class="nf">Norm2</span><span class="p">(</span><span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">&amp;</span><span class="n">v</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">MultiGPU</span><span class="o">::</span><span class="n">Dot</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// result = A * v
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">void</span> <span class="nf">SpMv</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">*</span><span class="n">result</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">CsrMatrix</span> <span class="o">&amp;</span><span class="n">A</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">&amp;</span><span class="n">v</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Interfaces</span> <span class="o">&amp;</span><span class="n">interfaces</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">A</span><span class="p">.</span><span class="n">num_cols</span> <span class="o">!=</span> <span class="n">v</span><span class="p">.</span><span class="n">size</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">{</span><span class="s">&#34;MultiGPU::SpMv: A.num_cols != v.size&#34;</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">interfaces</span><span class="p">.</span><span class="n">initMatrixInterfaces</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">SingleGPU</span><span class="o">::</span><span class="n">SpMv</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">v</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">interfaces</span><span class="p">.</span><span class="n">updateMatrixInterfaces</span><span class="p">(</span><span class="o">*</span><span class="n">result</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// r = b - Ax
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">void</span> <span class="nf">Residual</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">*</span><span class="n">r</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">CsrMatrix</span> <span class="o">&amp;</span><span class="n">A</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">&amp;</span><span class="n">x</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">Interfaces</span> <span class="o">&amp;</span><span class="n">interfaces</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">A</span><span class="p">.</span><span class="n">num_cols</span> <span class="o">!=</span> <span class="n">x</span><span class="p">.</span><span class="n">size</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">{</span><span class="s">&#34;MultiGPU::Residual: A.num_cols != x.size!&#34;</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">A</span><span class="p">.</span><span class="n">num_rows</span> <span class="o">!=</span> <span class="n">b</span><span class="p">.</span><span class="n">size</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">{</span><span class="s">&#34;MultiGPU::Residual: A.num_rows != b.size!&#34;</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">interfaces</span><span class="p">.</span><span class="n">initMatrixInterfaces</span><span class="p">(</span><span class="n">x</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Residual</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">x</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">interfaces</span><span class="p">.</span><span class="n">updateMatrixInterfaces</span><span class="p">(</span><span class="o">*</span><span class="n">r</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>  <span class="c1">// 注意这里传true
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="c1">// namespace MultiGPU
+</span></span></span></code></pre></td></tr></table></div>
+</div>
+</div><h2 id="预处理共轭梯度法"><a href="#预处理共轭梯度法" class="anchor-link">§</a><a href="#contents:预处理共轭梯度法" class="headings">预处理共轭梯度法</a></h2>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">namespace</span> <span class="n">MultiGPU</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">PCG</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">*</span><span class="n">x</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">CsrMatrix</span> <span class="o">&amp;</span><span class="n">A</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">MultiGPU</span><span class="o">::</span><span class="n">Interfaces</span> <span class="o">&amp;</span><span class="n">interfaces</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Preconditioner</span> <span class="o">&amp;</span><span class="n">P</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ValueType</span> <span class="n">error</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">IndexType</span> <span class="n">max_steps</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">A</span><span class="p">.</span><span class="n">num_cols</span> <span class="o">!=</span> <span class="n">b</span><span class="p">.</span><span class="n">size</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">throw</span> <span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">{</span><span class="s">&#34;PCGFoam: A.num_cols != b.size!&#34;</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="n">IndexType</span> <span class="n">N</span> <span class="o">=</span> <span class="n">A</span><span class="p">.</span><span class="n">num_rows</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// r_0 = b - Ax_0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="n">r</span><span class="p">(</span><span class="n">N</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">MultiGPU</span><span class="o">::</span><span class="n">Residual</span><span class="p">(</span><span class="o">&amp;</span><span class="n">r</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">interfaces</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">ValueType</span> <span class="n">norm_r</span> <span class="o">=</span> <span class="n">MultiGPU</span><span class="o">::</span><span class="n">Norm2</span><span class="p">(</span><span class="n">r</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 初始解精度已经足够高
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">if</span> <span class="p">(</span><span class="n">norm_r</span> <span class="o">&lt;</span> <span class="n">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// z_0 = P^-1 * r_0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="n">z</span><span class="p">(</span><span class="n">N</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">P</span><span class="p">.</span><span class="n">precondition</span><span class="p">(</span><span class="o">&amp;</span><span class="n">z</span><span class="p">,</span> <span class="n">r</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// p_1 = z_0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="n">p</span> <span class="o">=</span> <span class="n">z</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// r_k^T * z_k and r_{k-1}^T * z_{k-1}
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">ValueType</span> <span class="n">rho0</span> <span class="o">=</span> <span class="n">MultiGPU</span><span class="o">::</span><span class="n">Dot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">z</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">ValueType</span> <span class="n">rho1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// q_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="n">q</span><span class="p">(</span><span class="n">N</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">max_steps</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">max_steps</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">numeric_limits</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="o">&gt;::</span><span class="n">max</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="n">IndexType</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="n">max_steps</span><span class="p">;</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// q_k = A * p_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">MultiGPU</span><span class="o">::</span><span class="n">SpMv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">q</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">interfaces</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// xi_k = (r_{k-1}^T * z_{k-1}) / (p_k^T * q_k)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">ValueType</span> <span class="n">xi</span> <span class="o">=</span> <span class="n">rho0</span> <span class="o">/</span> <span class="n">MultiGPU</span><span class="o">::</span><span class="n">Dot</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// x_k = x_{k-1} + xi_k * p_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Add</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">xi</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// r_k = r{k-1} - xi_k * q_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">r</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="o">-</span><span class="n">xi</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">norm_r</span> <span class="o">=</span> <span class="n">MultiGPU</span><span class="o">::</span><span class="n">Norm2</span><span class="p">(</span><span class="n">r</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">norm_r</span> <span class="o">&lt;</span> <span class="n">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">break</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// z_k = P^-1 * r_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">P</span><span class="p">.</span><span class="n">precondition</span><span class="p">(</span><span class="o">&amp;</span><span class="n">z</span><span class="p">,</span> <span class="n">r</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">rho1</span> <span class="o">=</span> <span class="n">rho0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">rho0</span> <span class="o">=</span> <span class="n">MultiGPU</span><span class="o">::</span><span class="n">Dot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">z</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// p_{k+1} = z_k + u_k * p_k
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Add</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">rho0</span> <span class="o">/</span> <span class="n">rho1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="c1">// namespace MultiGPU
+</span></span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>值得注意的是，在OpenFOAM的多进程实现中，预处理子只用了对角块进行构造，没有使用边界信息，这是因为边界信息本就影响甚微而且考虑边界信息构造预处理子非常麻烦，通信频繁，并不划算，这里也遵循OpenFOAM的实现。</p>
+<h2 id="集成"><a href="#集成" class="anchor-link">§</a><a href="#contents:集成" class="headings">集成</a></h2>
+<p>集成到OpenFOAM可以通过继承类型Foam::lduMatrix::solver来实现：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span><span class="lnt">143
+</span><span class="lnt">144
+</span><span class="lnt">145
+</span><span class="lnt">146
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="c1">//========================= cuFoamPCG.H ==========================//
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">#ifndef CUFOAM_PCG_H
+</span></span></span><span class="line"><span class="cl"><span class="cp">#define CUFOAM_PCG_H
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&#34;lduMatrix.H&#34;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="k">namespace</span> <span class="n">Foam</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">cuFoamPCG</span> <span class="o">:</span> <span class="k">public</span> <span class="n">lduMatrix</span><span class="o">::</span><span class="n">solver</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">cuFoamPCG</span><span class="p">(</span><span class="k">const</span> <span class="n">cuFoamPCG</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">delete</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">cuFoamPCG</span> <span class="o">&amp;</span><span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">cuFoamPCG</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">delete</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">public</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">TypeName</span><span class="p">(</span><span class="s">&#34;cuFoamPCG&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">cuFoamPCG</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="k">const</span> <span class="n">word</span> <span class="o">&amp;</span><span class="n">fieldName</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="k">const</span> <span class="n">lduMatrix</span> <span class="o">&amp;</span><span class="n">matrix</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="k">const</span> <span class="n">FieldField</span><span class="o">&lt;</span><span class="n">Field</span><span class="p">,</span> <span class="n">scalar</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">interfaceBouCoeffs</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="k">const</span> <span class="n">FieldField</span><span class="o">&lt;</span><span class="n">Field</span><span class="p">,</span> <span class="n">scalar</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">interfaceIntCoeffs</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="k">const</span> <span class="n">lduInterfaceFieldPtrsList</span> <span class="o">&amp;</span><span class="n">interfaces</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="k">const</span> <span class="n">dictionary</span> <span class="o">&amp;</span><span class="n">solverControls</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">virtual</span> <span class="o">~</span><span class="n">cuFoamPCG</span><span class="p">()</span> <span class="p">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">virtual</span> <span class="n">solverPerformance</span> <span class="nf">solve</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">            <span class="n">scalarField</span> <span class="o">&amp;</span><span class="n">psi</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="k">const</span> <span class="n">scalarField</span> <span class="o">&amp;</span><span class="n">source</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="k">const</span> <span class="n">direction</span> <span class="n">cmpt</span> <span class="o">=</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">}</span>  <span class="c1">// namespace Foam
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="cp">#endif </span><span class="c1">// ~CUFOAM_CG_H
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">//========================= cuFoamPCG.C ==========================//
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">namespace</span> <span class="n">Foam</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">defineTypeNameAndDebug</span><span class="p">(</span><span class="n">cuFoamPCG</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 只能用于对称的(symmetric)方程
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">lduMatrix</span><span class="o">::</span><span class="n">solver</span><span class="o">::</span><span class="n">addsymMatrixConstructorToTable</span><span class="o">&lt;</span><span class="n">cuFoamPCG</span><span class="o">&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">addCGSolverSymMatrixConstructorToTable_</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">}</span> <span class="c1">// ~namespace Foam
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="n">Foam</span><span class="o">::</span><span class="n">cuFoamPCG</span><span class="o">::</span><span class="n">cuFoamPCG</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">word</span> <span class="o">&amp;</span><span class="n">fieldName</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">lduMatrix</span> <span class="o">&amp;</span><span class="n">matrix</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">FieldField</span><span class="o">&lt;</span><span class="n">Field</span><span class="p">,</span> <span class="n">scalar</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">interfaceBouCoeffs</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">FieldField</span><span class="o">&lt;</span><span class="n">Field</span><span class="p">,</span> <span class="n">scalar</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">interfaceIntCoeffs</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">lduInterfaceFieldPtrsList</span> <span class="o">&amp;</span><span class="n">interfaces</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">dictionary</span> <span class="o">&amp;</span><span class="n">solverControls</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="o">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">lduMatrix</span><span class="o">::</span><span class="n">solver</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                <span class="n">fieldName</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="n">matrix</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="n">interfaceBouCoeffs</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="n">interfaceIntCoeffs</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="n">interfaces</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="n">solverControls</span>
+</span></span><span class="line"><span class="cl">        <span class="p">)</span> <span class="p">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Foam</span><span class="o">::</span><span class="n">solverPerformance</span> <span class="n">Foam</span><span class="o">::</span><span class="n">cuFoamPCG</span><span class="o">::</span><span class="n">solve</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">scalarField</span> <span class="o">&amp;</span><span class="n">psi</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">scalarField</span> <span class="o">&amp;</span><span class="n">source</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="k">const</span> <span class="n">direction</span> <span class="n">cmpt</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">IndexType</span> <span class="n">N</span> <span class="o">=</span> <span class="n">matrix</span><span class="p">().</span><span class="n">diag</span><span class="p">().</span><span class="n">size</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 将ldu格式的矩阵转换成csr格式
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">Host</span><span class="o">::</span><span class="n">CsrMatrix</span> <span class="n">A</span> <span class="o">=</span> <span class="n">getSparseCSRMat</span><span class="p">(</span><span class="n">matrix</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 设置使用的GPU，每个进程对应一个GPU
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">if</span> <span class="p">(</span><span class="n">Pstream</span><span class="o">::</span><span class="n">parRun</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">        <span class="n">GPUSelector</span><span class="o">::</span><span class="n">Select</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 将数据传输到GPU上
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">SingleGPU</span><span class="o">::</span><span class="n">CsrMatrix</span> <span class="n">d_A</span><span class="p">{</span><span class="n">A</span><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="n">d_b</span><span class="p">(</span><span class="n">N</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Vector</span> <span class="n">d_x</span><span class="p">(</span><span class="n">N</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">uploadVector</span><span class="p">(</span><span class="n">d_b</span><span class="p">,</span> <span class="n">source</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uploadVector</span><span class="p">(</span><span class="n">d_x</span><span class="p">,</span> <span class="n">psi</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 预处理子
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">word</span> <span class="n">precond_name</span> <span class="o">=</span> <span class="n">controlDict_</span><span class="p">.</span><span class="n">lookupOrDefault</span><span class="o">&lt;</span><span class="n">word</span><span class="o">&gt;</span><span class="p">(</span><span class="s">&#34;preconditioner&#34;</span><span class="p">,</span> <span class="s">&#34;none&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">SingleGPU</span><span class="o">::</span><span class="n">Preconditioner</span> <span class="o">*</span><span class="n">P</span> <span class="o">=</span> <span class="k">nullptr</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">precond_name</span> <span class="o">==</span> <span class="s">&#34;DILU&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">P</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">DILUPreconditioner</span><span class="p">(</span><span class="n">d_A</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="n">precond_name</span> <span class="o">==</span> <span class="s">&#34;DIC&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">P</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">DICPreconditioner</span><span class="p">(</span><span class="n">d_A</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="n">precond_name</span> <span class="o">==</span> <span class="s">&#34;Diagonal&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">P</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">DiagonalPreconditioner</span><span class="p">(</span><span class="n">d_A</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="n">precond_name</span> <span class="o">==</span> <span class="s">&#34;none&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">P</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SingleGPU</span><span class="o">::</span><span class="n">NoPreconditioner</span><span class="p">(</span><span class="n">d_A</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">FatalErrorInFunction</span>
+</span></span><span class="line"><span class="cl">                <span class="o">&lt;&lt;</span> <span class="s">&#34;Preconditioner must be one of &#34;</span>
+</span></span><span class="line"><span class="cl">                   <span class="s">&#34;DILU, DIC, Diagonal, and none!&#34;</span>
+</span></span><span class="line"><span class="cl">                <span class="o">&lt;&lt;</span> <span class="n">nl</span> <span class="o">&lt;&lt;</span> <span class="n">exit</span><span class="p">(</span><span class="n">FatalError</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">IndexType</span> <span class="n">max_steps</span> <span class="o">=</span> <span class="n">maxIter_</span><span class="p">;</span>  <span class="c1">// 最大迭代步数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">IndexType</span> <span class="n">min_steps</span> <span class="o">=</span> <span class="n">minIter_</span><span class="p">;</span>  <span class="c1">// 最小迭代步数
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">ValueType</span> <span class="n">error</span> <span class="o">=</span> <span class="n">tolerance_</span><span class="p">;</span>    <span class="c1">// 绝对误差
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">ValueType</span> <span class="n">rel_error</span> <span class="o">=</span> <span class="n">relTol_</span><span class="p">;</span>   <span class="c1">// 相对误差
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">ValueType</span><span class="o">&gt;</span> <span class="n">res</span><span class="p">(</span><span class="n">max_steps</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">Pstream</span><span class="o">::</span><span class="n">parRun</span><span class="p">())</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">MultiGPU</span><span class="o">::</span><span class="n">Interfaces</span> <span class="n">gpu_interface</span> <span class="o">=</span> <span class="n">getInterfaces</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                <span class="n">matrix</span><span class="p">(),</span> <span class="n">interfaceBouCoeffs</span><span class="p">(),</span> <span class="n">interfaces</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 这个函数请参考源代码文件，上节仅给出了核心功能，
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// 未实现OpenFOAM需要的许多控制功能
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="n">MultiGPU</span><span class="o">::</span><span class="n">PCGFoam</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                <span class="o">&amp;</span><span class="n">d_x</span><span class="p">,</span> <span class="n">d_A</span><span class="p">,</span> <span class="n">gpu_interface</span><span class="p">,</span> <span class="n">d_b</span><span class="p">,</span> <span class="o">*</span><span class="n">P</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="n">error</span><span class="p">,</span> <span class="n">rel_error</span><span class="p">,</span> <span class="n">max_steps</span><span class="p">,</span> <span class="n">min_steps</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">res</span>
+</span></span><span class="line"><span class="cl">        <span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">SingleGPU</span><span class="o">::</span><span class="n">PCGFoam</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">                <span class="o">&amp;</span><span class="n">d_x</span><span class="p">,</span> <span class="n">d_A</span><span class="p">,</span> <span class="n">d_b</span><span class="p">,</span> <span class="o">*</span><span class="n">P</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="n">error</span><span class="p">,</span> <span class="n">rel_error</span><span class="p">,</span> <span class="n">max_steps</span><span class="p">,</span> <span class="n">min_steps</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">res</span>
+</span></span><span class="line"><span class="cl">        <span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">solverPerformance</span> <span class="nf">solverPerf</span><span class="p">(</span><span class="s">&#34;cuFoam&#34;</span> <span class="o">+</span> <span class="n">precond_name</span> <span class="o">+</span> <span class="s">&#34;PCG&#34;</span><span class="p">,</span> <span class="n">fieldName</span><span class="p">());</span>
+</span></span><span class="line"><span class="cl">    <span class="n">solverPerf</span><span class="p">.</span><span class="n">initialResidual</span><span class="p">()</span> <span class="o">=</span> <span class="n">res</span><span class="p">.</span><span class="n">front</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="n">solverPerf</span><span class="p">.</span><span class="n">finalResidual</span><span class="p">()</span> <span class="o">=</span> <span class="n">res</span><span class="p">.</span><span class="n">back</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="n">solverPerf</span><span class="p">.</span><span class="n">nIterations</span><span class="p">()</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">res</span><span class="p">.</span><span class="n">size</span><span class="p">())</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">delete</span> <span class="n">P</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">solverPerf</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>这段代码向OpenFOAM注册了一个名为cuFoamPCG的求解器，在fvSolution的solver字段中指定为此名字就可以调用这个求解器。需要实现的接口主要为Foam::lduMatrix::solve，这里给出了大致流程，其中的getSparseCsrMat和getInterfaces没有给出，它们位于openfoam/common下，读者请自行查看。需要注意OpenFOAM中的Processor边界对应的类型为Foam::processorFvPatchField，其继承关系非常复杂，阅读OpenFOAM源码时需要仔细梳理。</p>
+
+            </div>
+
+            
+    
+    
+        <ul class="post-copyright">
+            <li class="copyright-item author"><span class="copyright-item-text">作者</span>：<a href="https://w-jin.github.io/" class="p-author h-card" target="_blank" rel="noopener">wjin</a></li>
+            
+                
+                
+                
+                
+                <li class="copyright-item link"><span class="copyright-item-text">链接</span>：<a href="/tech/cuda10/" target="_blank" rel="noopener">https://w-jin.github.io/tech/cuda10/</a></li>
+            
+            <li class="copyright-item license"><span class="copyright-item-text">许可</span>：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></li>
+            
+        </ul>
+    
+
+
+
+        </article>
+
+        
+
+        
+
+
+        
+
+
+        
+
+
+        
+    
+    
+        <div class="related-posts">
+            <h2 class="related-title">相关文章：<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon related-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm144 276c0 6.6-5.4 12-12 12h-92v92c0 6.6-5.4 12-12 12h-56c-6.6 0-12-5.4-12-12v-92h-92c-6.6 0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h92v-92c0-6.6 5.4-12 12-12h56c6.6 0 12 5.4 12 12v92h92c6.6 0 12 5.4 12 12v56z"/></svg></h2>
+            <ul class="related-list">
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda9/" class="related-link">CUDA教程9 -- 代数多重网格</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/thrust/" class="related-link">CUDA番外 -- thrust简介</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda7/" class="related-link">CUDA教程7 -- 双共轭梯度法</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda6/" class="related-link">CUDA教程6 -- 共轭梯度法</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda5/" class="related-link">CUDA教程5 -- 共享内存</a>
+                    </li>
+                
+            </ul>
+        </div>
+    
+
+
+
+        
+    
+        <div class="post-tags">
+            
+                
+                
+                
+                
+                    
+                    <a href="/tags/cuda/" rel="tag" class="post-tags-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49 0 48 0h204.118a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882 0L14.059 286.059A48 48 0 0 1 0 252.118zM112 64c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>cuda</a>
+                
+            
+        </div>
+    
+
+
+
+        
+
+
+        
+
+
+        
+    
+        
+        
+    
+    
+    
+    
+        <ul class="post-nav">
+            
+            
+                <li class="post-nav-next">
+                    <a href="/tech/cuda9/" rel="next">CUDA教程9 -- 代数多重网格 &gt;</a>
+                </li>
+            
+        </ul>
+    
+
+
+
+        
+    
+
+        
+            <div class="load-comments">
+                <div id="load-comments">加载评论</div>
+            </div>
+        
+
+        
+
+        
+            <div id="vcomments"></div>
+        
+
+        
+
+        
+    
+
+
+
+    </div>
+</main>
+
+
+            
+    <div id="back-to-top" class="back-to-top">
+        <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon arrow-up"><path d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z"/></svg></a>
+    </div>
+
+
+            
+    <footer id="footer" class="footer">
+        <div class="footer-inner">
+            <div class="site-info">©&nbsp;1999–2023&nbsp;<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon footer-icon"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>&nbsp;wjin</div><div class="powered-by">Powered by <a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo</a> | Theme is <a href="https://github.com/reuixiy/hugo-theme-meme" target="_blank" rel="noopener">MemE</a></div><div class="site-copyright"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></div>
+
+            
+
+
+            
+        </div>
+    </footer>
+
+
+        </div>
+        
+
+        
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
+<script>
+    if (typeof renderMathInElement === 'undefined') {
+        const getScript = (options) => {
+            const script = document.createElement('script');
+            script.defer = true;
+            script.crossOrigin = 'anonymous';
+            Object.keys(options).forEach((key) => {
+                script[key] = options[key];
+            });
+            document.body.appendChild(script);
+        };
+        getScript({
+            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/katex.min.js',
+            onload: () => {
+                getScript({
+                    src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/mhchem.min.js',
+                    onload: () => {
+                        getScript({
+                            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/auto-render.min.js',
+                            onload: () => {
+                                renderKaTex();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } else {
+        renderKaTex();
+    }
+    function renderKaTex() {
+        renderMathInElement(
+            document.body,
+            {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ]
+            }
+        );
+    }
+</script>
+
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.8.3/dist/mermaid.min.js"></script>
+<script>
+    const mermaidConfig = {
+        startOnLoad: true,
+        flowchart: {
+            useMaxWidth: false,
+            htmlLabels: true
+        },
+        theme: 'default'
+    };
+    mermaid.initialize(mermaidConfig);
+</script>
+
+
+
+    
+
+        
+
+        
+            <script>
+    function loadComments() {
+        if (!document.getElementById('vcomments')) {
+            return;
+        }
+        if (typeof Valine === 'undefined') {
+            const getScript = (options) => {
+                const script = document.createElement('script');
+                script.defer = true;
+                script.crossOrigin = 'anonymous';
+                Object.keys(options).forEach((key) => {
+                    script[key] = options[key];
+                });
+                document.body.appendChild(script);
+            };
+            getScript({
+                src: 'https:\/\/cdn.jsdelivr.net\/npm\/valine@1.4.14\/dist\/Valine.min.js',
+                onload: () => {
+                    newValine();
+                }
+            });
+        } else {
+            newValine();
+        }
+    }
+    function newValine() {
+        new Valine({
+            el: '#vcomments',
+            appId: 'oJ3I57xnJeHrSYxtwPqE3uFy-gzGzoHsz',
+            appKey: '3IfvJOtcQchX3DRs4zMGxuqv',
+            placeholder: 'Just go go',
+            path: location.pathname,
+            avatar: 'mm',
+            meta: ["nick","mail","link"],
+            pageSize:  10 ,
+            lang: 'zh-cn',
+            visitor:  false ,
+            highlight:  true ,
+            avatarForce:  false ,
+            recordIP:  false ,
+            serverURLs: '',
+            emojiCDN: '',
+            emojiMaps: {},
+            enableQQ:  true ,
+            requiredFields: []
+        });
+    }
+</script>
+
+        
+
+        
+
+        
+
+    
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/medium-zoom@latest/dist/medium-zoom.min.js"></script>
+
+<script>
+    let imgNodes = document.querySelectorAll('div.post-body img');
+    imgNodes = Array.from(imgNodes).filter(node => node.parentNode.tagName !== "A");
+
+    mediumZoom(imgNodes, {
+        background: 'hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.95)'
+    })
+</script>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/instant.page@5.1.0/instantpage.min.js" type="module" defer></script>
+
+
+
+
+
+
+    </body>
+</html>

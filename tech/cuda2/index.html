@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+    <meta charset="UTF-8" />
+
+    <meta name="generator" content="Hugo 0.111.2"><meta name="theme-color" content="#fff" />
+    <meta name="color-scheme" content="light dark">
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+    
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>CUDA教程2 -- CPU构架 | wjin</title>
+
+    <link rel="stylesheet" href="/css/meme.min.af7333bfd64891c910fa2d9ad1905cb5289d87665f6fcc49d13183ed852abf3f.css"/>
+
+    
+    
+        <script src="/js/meme.min.b42cc6cc17aac11800d2bb8a71cf39db1f17f54d7f60cf3c1320970b00f1147e.js"></script>
+
+    
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" media="print" onload="this.media='all'" />
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" /></noscript>
+
+    <meta name="author" content="wjin" /><meta name="description" content="我们说CPU适合复杂的逻辑控制任务，而GPU适合大量的计算任务，这是由它们的硬件架构……" />
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="wjin" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="wjin" />
+    <meta name="msapplication-starturl" content="../../" />
+    <meta name="msapplication-TileColor" content="#fff" />
+    <meta name="msapplication-TileImage" content="../../icons/mstile-150x150.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    
+    
+
+    
+    <link rel="canonical" href="https://w-jin.github.io/tech/cuda2/" />
+    
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "datePublished": "2020-08-27T00:35:00+08:00",
+        "dateModified": "2020-08-27T00:37:50+08:00",
+        "url": "https://w-jin.github.io/tech/cuda2/",
+        "headline": "CUDA教程2 -- CPU构架",
+        "description": "我们说CPU适合复杂的逻辑控制任务，而GPU适合大量的计算任务，这是由它们的硬件架构……",
+        "inLanguage" : "zh-CN",
+        "articleSection": "tech",
+        "wordCount":  4136 ,
+        "image": ["https://w-jin.github.io/assets/instruction_structure.png","https://w-jin.github.io/assets/main_throughout.png","https://w-jin.github.io/assets/5_assembly.png","https://w-jin.github.io/assets/related.png","https://w-jin.github.io/assets/tomasulo.png","https://w-jin.github.io/assets/ROB.png","https://w-jin.github.io/assets/ROB2.png","https://w-jin.github.io/assets/BHT.png","https://w-jin.github.io/assets/BTB.png","https://w-jin.github.io/assets/BHR_PHT.png","https://w-jin.github.io/assets/SAg.png"],
+        "author": {
+            "@type": "Person",
+            "description": "我空空如也",
+            "email": "wjiner@outlook.com",
+            "image": "https://w-jin.github.io/icons/logo.png",
+            "url": "https://w-jin.github.io/",
+            "name": "wjin"
+        },
+        "license": "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)",
+        "publisher": {
+            "@type": "Organization",
+            "name": "wjin",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://w-jin.github.io/favicon.ico"
+            },
+            "url": "https://w-jin.github.io/"
+        },
+        "mainEntityOfPage": {
+            "@type": "WebSite",
+            "@id": "https://w-jin.github.io/"
+        }
+    }
+</script>
+
+    
+
+<meta name="twitter:card" content="summary_large_image" />
+
+
+
+    
+
+
+
+<meta property="og:title" content="CUDA教程2 -- CPU构架" />
+<meta property="og:description" content="我们说CPU适合复杂的逻辑控制任务，而GPU适合大量的计算任务，这是由它们的硬件架构……" />
+<meta property="og:url" content="https://w-jin.github.io/tech/cuda2/" />
+<meta property="og:site_name" content="wjin" />
+<meta property="og:locale" content="zh" /><meta property="og:image" content="https://w-jin.github.io/assets/instruction_structure.png" />
+<meta property="og:type" content="article" />
+    <meta property="article:published_time" content="2020-08-27T00:35:00&#43;08:00" />
+    <meta property="article:modified_time" content="2020-08-27T00:37:50&#43;08:00" />
+    
+    <meta property="article:section" content="tech" />
+
+
+
+    
+    
+
+    
+</head>
+
+    <body>
+        <div class="container">
+            
+    <header class="header">
+        
+            <div class="header-wrapper">
+                <div class="header-inner single">
+                    
+    <div class="site-brand">
+        
+            <a href="/" class="brand">wjin</a>
+        
+    </div>
+
+                    <nav class="nav">
+    <ul class="menu" id="menu">
+        
+            
+        
+        
+        
+        
+            
+                <li class="menu-item"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="icon home"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></svg><span class="menu-item-name">首页</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tech/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">技术</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/article/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">文青</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tags/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="icon tags"><path d="M497.941 225.941L286.059 14.059A48 48 0 0 0 252.118 0H48C21.49 0 0 21.49 0 48v204.118a48 48 0 0 0 14.059 33.941l211.882 211.882c18.744 18.745 49.136 18.746 67.882 0l204.118-204.118c18.745-18.745 18.745-49.137 0-67.882zM112 160c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm513.941 133.823L421.823 497.941c-18.745 18.745-49.137 18.745-67.882 0l-.36-.36L527.64 323.522c16.999-16.999 26.36-39.6 26.36-63.64s-9.362-46.641-26.36-63.64L331.397 0h48.721a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882z"/></svg><span class="menu-item-name">标签</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/about/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="icon user-circle"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 96c48.6 0 88 39.4 88 88s-39.4 88-88 88-88-39.4-88-88 39.4-88 88-88zm0 344c-58.7 0-111.3-26.6-146.5-68.2 18.8-35.4 55.6-59.8 98.5-59.8 2.4 0 4.8.4 7.1 1.1 13 4.2 26.6 6.9 40.9 6.9 14.3 0 28-2.7 40.9-6.9 2.3-.7 4.7-1.1 7.1-1.1 42.9 0 79.7 24.4 98.5 59.8C359.3 421.4 306.7 448 248 448z"/></svg><span class="menu-item-name">关于</span></a>
+                </li>
+            
+        
+            
+                
+                    
+                    
+                        <li class="menu-item">
+                            <a id="theme-switcher" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-light"><path d="M193.2 104.5l48.8-97.5a18 18 0 0128 0l48.8 97.5 103.4 -34.5a18 18 0 0119.8 19.8l-34.5 103.4l97.5 48.8a18 18 0 010 28l-97.5 48.8 34.5 103.4a18 18 0 01-19.8 19.8l-103.4-34.5-48.8 97.5a18 18 0 01-28 0l-48.8-97.5l-103.4 34.5a18 18 0 01-19.8-19.8l34.5-103.4-97.5-48.8a18 18 0 010-28l97.5-48.8-34.5-103.4a18 18 0 0119.8-19.8zM256 128a128 128 0 10.01 0M256 160a96 96 0 10.01 0"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-dark"><path d="M27 412a256 256 0 10154-407a11.5 11.5 0 00-5 20a201.5 201.5 0 01-134 374a11.5 11.5 0 00-15 13"/></svg></a>
+                        </li>
+                    
+                
+            
+        
+            
+                
+            
+        
+    </ul>
+</nav>
+
+                    
+                </div>
+            </div>
+            
+    <input type="checkbox" id="nav-toggle" aria-hidden="true" />
+    <label for="nav-toggle" class="nav-toggle"></label>
+    <label for="nav-toggle" class="nav-curtain"></label>
+
+
+        
+    </header>
+
+
+
+
+            
+            
+    <main class="main single" id="main">
+    <div class="main-inner">
+
+        
+
+        <article class="content post h-entry" data-align="justify" data-type="tech" data-toc-num="true">
+
+            <h1 class="post-title p-name">CUDA教程2 -- CPU构架</h1>
+
+            
+
+            
+                
+            
+
+            
+                
+
+<div class="post-meta">
+    
+        
+        <time datetime="2020-08-27T00:35:00&#43;08:00" class="post-meta-item published dt-published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2020.8.27</time>
+    
+    
+        
+        <time datetime="2020-08-27T00:37:50&#43;08:00" class="post-meta-item modified dt-updated"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.8.27</time>
+    
+    
+    
+        
+        
+        
+            
+        
+    
+    
+        
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;4136</span>
+    
+    
+        
+        <span class="post-meta-item reading-time"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></svg>&nbsp;9&nbsp;分钟</span>
+    
+    
+    
+</div>
+
+            
+
+            <nav class="contents">
+  <h2 id="contents" class="contents-title">目录</h2><ol class="toc">
+    <li><a id="contents:静态流水线" href="#静态流水线">静态流水线</a></li>
+    <li><a id="contents:动态流水线" href="#动态流水线">动态流水线</a></li>
+    <li><a id="contents:重排序缓存" href="#重排序缓存">重排序缓存</a></li>
+    <li><a id="contents:转移猜测分支预测" href="#转移猜测分支预测">转移猜测(分支预测)</a></li>
+    <li><a id="contents:总结" href="#总结">总结</a></li>
+    <li><a id="contents:阅读材料" href="#阅读材料">阅读材料</a></li>
+  </ol>
+</nav><div class="post-body e-content">
+                <p>我们说CPU适合复杂的逻辑控制任务，而GPU适合大量的计算任务，这是由它们的硬件架构决定的。这一节简单介绍一下CPU的基本架构，了解一下CPU为何能快速的执行拥有复杂逻辑的程序。</p>
+<h2 id="静态流水线"><a href="#静态流水线" class="anchor-link">§</a><a href="#contents:静态流水线" class="headings">静态流水线</a></h2>
+<p>以MIPS为例，指令分为三种：寄存器类(R-type)、立即数类(I-type)和转移类(J-type)。它们的格式大概为：</p>
+<p><img src="assets/instruction_structure.png" alt="instruction_structure"></p>
+<p>其中OP是操作码，RS为源操作数寄存器号，RD为目标操作数寄存器号，SA用于扩充指令集，OPX是辅助操作码，Immediate是立即数，target是跳转目标。比如ADDU和SUBU的操作码都是000000，而OPX分别为100001和100010。</p>
+<p>MIPS中，访存指令(LW/SW)属于I-type，由RS给出基址，Immediate给出偏移，RD给出要将数读到哪个寄存器或者要将哪个寄存器的数保存到内存。除LW和SW两条指令外，MIPS其它指令都不能直接操作内存(x86可以以内存地址为操作数进行算术运算等)。下图展示了一条指令在CPU中的数据通路：</p>
+<p><img src="assets/main_throughout.png" alt="main_throughout"></p>
+<p>为提高CPU执行指令的速度，可以将指令的执行过程细分，典型的分法是分为5级流水：取指(IF)，译码(ID)、执行(EX)、访存(MEM)和写回(WB)。在同一个周期内，可以有5条指令分别处于流水线的不同阶段，这样就有5条指令在同时执行。但是线路中的电信号只能表示一个状态，所以每条指令进入流水线的下一阶段时必须带上自己的状态，这点可以由下图体现：</p>
+<p><img src="assets/5_assembly.png" alt="5_assembly"></p>
+<p>流水组各阶段都设有锁存器，两个阶段间设有使能端，当全局时钟信号到来，锁存器向下一阶段输出信号，并保存上一阶段过来的信号。</p>
+<p>最理想的情况下，流水线中有5条指令在同时执行，但这不总是能办到的，某些相邻的指令间存在相关性，必须以严格的顺序推进，此时需要将相关指令的后一条阻塞住，直到前一条指令执行完成：</p>
+<p><img src="assets/related.png" alt="related"></p>
+<p>相关性可以分为三类：数据相关、控制相关和结构相关。数据相关是指两条指令访问同一个寄存器而且其中至少一条是写寄存器(读后读不构成相关)，控制相关是一条指令是否执行取决于转移指令的执行结果，结构相关是指两条指令使用同一个功能部件(如两条加法指令都使用加法器)。</p>
+<p>上图的数据通路只能解决数据相关。取寄存器的值发生在译码阶段，因此在译码的输出电路中指定一个使能端，如果检测到正在译码的指令和正在执行的指令访问同一个寄存器且其中至少有一条是写寄存器的指令，就将使能端置0，将正在译码的指令阻塞在译码阶段。同时正在译码的指令后面的指令也不能执行，所以在取指的部件以及译码的输入都必须阻塞。</p>
+<h2 id="动态流水线"><a href="#动态流水线" class="anchor-link">§</a><a href="#contents:动态流水线" class="headings">动态流水线</a></h2>
+<p>数据相关可以进一步细分真相关和名字相关。真相关是写后读，它的本质是后面的指令需要前面的指令的计算结果，而不只是需要操作同一个寄存器，这种相关没有直接的解决办法。名字相关有读后写和写后写，这两种只是需要操作同一个寄存器，对彼此的数据没有需求，可以通过寄存重命名来解决。</p>
+<p>在静态流水线中，如果两条指令存在相关，后一条指令必须等待前一条指令执行完成，将结果写回寄存器，然后后一指令才能完成译码，而且这条指令会把所有后续指令全部阻塞在流水线外，实际上这是不必要的，相关指令后面的指令不一定与它们相关，因此是可以执行的，这就是动态流水线的基本思想。</p>
+<p>动态流水线的基本思想是前面指令的阻塞不影响后面指令的执行。具体做法是将译码分成两个阶段：译码和读操作数。在译码阶段，对指令进行译码并检查相关性，在读操作数阶段，检查指令的操作数是否准备好，准备好就读操作数并送去执行，否则保存到保留站中进行等待。动态流水线基本算法是Tomasulo算法，其结构可由下图描述：</p>
+<p><img src="assets/tomasulo.png" alt="tomasulo"></p>
+<p>在Tomasulo算法中，寄存器需要增加一个结果状态域，用于表示值是否有效，如果为空则表示寄存器值可用，否则保存产生寄存器结果的保留站号。指令的结果总线不仅需要将值写回寄存器，还要送回产生该值的保留站号。保留站中一条指令分为5个域：op表示操作码，Vj和Vk表示源操作数的值，Qj和Qk表示没有准备好的源操作数保留站号。</p>
+<p>Tomasulo算法的过程为：1、发射。把指令队列的指令根据操作类型送到相应保留站，发射过程中读取寄存器的值和状态域，如果寄存器的状态域为空则读取寄存器的值，如果寄存器的状态域为保留站号则将保留站号写入Qj或者Qk，如果指令需要写寄存器则将相应寄存器的状态置为本指令的保留站号。2、执行。如果指令所需的操作数都准备好就送去执行，否则在保留站内等待操作数的产生。当保留站中等待的指令侦测到结果上线的保留站号与自己等待的保留站号相同时，则表明自己等待的操作已经产生，将结果线上的指令结果写入保留站相应的域，如果所有操作数都已经准备好则将此条指令送去执行。3、写回。指令执行完成后将结果和自己的保留站号写到结果总线上，然后释放保留站。写入寄存器时检测结果线上的保留站号，如果和目标寄存器状态域的保留站号不相同则不能写，比如有两条指令先后写同一个寄存器则只能是后一条成功。</p>
+<p>上图中的保留站是独立的，每个功能部件都有一个保留站，还有分组保留站和全局保留站两种设置方法。顾名思义，分组保留站就是几个功能部件共享一个保留站，整个CPU设置多个保留站；全局保留站就是整个CPU只设置一个保留站。全局保留站拥有最高的效率，而独立保留站可能出现负载不平衡的情况，极端情况下，某个保留站已满而导致流水线阻塞，但其它保留站还很空闲甚至没有指令。但是全局保留站的电路设计难度非常高，只有顶级的CPU设计公司才能设计出来，其它公司都只能采取次优方案，即分组保留站。</p>
+<h2 id="重排序缓存"><a href="#重排序缓存" class="anchor-link">§</a><a href="#contents:重排序缓存" class="headings">重排序缓存</a></h2>
+<p>保留站将指令的执行顺序变成乱序，如果有某条指令发生例外(exception)，处理完例外后需要恢复现场，接着发生例外的地方继续执行指令，因此发生例外的指令后面的所有指令的结果都需要被取消，但这点在上面的Tomasolu算法中是做不到的，因为后面的指令的执行结果已经写回了寄存器，无法再恢复之前的值，现代CPU解决这个问题的办法是使用重排序缓存(Reorder Buffer, ROB)。</p>
+<p>重排序缓存的基本思想是指令执行的结果不直接提交到寄存器，而是提交到重排序缓存，然后按指令原本的顺序提交到寄存器。如下图所示：</p>
+<p><img src="assets/ROB.png" alt="ROB"></p>
+<p>指令按本身的顺序进入ROB，某条指令提交结果前必须等待它前面的指令提交结果后才能提交，比如下图中的ADD指令不能提交结果到寄存器，必须等待它前面两条指令提交后才能提交。</p>
+<p><img src="assets/ROB2.png" alt="ROB2"></p>
+<h2 id="转移猜测分支预测"><a href="#转移猜测分支预测" class="anchor-link">§</a><a href="#contents:转移猜测分支预测" class="headings">转移猜测(分支预测)</a></h2>
+<p>引起程序执行流程转移的原因有：循环、分支、函数返回等。函数返回时从栈顶弹出返回地址，且必然跳转，预测比较简单；但循环语句和分支语句生成的指令一般为跳转指令(bne、blez等)，它可能更改程序计数器的值，也可能不更改，因此下一条指令的地址就不确定了。现代CPU解决这个问题的办法是使用转移猜测功能，就是在不计算跳转指令的前提下根据转移的历史来预测本次转移的方向。</p>
+<p>基本的转移猜测结构主要是根据单条转移指令的转移历史来预测该指令未来的跳转方向，这种转移预测方法对于重复性特征明显的转移指令可以产生良好的效果，比如对于循环1000次的循环语句，前999次跳转方向都完全相同，只有第1000次跳转不成功。因此，可以将每条转移指令的历史记录在转移历史表(Branch History Table, BHT)中，每次根据BHT表的内容来判断转移方向。由于使整个PC做索引会导致表太大，因此不般使用PC的低位做索引，一般来讲，取PC的低12位索引4096项BHT冲突的概率就不大了，而且即使冲突导致猜错也可以通过重排序缓存纠正。</p>
+<p>下图是一个2位BHT的工作过程，它对每条指令使用2位饱和计算记录其转移历史，转移成功(taken)就将饱和计数加1，直到它为11，不成功(not taken)就减1，直到它为00，猜测时如果高位为1则跳转，高位为0则不跳转。注意这儿的转移是否成功是实际结果不是预测结果。实践证明，2位饱和计数已经足够，大于2位的饱和计数对预测效果的提升不大。这种使用有限位来记录过去有限几次转移历史的结构也称为转移模式历史表(Pattern History Table, PHT)。</p>
+<p><img src="assets/BHT.png" alt="BHT"></p>
+<p>上面的BHT只能预测转移指令的跳转方向，不能预测转移指令的跳转目标，而间接转移指令的跳转目标不能直接从指令中获得，因此需要一种机制可以对间接转移指令的跳转目标进行预测。另外，PHT表只能在译码阶段使用，在取指阶段使用会将普通指令也当作转移指令干扰预测结果。引入转移目标缓冲器(Branch Target Buffer, BTB)可以解决这两个问题，它的结构如下图所示。</p>
+<p><img src="assets/BTB.png" alt="BTB"></p>
+<p>BTB使用相联存储器(Content Addressed Memory)来保存转移指令的PC，这样就可以在取指阶段直接判断出指令是否为跳转指令然后根据转移历史预测转移目标。</p>
+<p>转移指令之前可能也有相关性，比如</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">&gt;=</span> <span class="mi">10</span><span class="p">)</span>  <span class="c1">// 分支1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">d</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">==</span> <span class="mi">12</span><span class="p">)</span>  <span class="c1">// 分支2依赖于分支1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">d</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>因此转移猜测时不能只看指令本身的历史，还应该看程序中所有转移指令过去m次的转移记录。通常使用转移历史寄存器(Branch History Register, BHR)记录程序中所有转移指令的历史。BHR是一个移位寄存器，每执行一次转移指令就将它左移1位，移位时高位丢掉，如果转移成功则低位补1，不成功则补0。</p>
+<p>将BHR和PHT结合在一起可以得到两级自适应预测器。BHR和PHT都有三种设计方法：使用PC索引(per address, PA)、所有指令共用一个(global address, GA)、使用PC低位索引(set address, SA)。将BHR和PHT组合可以得到以下9种猜测方式：</p>
+<p><img src="assets/BHR_PHT.png" alt="BHR_PHT"></p>
+<p>以GAs为例，其结构如下图所示：</p>
+<p><img src="assets/SAg.png" alt="SAg"></p>
+<p>以PC低n位为索引在BHT中找到相应的项，然后以此项为索引找到PHT表中相应的项，然后依据此项的高位决定是否跳转，根据实际转移是否成功来修改饱和计数和BHT表项低位填入值。其它组合方式类似。</p>
+<p>此外，现代CPU还有将多种转移方法结合的混合预测器，近来还发展出了将神经网络引入转移猜测的研究。就效果来看，现代CPU的转移猜测正确率可达95%以上！</p>
+<h2 id="总结"><a href="#总结" class="anchor-link">§</a><a href="#contents:总结" class="headings">总结</a></h2>
+<p>CPU使用动态流水线、多发射、乱序执行以及分支猜测等方法来提升执行指令时的吞吐量，尽量减少CPU各个部件的空闲时间，这就是我们说CPU适合控制逻辑复杂的程序的原因。</p>
+<h2 id="阅读材料"><a href="#阅读材料" class="anchor-link">§</a><a href="#contents:阅读材料" class="headings">阅读材料</a></h2>
+<p>[1] 计算机体系结构(第2版)，胡伟武等。</p>
+<p>[2] 计算机体系结构-量化研究方法。</p>
+<p>注意：本文部分或者全部图片来自《计算机体系结构 胡伟武等》。</p>
+
+            </div>
+
+            
+    
+    
+        <ul class="post-copyright">
+            <li class="copyright-item author"><span class="copyright-item-text">作者</span>：<a href="https://w-jin.github.io/" class="p-author h-card" target="_blank" rel="noopener">wjin</a></li>
+            
+                
+                
+                
+                
+                <li class="copyright-item link"><span class="copyright-item-text">链接</span>：<a href="/tech/cuda2/" target="_blank" rel="noopener">https://w-jin.github.io/tech/cuda2/</a></li>
+            
+            <li class="copyright-item license"><span class="copyright-item-text">许可</span>：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></li>
+            
+        </ul>
+    
+
+
+
+        </article>
+
+        
+
+        
+
+
+        
+
+
+        
+
+
+        
+    
+    
+        <div class="related-posts">
+            <h2 class="related-title">相关文章：<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon related-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm144 276c0 6.6-5.4 12-12 12h-92v92c0 6.6-5.4 12-12 12h-56c-6.6 0-12-5.4-12-12v-92h-92c-6.6 0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h92v-92c0-6.6 5.4-12 12-12h56c6.6 0 12 5.4 12 12v92h92c6.6 0 12 5.4 12 12v56z"/></svg></h2>
+            <ul class="related-list">
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda10/" class="related-link">CUDA教程10 -- 多GPU编程</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda9/" class="related-link">CUDA教程9 -- 代数多重网格</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda8/" class="related-link">CUDA教程8 -- 预处理方法</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/thrust/" class="related-link">CUDA番外 -- thrust简介</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda7/" class="related-link">CUDA教程7 -- 双共轭梯度法</a>
+                    </li>
+                
+            </ul>
+        </div>
+    
+
+
+
+        
+    
+        <div class="post-tags">
+            
+                
+                
+                
+                
+                    
+                    <a href="/tags/cpu/" rel="tag" class="post-tags-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49 0 48 0h204.118a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882 0L14.059 286.059A48 48 0 0 1 0 252.118zM112 64c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>CPU</a>
+                
+            
+        </div>
+    
+
+
+
+        
+
+
+        
+
+
+        
+    
+        
+        
+    
+    
+    
+    
+        <ul class="post-nav">
+            
+                <li class="post-nav-prev">
+                    <a href="/tech/cuda3/" rel="prev">&lt; CUDA教程3 -- 执行模型</a>
+                </li>
+            
+            
+                <li class="post-nav-next">
+                    <a href="/tech/cpp-ctime-calendar-library/" rel="next">c++日期库 &gt;</a>
+                </li>
+            
+        </ul>
+    
+
+
+
+        
+    
+
+        
+            <div class="load-comments">
+                <div id="load-comments">加载评论</div>
+            </div>
+        
+
+        
+
+        
+            <div id="vcomments"></div>
+        
+
+        
+
+        
+    
+
+
+
+    </div>
+</main>
+
+
+            
+    <div id="back-to-top" class="back-to-top">
+        <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon arrow-up"><path d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z"/></svg></a>
+    </div>
+
+
+            
+    <footer id="footer" class="footer">
+        <div class="footer-inner">
+            <div class="site-info">©&nbsp;1999–2023&nbsp;<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon footer-icon"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>&nbsp;wjin</div><div class="powered-by">Powered by <a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo</a> | Theme is <a href="https://github.com/reuixiy/hugo-theme-meme" target="_blank" rel="noopener">MemE</a></div><div class="site-copyright"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></div>
+
+            
+
+
+            
+        </div>
+    </footer>
+
+
+        </div>
+        
+
+        
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
+<script>
+    if (typeof renderMathInElement === 'undefined') {
+        const getScript = (options) => {
+            const script = document.createElement('script');
+            script.defer = true;
+            script.crossOrigin = 'anonymous';
+            Object.keys(options).forEach((key) => {
+                script[key] = options[key];
+            });
+            document.body.appendChild(script);
+        };
+        getScript({
+            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/katex.min.js',
+            onload: () => {
+                getScript({
+                    src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/mhchem.min.js',
+                    onload: () => {
+                        getScript({
+                            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/auto-render.min.js',
+                            onload: () => {
+                                renderKaTex();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } else {
+        renderKaTex();
+    }
+    function renderKaTex() {
+        renderMathInElement(
+            document.body,
+            {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ]
+            }
+        );
+    }
+</script>
+
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.8.3/dist/mermaid.min.js"></script>
+<script>
+    const mermaidConfig = {
+        startOnLoad: true,
+        flowchart: {
+            useMaxWidth: false,
+            htmlLabels: true
+        },
+        theme: 'default'
+    };
+    mermaid.initialize(mermaidConfig);
+</script>
+
+
+
+    
+
+        
+
+        
+            <script>
+    function loadComments() {
+        if (!document.getElementById('vcomments')) {
+            return;
+        }
+        if (typeof Valine === 'undefined') {
+            const getScript = (options) => {
+                const script = document.createElement('script');
+                script.defer = true;
+                script.crossOrigin = 'anonymous';
+                Object.keys(options).forEach((key) => {
+                    script[key] = options[key];
+                });
+                document.body.appendChild(script);
+            };
+            getScript({
+                src: 'https:\/\/cdn.jsdelivr.net\/npm\/valine@1.4.14\/dist\/Valine.min.js',
+                onload: () => {
+                    newValine();
+                }
+            });
+        } else {
+            newValine();
+        }
+    }
+    function newValine() {
+        new Valine({
+            el: '#vcomments',
+            appId: 'oJ3I57xnJeHrSYxtwPqE3uFy-gzGzoHsz',
+            appKey: '3IfvJOtcQchX3DRs4zMGxuqv',
+            placeholder: 'Just go go',
+            path: location.pathname,
+            avatar: 'mm',
+            meta: ["nick","mail","link"],
+            pageSize:  10 ,
+            lang: 'zh-cn',
+            visitor:  false ,
+            highlight:  true ,
+            avatarForce:  false ,
+            recordIP:  false ,
+            serverURLs: '',
+            emojiCDN: '',
+            emojiMaps: {},
+            enableQQ:  true ,
+            requiredFields: []
+        });
+    }
+</script>
+
+        
+
+        
+
+        
+
+    
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/medium-zoom@latest/dist/medium-zoom.min.js"></script>
+
+<script>
+    let imgNodes = document.querySelectorAll('div.post-body img');
+    imgNodes = Array.from(imgNodes).filter(node => node.parentNode.tagName !== "A");
+
+    mediumZoom(imgNodes, {
+        background: 'hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.95)'
+    })
+</script>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/instant.page@5.1.0/instantpage.min.js" type="module" defer></script>
+
+
+
+
+
+
+    </body>
+</html>

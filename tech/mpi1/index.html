@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+    <meta charset="UTF-8" />
+
+    <meta name="generator" content="Hugo 0.111.2"><meta name="theme-color" content="#fff" />
+    <meta name="color-scheme" content="light dark">
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+    
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>MPI教程1 | wjin</title>
+
+    <link rel="stylesheet" href="/css/meme.min.af7333bfd64891c910fa2d9ad1905cb5289d87665f6fcc49d13183ed852abf3f.css"/>
+
+    
+    
+        <script src="/js/meme.min.b42cc6cc17aac11800d2bb8a71cf39db1f17f54d7f60cf3c1320970b00f1147e.js"></script>
+
+    
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" media="print" onload="this.media='all'" />
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" /></noscript>
+
+    <meta name="author" content="wjin" /><meta name="description" content="MPI(Message Passing Interface，消息传递编程接口)是由全世界工业、科研和政府部门联合建立的一……" />
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="wjin" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="wjin" />
+    <meta name="msapplication-starturl" content="../../" />
+    <meta name="msapplication-TileColor" content="#fff" />
+    <meta name="msapplication-TileImage" content="../../icons/mstile-150x150.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    
+    
+
+    
+    <link rel="canonical" href="https://w-jin.github.io/tech/mpi1/" />
+    
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "datePublished": "2020-07-28T22:12:35+08:00",
+        "dateModified": "2020-12-04T17:18:10+08:00",
+        "url": "https://w-jin.github.io/tech/mpi1/",
+        "headline": "MPI教程1",
+        "description": "MPI(Message Passing Interface，消息传递编程接口)是由全世界工业、科研和政府部门联合建立的一……",
+        "inLanguage" : "zh-CN",
+        "articleSection": "tech",
+        "wordCount":  4930 ,
+        "image": ["https://w-jin.github.io/assets/mpi_mode.png","https://w-jin.github.io/assets/MPI_Reduce.png"],
+        "author": {
+            "@type": "Person",
+            "description": "我空空如也",
+            "email": "wjiner@outlook.com",
+            "image": "https://w-jin.github.io/icons/logo.png",
+            "url": "https://w-jin.github.io/",
+            "name": "wjin"
+        },
+        "license": "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)",
+        "publisher": {
+            "@type": "Organization",
+            "name": "wjin",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://w-jin.github.io/favicon.ico"
+            },
+            "url": "https://w-jin.github.io/"
+        },
+        "mainEntityOfPage": {
+            "@type": "WebSite",
+            "@id": "https://w-jin.github.io/"
+        }
+    }
+</script>
+
+    
+
+<meta name="twitter:card" content="summary_large_image" />
+
+
+
+    
+
+
+
+<meta property="og:title" content="MPI教程1" />
+<meta property="og:description" content="MPI(Message Passing Interface，消息传递编程接口)是由全世界工业、科研和政府部门联合建立的一……" />
+<meta property="og:url" content="https://w-jin.github.io/tech/mpi1/" />
+<meta property="og:site_name" content="wjin" />
+<meta property="og:locale" content="zh" /><meta property="og:image" content="https://w-jin.github.io/assets/mpi_mode.png" />
+<meta property="og:type" content="article" />
+    <meta property="article:published_time" content="2020-07-28T22:12:35&#43;08:00" />
+    <meta property="article:modified_time" content="2020-12-04T17:18:10&#43;08:00" />
+    
+    <meta property="article:section" content="tech" />
+
+
+
+    
+    
+
+    
+</head>
+
+    <body>
+        <div class="container">
+            
+    <header class="header">
+        
+            <div class="header-wrapper">
+                <div class="header-inner single">
+                    
+    <div class="site-brand">
+        
+            <a href="/" class="brand">wjin</a>
+        
+    </div>
+
+                    <nav class="nav">
+    <ul class="menu" id="menu">
+        
+            
+        
+        
+        
+        
+            
+                <li class="menu-item"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="icon home"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></svg><span class="menu-item-name">首页</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tech/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">技术</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/article/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">文青</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tags/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="icon tags"><path d="M497.941 225.941L286.059 14.059A48 48 0 0 0 252.118 0H48C21.49 0 0 21.49 0 48v204.118a48 48 0 0 0 14.059 33.941l211.882 211.882c18.744 18.745 49.136 18.746 67.882 0l204.118-204.118c18.745-18.745 18.745-49.137 0-67.882zM112 160c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm513.941 133.823L421.823 497.941c-18.745 18.745-49.137 18.745-67.882 0l-.36-.36L527.64 323.522c16.999-16.999 26.36-39.6 26.36-63.64s-9.362-46.641-26.36-63.64L331.397 0h48.721a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882z"/></svg><span class="menu-item-name">标签</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/about/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="icon user-circle"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 96c48.6 0 88 39.4 88 88s-39.4 88-88 88-88-39.4-88-88 39.4-88 88-88zm0 344c-58.7 0-111.3-26.6-146.5-68.2 18.8-35.4 55.6-59.8 98.5-59.8 2.4 0 4.8.4 7.1 1.1 13 4.2 26.6 6.9 40.9 6.9 14.3 0 28-2.7 40.9-6.9 2.3-.7 4.7-1.1 7.1-1.1 42.9 0 79.7 24.4 98.5 59.8C359.3 421.4 306.7 448 248 448z"/></svg><span class="menu-item-name">关于</span></a>
+                </li>
+            
+        
+            
+                
+                    
+                    
+                        <li class="menu-item">
+                            <a id="theme-switcher" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-light"><path d="M193.2 104.5l48.8-97.5a18 18 0 0128 0l48.8 97.5 103.4 -34.5a18 18 0 0119.8 19.8l-34.5 103.4l97.5 48.8a18 18 0 010 28l-97.5 48.8 34.5 103.4a18 18 0 01-19.8 19.8l-103.4-34.5-48.8 97.5a18 18 0 01-28 0l-48.8-97.5l-103.4 34.5a18 18 0 01-19.8-19.8l34.5-103.4-97.5-48.8a18 18 0 010-28l97.5-48.8-34.5-103.4a18 18 0 0119.8-19.8zM256 128a128 128 0 10.01 0M256 160a96 96 0 10.01 0"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-dark"><path d="M27 412a256 256 0 10154-407a11.5 11.5 0 00-5 20a201.5 201.5 0 01-134 374a11.5 11.5 0 00-15 13"/></svg></a>
+                        </li>
+                    
+                
+            
+        
+            
+                
+            
+        
+    </ul>
+</nav>
+
+                    
+                </div>
+            </div>
+            
+    <input type="checkbox" id="nav-toggle" aria-hidden="true" />
+    <label for="nav-toggle" class="nav-toggle"></label>
+    <label for="nav-toggle" class="nav-curtain"></label>
+
+
+        
+    </header>
+
+
+
+
+            
+            
+    <main class="main single" id="main">
+    <div class="main-inner">
+
+        
+
+        <article class="content post h-entry" data-align="justify" data-type="tech" data-toc-num="true">
+
+            <h1 class="post-title p-name">MPI教程1</h1>
+
+            
+
+            
+                
+            
+
+            
+                
+
+<div class="post-meta">
+    
+        
+        <time datetime="2020-07-28T22:12:35&#43;08:00" class="post-meta-item published dt-published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2020.7.28</time>
+    
+    
+        
+        <time datetime="2020-12-04T17:18:10&#43;08:00" class="post-meta-item modified dt-updated"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.12.4</time>
+    
+    
+    
+        
+        
+        
+            
+        
+    
+    
+        
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;4930</span>
+    
+    
+        
+        <span class="post-meta-item reading-time"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></svg>&nbsp;10&nbsp;分钟</span>
+    
+    
+    
+</div>
+
+            
+
+            <nav class="contents">
+  <h2 id="contents" class="contents-title">目录</h2><ol class="toc">
+    <li>
+      <ol>
+        <li><a id="contents:mpi运行模式" href="#mpi运行模式">MPI运行模式</a></li>
+        <li><a id="contents:安装" href="#安装">安装</a></li>
+        <li><a id="contents:集群配置" href="#集群配置">集群配置</a>
+          <ol>
+            <li><a id="contents:节点情况" href="#节点情况">节点情况</a></li>
+            <li><a id="contents:免密登录" href="#免密登录">免密登录</a></li>
+            <li><a id="contents:共享目录" href="#共享目录">共享目录</a></li>
+            <li><a id="contents:进程数量控制" href="#进程数量控制">进程数量控制</a></li>
+          </ol>
+        </li>
+        <li><a id="contents:进程特点" href="#进程特点">进程特点</a></li>
+        <li><a id="contents:mpi重要概念" href="#mpi重要概念">MPI重要概念</a></li>
+        <li><a id="contents:mpi函数形式" href="#mpi函数形式">MPI函数形式</a></li>
+        <li><a id="contents:mpi数据类型" href="#mpi数据类型">MPI数据类型</a></li>
+        <li><a id="contents:mpi程序结构" href="#mpi程序结构">MPI程序结构</a></li>
+        <li><a id="contents:例1计算pi的值--全局归约" href="#例1计算pi的值--全局归约">例1、计算$\pi$的值--全局归约</a></li>
+        <li><a id="contents:文档" href="#文档">文档</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav><div class="post-body e-content">
+                <p>MPI(Message Passing Interface，消息传递编程接口)是由全世界工业、科研和政府部门联合建立的一个消息传递编程标准，其目的是为基于消息传递的并行程序设计提供一个高效的、可扩展的、统一的编程环境。MPI标准定义了一组c和fortran函数接口，用于进程间的消息传递，这组函数的具体实现由各厂商实现。流行的实现有mpich和OpenMPI等，本节代码运行于mpich下，且只介绍c语言接口。</p>
+<h3 id="mpi运行模式"><a href="#mpi运行模式" class="anchor-link">§</a><a href="#contents:mpi运行模式" class="headings">MPI运行模式</a></h3>
+<p><img src="assets/mpi_mode.png" alt="mpi_mode"></p>
+<h3 id="安装"><a href="#安装" class="anchor-link">§</a><a href="#contents:安装" class="headings">安装</a></h3>
+<p>流行的Linux版本可以直接从软件仓库安装，如</p>
+<p>ubuntu: sudo apt install mpich</p>
+<p>centos: sudo yum list mpich*, sudo yum install mpichX</p>
+<p>mpich等主流mpi实现都不支持windows，在windows上使用mpi，需要安装ms-mpi，从https://github.com/microsoft/Microsoft-MPI/releases下载文件msmpisdk.msi和msmpisetup.exe安装即可。</p>
+<p>如果因为某些原因不得不从源代码安装，可以遵循以下流程进行安装(假设无root权限)。</p>
+<p>1、从mpich网站下载源代码并传至服务器</p>
+<pre tabindex="0"><code>$ wget https://www.mpich.org/static/downloads/3.0.4/mpich-3.0.4.tar.gz
+$ scp mpich-3.0.4.tar.gz user@remote_ip:/home/user/mpich-3.0.4.tar.gz -P 22
+</code></pre><p>更多版本可以在https://www.mpich.org/downloads/和https://www.mpich.org/static/downloads/找到。</p>
+<p>2、解压缩</p>
+<pre tabindex="0"><code>$ tar -xf mpich-3.0.4.tar.gz
+</code></pre><p>3、编译</p>
+<pre tabindex="0"><code>$ mkdir mpich
+$ cd mpich-3.0.4
+$ ./configure --prefix=/home/user/mpich/ 2&gt;&amp;1 | tee c.log
+$ make 2&gt;&amp;1 | tee m.log
+$ make install 2&gt;&amp;1 | tee mi.log
+</code></pre><p>4、加入环境变量。编辑~/.bashrc，修改或者添加以下行：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="nb">export</span> <span class="nv">PATH</span><span class="o">=</span><span class="s2">&#34;/home/user/mpich/bin:</span><span class="nv">$PATH</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nb">export</span> <span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="s2">&#34;/home/user/mpich/lib:</span><span class="nv">$LD_LIBRARY_PATH</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nb">export</span> <span class="nv">C_INCLUDE_PATH</span><span class="o">=</span><span class="s2">&#34;/home/user/mpich/include:</span><span class="nv">$C_INCLUDE_PATH</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nb">export</span> <span class="nv">CPLUS_INCLUDE_PATH</span><span class="o">=</span><span class="s2">&#34;/home/user/mpich/include:</span><span class="nv">$CPLUS_INCLUDE_PATH</span><span class="s2">&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nb">export</span> <span class="nv">LIBRARY_PATH</span><span class="o">=</span><span class="s2">&#34;/home/user/mpich/lib:</span><span class="nv">$LIBRARY_PATH</span><span class="s2">&#34;</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>编译过程可以参考：https://www.mpich.org/static/downloads/3.3.2/mpich-3.3.2-installguide.pdf.</p>
+<h3 id="集群配置"><a href="#集群配置" class="anchor-link">§</a><a href="#contents:集群配置" class="headings">集群配置</a></h3>
+<h4 id="节点情况"><a href="#节点情况" class="anchor-link">§</a><a href="#contents:节点情况" class="headings">节点情况</a></h4>
+<p>假定一个集群中有4个节点，每个节点配置一个内部通信用的静态ip地址，且每个节点至少有一个别名。/etc/hosts文件如下：</p>
+<pre tabindex="0"><code>127.0.0.1	localhost
+
+21.21.21.1       node1  gpunode1
+21.21.21.2       node2  gpunode2
+21.21.21.3       node3  gpunode3
+21.21.21.4       node4  gpunode4
+</code></pre><p>各个节点之前是否互通可以通过ping来测试：</p>
+<pre tabindex="0"><code>$ ping node2 -c 4
+PING node2 (21.21.21.2) 56(84) bytes of data.
+64 bytes from node2 (21.21.21.2): icmp_seq=1 ttl=64 time=0.181 ms
+64 bytes from node2 (21.21.21.2): icmp_seq=2 ttl=64 time=0.181 ms
+64 bytes from node2 (21.21.21.2): icmp_seq=3 ttl=64 time=0.162 ms
+64 bytes from node2 (21.21.21.2): icmp_seq=4 ttl=64 time=0.185 ms
+
+--- node2 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 2999ms
+rtt min/avg/max/mdev = 0.162/0.177/0.185/0.013 ms
+</code></pre><p>首先每个节点都需要有自己能访问的用户，此处假定4个节点上的用户名都为user。</p>
+<h4 id="免密登录"><a href="#免密登录" class="anchor-link">§</a><a href="#contents:免密登录" class="headings">免密登录</a></h4>
+<p>切换节点可以用ssh登录：</p>
+<pre tabindex="0"><code>user@node1:~$ ssh node2
+user@node2&#39;s password:
+Last login: Tue Jul 21 23:31:08 2020 from node1
+user@node2:~$
+</code></pre><p>mpi可以通过ssh进行通信，但必须配置免密登录。ssh的免密登录通过公钥/密钥认证实现。以下介绍步骤。</p>
+<p>1、在node1上生成公钥和密钥</p>
+<pre tabindex="0"><code>user@node1:~$ ssh-keygen -t rsa
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/user/.ssh/id_rsa): 
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/user/.ssh/id_rsa.
+Your public key has been saved in /home/iser/.ssh/id_rsa.pub.
+The key fingerprint is:
+dc:da:09:df:08:d5:bf:e4:30:22:c1:00:24:20:f9:24 user@node1
+The key&#39;s randomart image is:
++--[ RSA 2048]----+
+|oo<em class="emphasis-point">o</em>          |
+|E ..   o   .     |
+| +      o . .    |
+|  .    . +   .   |
+|        S o o o  |
+|         B = = . |
+|        . = . o  |
+|                 |
+|                 |
++-----------------+
+</code></pre><p>中途询问路径和密码直接回车即可。生成的公钥和密钥分别存放在文件/home/user/.ssh/id_rsa.pub和/home/user/.ssh/id_rsa中。</p>
+<p>2、将node1生成的公钥加入node2、node3、node4的authorized_keys中：</p>
+<pre tabindex="0"><code>user@node2:~$ mkdir ~/.ssh
+user@node2:~$ scp node1:/home/user/.ssh/id_rsa.pub ~/.ssh/authorized_keys
+...
+</code></pre><p>3、更改权限</p>
+<pre tabindex="0"><code>user@node2:~$ chmod 700 ~/.ssh
+user@node2:~$ chmod 600 ~/.ssh/authorized_keys
+...
+</code></pre><p>此时从node1登录node2、node3、node4不再需要输入密码了。如果仍然不能登录，则检查node2、node3、node4的ssh配置文件/etc/ssh/sshd_config中以下几个选项是否正确：</p>
+<pre tabindex="0"><code>RSAAuthentication yes                    # 启用 RSA 认证
+PubkeyAuthentication yes                 # 启用公钥私钥配对认证方式
+AuthorizedKeysFile .ssh/authorized_keys  # 公钥文件路径
+</code></pre><p>如果不是上述配置则改成上述配置然后重启ssh服务：service ssh restart</p>
+<p>如果要从node2等节点免密登录其它节点，按上述流程操作即可。</p>
+<p>2020-12-14 更新：可以直接执行ssh-copy-id user@host来将自己的id_rsa.pub加入到host的user用户的.ssh/authorized_keys中，这样就不需要手动更改authorized_keys了。比如要从node1免密登录node2，则在node1上执行ssh-copy-id node2，然后输入密码即可。</p>
+<h4 id="共享目录"><a href="#共享目录" class="anchor-link">§</a><a href="#contents:共享目录" class="headings">共享目录</a></h4>
+<p>我们只在一个节点上编译了mpich，其它节点上也需要安装mpich并配置环境变量，可以将它拷贝过去:</p>
+<pre tabindex="0"><code>user@node1:~$ scp -r .bashrc mpich node2:/home/user/mpich
+</code></pre><p>除mpich需要每个节点一份以外，每次编译好的可执行文件也需要每个节点都有一份且路径相同，为简单起见，此处使用共享目录进行同步。</p>
+<p>注意：设置共享目录必须有root权限！</p>
+<p>假定各个节点已经安装了nfs-utils，需要同步的目录为/home/user/workspace，此目录仅存储于node1的磁盘上，遵循以下步骤操作可将此目录挂载至node2、node3、node4：</p>
+<p>1、首先编辑node1的/etc/export文件，加入一行：</p>
+<pre tabindex="0"><code>/home/user/workspace *(rw,sync,root_squash)
+</code></pre><p>其中，</p>
+<p>*()：所有主机都可挂载；</p>
+<p>rw：read-write，可读写；</p>
+<p>sync：同步写入(文件同时写入硬盘和内存)，适用在通信比较频繁且实时性比较高的场合；</p>
+<p>root_squash：把客户端root身份的UID/GID(0/0)对应到服务端的nobody用户去，即服务端使用nobody用户来操作共享目录。</p>
+<p>2、然后在node1上执行：</p>
+<pre tabindex="0"><code>root@node1:~# exportfs -rav
+exporting *:/home/user/workspace
+</code></pre><p>3、然后在node2、node3、node4上分别执行：</p>
+<pre tabindex="0"><code>root@node2:~# mkdir /home/user/workspace
+root@node2:~# mount -t nfs -o nfsvers=3 node1:/home/user/workspace /home/user/workspace
+</code></pre><p>4、如果node2、node3、node4上未见到共享目录的内容，可以重启nfs服务：</p>
+<pre tabindex="0"><code>root@node2:~# service nfs restart
+</code></pre><h4 id="进程数量控制"><a href="#进程数量控制" class="anchor-link">§</a><a href="#contents:进程数量控制" class="headings">进程数量控制</a></h4>
+<p>假设编译出来的可执行文件为/home/user/workspace/a.out。在/home/user/workspace下新建一个名为servers的文本文件，内容如下：</p>
+<pre tabindex="0"><code>node1:2
+node2:2
+node3:2
+node4:2
+</code></pre><p>然后执行：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">user@node1:~/workspace$ mpiexec -f servers ./a.out
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>这样就可以使用4个节点共8个进程进行计算。以上操作在任意一个节点上进行都可以，只要此节点可以免密登录其余节点。</p>
+<p>注意：此节上述配置仅适用于mpich，如果是openmpi，按照下面的操作进行。</p>
+<p>1、在/home/user/workspace/下新建一个文本文件，名为hostfile，内容为：</p>
+<pre tabindex="0"><code>node1 slots=2
+node2 slots=2
+node3 slots=2
+node4 slots=2
+</code></pre><p>2、执行：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">user@node1:~/workspace$ mpiexec --hostfile hostfile ./a.out
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><h3 id="进程特点"><a href="#进程特点" class="anchor-link">§</a><a href="#contents:进程特点" class="headings">进程特点</a></h3>
+<p>1、进程与程序相联，程序一旦在操作系统中运行即成为进程。</p>
+<p>2、进程拥有独立的执行环境，内存空间彼此不相交。</p>
+<p>3、进程间可以相互交换信息。例如数据交换、同步等待，消息是这些交换信息的基本单位，消息传递是实现进程间通信的唯一方式。</p>
+<h3 id="mpi重要概念"><a href="#mpi重要概念" class="anchor-link">§</a><a href="#contents:mpi重要概念" class="headings">MPI重要概念</a></h3>
+<p>1、进程组(process group)：MPI程序的全部进程集合的一个有序子集，且进程组中每个进程被赋于一个在该组中唯一的序号(rank)，用于在该组中标识该进程。序号的取值范围是[0, 进程数-1]。</p>
+<p>2、通信器(communicator)：一类进程的集合即一个进程组，且在该进程组，进程间可以相互通信。任何MPI通信函数均必须在某个通信器内发生。MPI系统提供省缺的通信器MPI_COMM_WORLD，所有启动的MPI进程通过调用函数MPI_Init()包含在该通信器内；各进程通过函数MPI_Comm_size()获取通信器包含的(初始启动)的MPI进程个数。</p>
+<p>3、进程序号(rank)：用来在一个进程组或通信器中标识一个进程。MPI程序中进程在进程组内有唯一序号，不同进程组内的同一进程可以有不同的序号。</p>
+<p>4、消息(message)：分为数据(data)和包装(envelope)两个部分。包装由接收进程序号/发送进程序号、消息标号和通信器三部分组成，数据是用户将要传递的内容。</p>
+<p>5、MPI对象：MPI系统内部定义的数据结构，包括数据类型(如MPI_INT)、通信器(MPI_Comm)、通信请求(MPI_Request)等。</p>
+<p>6、MPI联接器(handles)：联接MPI对象的具体变量，用户可以通过它访问和参与相应MPI对象的具体操作。例如，MPI系统内部提供的通信器MPI_COMM_WORLD。</p>
+<h3 id="mpi函数形式"><a href="#mpi函数形式" class="anchor-link">§</a><a href="#contents:mpi函数形式" class="headings">MPI函数形式</a></h3>
+<p>MPI的函数名称以MPI_开头，一般形式为：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">MPI_Xxxx</span><span class="p">(</span><span class="n">parameters_list</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>除MPI_Wtick和MPI_Wtime外，其它函数的返回值都是整型错误编码，如全局归约函数声明为：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">MPI_Reduce</span><span class="p">(</span><span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">sendbuf</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">recvbuf</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">,</span> <span class="n">MPI_Datatype</span> <span class="n">datatype</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">               <span class="n">MPI_Op</span> <span class="n">op</span><span class="p">,</span> <span class="kt">int</span> <span class="n">root</span><span class="p">,</span> <span class="n">MPI_Comm</span> <span class="n">comm</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>返回值可能为：MPI_SUCCESS、MPI_ERR_COMM、MPI_ERR_COUNT、MPI_ERR_TYPE、MPI_ERR_BUFFER。标识了MPI_Reduce函数调用过程中可能发生的错误。</p>
+<h3 id="mpi数据类型"><a href="#mpi数据类型" class="anchor-link">§</a><a href="#contents:mpi数据类型" class="headings">MPI数据类型</a></h3>
+<p>MPI的许多函数调用时，需要指定传递的数据类型，MPI的数据类型定义为结构体MPI_Datatype，内置类型见下表:</p>
+<div class="table-container"><table>
+<thead>
+<tr>
+<th>MPI_Datatype</th>
+<th>对应c语言类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MPI_CHAR</td>
+<td>char</td>
+</tr>
+<tr>
+<td>MPI_SHORT</td>
+<td>short</td>
+</tr>
+<tr>
+<td>MPI_INT</td>
+<td>int</td>
+</tr>
+<tr>
+<td>MPI_LONG</td>
+<td>long</td>
+</tr>
+<tr>
+<td>MPI_FLOAT</td>
+<td>float</td>
+</tr>
+<tr>
+<td>MPI_DOUBLE</td>
+<td>double</td>
+</tr>
+<tr>
+<td>MPI_UNSIGNED_CHAR</td>
+<td>unsigned char</td>
+</tr>
+<tr>
+<td>MPI_UNSIGNED_SHORT</td>
+<td>unsigned short</td>
+</tr>
+<tr>
+<td>MPI_UNSIGNED</td>
+<td>unsigned int</td>
+</tr>
+<tr>
+<td>MPI_UNSIGNED_LONG</td>
+<td>unsigned long</td>
+</tr>
+<tr>
+<td>MPI_LONG_LONG_INT</td>
+<td>long long</td>
+</tr>
+<tr>
+<td>MPI_LONG_DOUBLE</td>
+<td>long double</td>
+</tr>
+</tbody>
+</table></div>
+<p>需要注意的是MPI_DOUBLE这样的类型不是真正的类型，而是对象，目的是用来告知MPI操作数的类型，声明变量仍然只能使用对应的c语言类型。</p>
+<p>除了这些内置类型，MPI还支持自定义类型，这个功能在后面介绍。</p>
+<h3 id="mpi程序结构"><a href="#mpi程序结构" class="anchor-link">§</a><a href="#contents:mpi程序结构" class="headings">MPI程序结构</a></h3>
+<p>下面是MPI程序的典型结构：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;mpi.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="c1">// ...
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// 定义变量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">int</span> <span class="n">rank</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">nprocs</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="c1">// 并行区域
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">MPI_Init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">argc</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">argv</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">MPI_Comm_size</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">nprocs</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">MPI_Comm_rank</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">rank</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="c1">// ...
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    
+</span></span><span class="line"><span class="cl">    <span class="c1">// 结束并行
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">MPI_Finalize</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>函数MPI_Init用于初始化MPI系统，在调用其它MPI函数(除MPI_Initialized外)之前必须先调用譔函数。在许多MPI系统中，第一个进程通过MPI_Init来启动其它进程。注意要将命令行参数的地址传递给MPI_Init，因为MPI程序启动时一些初始化参数是通过命令行传递给进程的，这些参数被添加在命令行参数列表中，MPI_Init通过它可以得到MPI程序运行的相关信息。</p>
+<p>函数MPI_Comm_size和MPI_Comm_rank分别返回指定通信器中进程的数目和本进程的编号。</p>
+<p>函数MPI_Finalize用于退出MPI系统，调用MPI_Finalize之后不能再调用其它MPI函数。</p>
+<p>要注意即使是MPI_Init之前的代码，也会被所有进程执行，只是无法使用MPI进行通信，因此要注意资源的分配和数据的一致性。</p>
+<h3 id="例1计算pi的值--全局归约"><a href="#例1计算pi的值--全局归约" class="anchor-link">§</a><a href="#contents:例1计算pi的值--全局归约" class="headings">例1、计算$\pi$的值--全局归约</a></h3>
+<p>通过近似计算定积分$\int_0^1\cfrac{4}{1 + x^2}dx$来计算$\pi$。根据定积分的定义，有：
+$$
+\int_0^1\cfrac{4}{1 + x^2}dx = \lim_{n \rightarrow +\infty} h\sum_{i=0}^{n-1} f(x_i)
+$$
+其中$h=1/n$为积分步长；$x_i=(i+0.5)h$为区间中点；$f(x)=\cfrac{4}{1 + x^2}$为被积函数。</p>
+<p>每个进程计算一部分和，然后进行归约。</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="c1">// 文件名：pi.cpp
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;mpi.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="kt">double</span> <span class="nf">f</span><span class="p">(</span><span class="kt">double</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mf">4.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">MPI_Init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">argc</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">argv</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">int</span> <span class="n">np</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">MPI_Comm_size</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">np</span><span class="p">);</span>  <span class="c1">// 获取进程数量
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="n">MPI_Comm_rank</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">id</span><span class="p">);</span>  <span class="c1">// 获取进程id
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">    <span class="k">const</span> <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">;</span>    <span class="c1">// 分成100000段来计算
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">const</span> <span class="kt">double</span> <span class="n">h</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">n</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">double</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 0号进程统计时间
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kt">double</span> <span class="n">start_time</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">end_time</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="mi">0</span> <span class="o">==</span> <span class="n">id</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">start_time</span> <span class="o">=</span> <span class="n">MPI_Wtime</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">id</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="n">np</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">sum</span> <span class="o">+=</span> <span class="n">f</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">    <span class="n">sum</span> <span class="o">*=</span> <span class="n">h</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="kt">double</span> <span class="n">pi</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">MPI_Reduce</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sum</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">pi</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">MPI_DOUBLE</span><span class="p">,</span> <span class="n">MPI_SUM</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">MPI_COMM_WORLD</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 0号进程输出结果
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">if</span> <span class="p">(</span><span class="mi">0</span> <span class="o">==</span> <span class="n">id</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="n">end_time</span> <span class="o">=</span> <span class="n">MPI_Wtime</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">        <span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="p">.</span><span class="n">precision</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">        <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;pi is &#34;</span> <span class="o">&lt;&lt;</span> <span class="n">pi</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;the time cost is &#34;</span> <span class="o">&lt;&lt;</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">MPI_Finalize</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>编译：<code>mpicxx pi.cpp -o pi.out</code></p>
+<p>一个进程执行：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ ./pi.out
+</span></span><span class="line"><span class="cl">pi is 3.141592654
+</span></span><span class="line"><span class="cl">the <span class="nb">time</span> cost is 0.001555681229
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>多个进程执行：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ mpiexec -n <span class="m">4</span> ./pi.out
+</span></span><span class="line"><span class="cl">pi is 3.141592654
+</span></span><span class="line"><span class="cl">the <span class="nb">time</span> cost is 0.0006926059723
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>此段代码主要用到的函数为MPI_Reduce，签名为：</p>
+<div class="highlight"><div class="chroma">
+<div class="table-container"><table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="kt">int</span> <span class="nf">MPI_Reduce</span><span class="p">(</span><span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">sendbuf</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">recvbuf</span><span class="p">,</span> <span class="kt">int</span> <span class="n">count</span><span class="p">,</span> <span class="n">MPI_Datatype</span> <span class="n">datatype</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">               <span class="n">MPI_Op</span> <span class="n">op</span><span class="p">,</span> <span class="kt">int</span> <span class="n">root</span><span class="p">,</span> <span class="n">MPI_Comm</span> <span class="n">comm</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table></div>
+</div>
+</div><p>此函数的功能可由下图描述：</p>
+<p><img src="assets/MPI_Reduce.png" alt="MPI_Reduce"></p>
+<p>MPI_Op为归约操作的二元运算，此处需要将各个进程的结果求和，因此指定为MPI_SUM。可用的操作见下表：</p>
+<div class="table-container"><table>
+<thead>
+<tr>
+<th>MPI_Op</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MPI_MAX</td>
+<td>两个操作数中较大的一个</td>
+</tr>
+<tr>
+<td>MPI_MIN</td>
+<td>两个操作数中较小的一个</td>
+</tr>
+<tr>
+<td>MPI_SUM</td>
+<td>两个操作数之和</td>
+</tr>
+<tr>
+<td>MPI_PROD</td>
+<td>两个操作数之积</td>
+</tr>
+<tr>
+<td>MPI_LAND</td>
+<td>两个操作数的逻辑与(logical and)</td>
+</tr>
+<tr>
+<td>MPI_BAND</td>
+<td>两个操作数的按位与(bitwise and)</td>
+</tr>
+<tr>
+<td>MPI_LOR</td>
+<td>两个操作数的逻辑或(logical or)</td>
+</tr>
+<tr>
+<td>MPI_BOR</td>
+<td>两个操作数的按位或(bitwise or)</td>
+</tr>
+<tr>
+<td>MPI_LXOR</td>
+<td>两个操作数的逻辑异或(logical xor)</td>
+</tr>
+<tr>
+<td>MPI_BXOR</td>
+<td>两个操作数的按位异或(bitwise xor)</td>
+</tr>
+<tr>
+<td>MPI_MAXLOC</td>
+<td>两对操作数的最大值和最大值的位置(u,i)op(v,j)=(max(u,v),k)</td>
+</tr>
+<tr>
+<td>MPI_MINLOC</td>
+<td>两对操作数的最小值和最小值的位置(u,i)op(v,j)=(min(u,v),k)</td>
+</tr>
+</tbody>
+</table></div>
+<p>如果需要的操作没有预定义的MPI_Op，可以通过MPI_Op_create函数定义合适的函数。</p>
+<p>count指定数组长度，datatype指定数组的元素类型，root和comm分别指示归约到哪个进程和在哪个进程组内归约。</p>
+<h3 id="文档"><a href="#文档" class="anchor-link">§</a><a href="#contents:文档" class="headings">文档</a></h3>
+<p>[1] <a href="https://www.open-mpi.org/doc/current/" target="_blank" rel="noopener">https://www.open-mpi.org/doc/current/</a>.</p>
+<p>[2] <a href="https://www.mpich.org/static/docs/latest/" target="_blank" rel="noopener">https://www.mpich.org/static/docs/latest/</a>.</p>
+<p>[3] <a href="https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf" target="_blank" rel="noopener">https://www.mpi-forum.org/docs/mpi-3.1/mpi31-report.pdf</a>.</p>
+
+            </div>
+
+            
+    
+    
+        <ul class="post-copyright">
+            <li class="copyright-item author"><span class="copyright-item-text">作者</span>：<a href="https://w-jin.github.io/" class="p-author h-card" target="_blank" rel="noopener">wjin</a></li>
+            
+                
+                
+                
+                
+                <li class="copyright-item link"><span class="copyright-item-text">链接</span>：<a href="/tech/mpi1/" target="_blank" rel="noopener">https://w-jin.github.io/tech/mpi1/</a></li>
+            
+            <li class="copyright-item license"><span class="copyright-item-text">许可</span>：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></li>
+            
+        </ul>
+    
+
+
+
+        </article>
+
+        
+
+        
+
+
+        
+
+
+        
+
+
+        
+    
+    
+        <div class="related-posts">
+            <h2 class="related-title">相关文章：<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon related-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm144 276c0 6.6-5.4 12-12 12h-92v92c0 6.6-5.4 12-12 12h-56c-6.6 0-12-5.4-12-12v-92h-92c-6.6 0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h92v-92c0-6.6 5.4-12 12-12h56c6.6 0 12 5.4 12 12v92h92c6.6 0 12 5.4 12 12v56z"/></svg></h2>
+            <ul class="related-list">
+                
+                    <li class="related-item">
+                        <a href="/tech/mpi4/" class="related-link">MPI教程4</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/mpi3/" class="related-link">MPI教程3</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/mpi2/" class="related-link">MPI教程2</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda10/" class="related-link">CUDA教程10 -- 多GPU编程</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/cuda9/" class="related-link">CUDA教程9 -- 代数多重网格</a>
+                    </li>
+                
+            </ul>
+        </div>
+    
+
+
+
+        
+    
+        <div class="post-tags">
+            
+                
+                
+                
+                
+                    
+                    <a href="/tags/mpi/" rel="tag" class="post-tags-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49 0 48 0h204.118a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882 0L14.059 286.059A48 48 0 0 1 0 252.118zM112 64c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>MPI</a>
+                
+            
+        </div>
+    
+
+
+
+        
+
+
+        
+
+
+        
+    
+        
+        
+    
+    
+    
+    
+        <ul class="post-nav">
+            
+                <li class="post-nav-prev">
+                    <a href="/tech/mpi2/" rel="prev">&lt; MPI教程2</a>
+                </li>
+            
+            
+                <li class="post-nav-next">
+                    <a href="/tech/cpp-functional-style-and-tbb/" rel="next">c++函数式编程与TBB教程 &gt;</a>
+                </li>
+            
+        </ul>
+    
+
+
+
+        
+    
+
+        
+            <div class="load-comments">
+                <div id="load-comments">加载评论</div>
+            </div>
+        
+
+        
+
+        
+            <div id="vcomments"></div>
+        
+
+        
+
+        
+    
+
+
+
+    </div>
+</main>
+
+
+            
+    <div id="back-to-top" class="back-to-top">
+        <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon arrow-up"><path d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z"/></svg></a>
+    </div>
+
+
+            
+    <footer id="footer" class="footer">
+        <div class="footer-inner">
+            <div class="site-info">©&nbsp;1999–2023&nbsp;<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon footer-icon"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>&nbsp;wjin</div><div class="powered-by">Powered by <a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo</a> | Theme is <a href="https://github.com/reuixiy/hugo-theme-meme" target="_blank" rel="noopener">MemE</a></div><div class="site-copyright"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></div>
+
+            
+
+
+            
+        </div>
+    </footer>
+
+
+        </div>
+        
+
+        
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
+<script>
+    if (typeof renderMathInElement === 'undefined') {
+        const getScript = (options) => {
+            const script = document.createElement('script');
+            script.defer = true;
+            script.crossOrigin = 'anonymous';
+            Object.keys(options).forEach((key) => {
+                script[key] = options[key];
+            });
+            document.body.appendChild(script);
+        };
+        getScript({
+            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/katex.min.js',
+            onload: () => {
+                getScript({
+                    src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/mhchem.min.js',
+                    onload: () => {
+                        getScript({
+                            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/auto-render.min.js',
+                            onload: () => {
+                                renderKaTex();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } else {
+        renderKaTex();
+    }
+    function renderKaTex() {
+        renderMathInElement(
+            document.body,
+            {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ]
+            }
+        );
+    }
+</script>
+
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.8.3/dist/mermaid.min.js"></script>
+<script>
+    const mermaidConfig = {
+        startOnLoad: true,
+        flowchart: {
+            useMaxWidth: false,
+            htmlLabels: true
+        },
+        theme: 'default'
+    };
+    mermaid.initialize(mermaidConfig);
+</script>
+
+
+
+    
+
+        
+
+        
+            <script>
+    function loadComments() {
+        if (!document.getElementById('vcomments')) {
+            return;
+        }
+        if (typeof Valine === 'undefined') {
+            const getScript = (options) => {
+                const script = document.createElement('script');
+                script.defer = true;
+                script.crossOrigin = 'anonymous';
+                Object.keys(options).forEach((key) => {
+                    script[key] = options[key];
+                });
+                document.body.appendChild(script);
+            };
+            getScript({
+                src: 'https:\/\/cdn.jsdelivr.net\/npm\/valine@1.4.14\/dist\/Valine.min.js',
+                onload: () => {
+                    newValine();
+                }
+            });
+        } else {
+            newValine();
+        }
+    }
+    function newValine() {
+        new Valine({
+            el: '#vcomments',
+            appId: 'oJ3I57xnJeHrSYxtwPqE3uFy-gzGzoHsz',
+            appKey: '3IfvJOtcQchX3DRs4zMGxuqv',
+            placeholder: 'Just go go',
+            path: location.pathname,
+            avatar: 'mm',
+            meta: ["nick","mail","link"],
+            pageSize:  10 ,
+            lang: 'zh-cn',
+            visitor:  false ,
+            highlight:  true ,
+            avatarForce:  false ,
+            recordIP:  false ,
+            serverURLs: '',
+            emojiCDN: '',
+            emojiMaps: {},
+            enableQQ:  true ,
+            requiredFields: []
+        });
+    }
+</script>
+
+        
+
+        
+
+        
+
+    
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/medium-zoom@latest/dist/medium-zoom.min.js"></script>
+
+<script>
+    let imgNodes = document.querySelectorAll('div.post-body img');
+    imgNodes = Array.from(imgNodes).filter(node => node.parentNode.tagName !== "A");
+
+    mediumZoom(imgNodes, {
+        background: 'hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.95)'
+    })
+</script>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/instant.page@5.1.0/instantpage.min.js" type="module" defer></script>
+
+
+
+
+
+
+    </body>
+</html>
