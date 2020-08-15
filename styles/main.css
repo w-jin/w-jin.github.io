@@ -1427,7 +1427,7 @@ p > code {
 .next-md-body code,
 .next-md-body kbd,
 .next-md-body pre {
-  font-family: monospace,monospace;
+  font-family: FiraCodeRetina,monospace,monospace;
   font-size: 1em;
 }
 .next-md-body hr {
@@ -1552,7 +1552,7 @@ p > code {
 }
 .next-md-body code,
 .next-md-body pre {
-  font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
+  font-family: FiraCodeRetina, SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
   font-size: 12px;
 }
 .next-md-body pre {
@@ -1885,7 +1885,7 @@ p > code {
 }
 .next-md-body .blob-code-inner {
   color: #24292e;
-  font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
+  font-family: FiraCodeRetina, SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
   font-size: 12px;
   overflow: visible;
   white-space: pre;
