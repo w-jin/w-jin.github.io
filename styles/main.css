@@ -2062,7 +2062,13 @@ body {
         width: 1080px;
         margin: 0 auto;
       }
-    
+    @font-face {
+      font-family: 'FiraCodeRetina';
+      src: url('/media/fonts/FiraCodeRetina.ttf');
+    }
+    * {
+        font-family: 'FiraCodeRetina';
+    }
     .post-body {
       font-size: 15px !important
     }
