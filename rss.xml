@@ -23,10 +23,402 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Sun, 12 Mar 2023 15:13:50 &#43;0800</lastBuildDate>
+        <lastBuildDate>Sun, 12 Mar 2023 16:28:10 &#43;0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss&#43;xml" href="https://w-jin.github.io/rss.xml" />
         
+        
+            <item>
+                <title>共轭梯度法</title>
+                <link>https://w-jin.github.io/tech/cg/</link>
+                <guid isPermaLink="true">https://w-jin.github.io/tech/cg/</guid>
+                <pubDate>Sun, 12 Mar 2023 16:18:00 &#43;0800</pubDate>
+                
+                    <author>wjiner@outlook.com (wjin)</author>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description>&lt;h1 id=&#34;共轭梯度法&#34;&gt;共轭梯度法&lt;/h1&gt;
+&lt;h2 id=&#34;投影方法&#34;&gt;投影方法&lt;/h2&gt;
+&lt;p&gt;设K是$R^n$的一个子空间，维度$dim(K)  \ll n$，目标为在K中寻找精确解的一个最佳近似，定解条件一般使残量与某个m维空间正交，即投影方法为：
+$$
+find\ \tilde{x} \in K,\quad r=b-A\tilde{x} \perp L
+$$
+其中$\tilde{x}$是精确解在子空间中的投影，L称为约束空间，K称为搜索空间。当L=K时，称为正交投影法，否则称为斜投影法。&lt;/p&gt;
+&lt;p&gt;如果给定一个初值$x^{(0)} \in R^n$，为了充分利用这个初值的相关信息，改为在仿射空间$x^{(0)}+K$中寻找精确解的最佳近似，此时投影方法描述为：
+$$
+find\ \tilde{x} \in x^{(0)}+K, \quad b-A\tilde{x} \perp L
+$$
+令$\tilde{x}=x^{(0)}+\hat{x}$，其中$\hat{x} \in K$，则$b-A\tilde{x}=b-Ax^{(0)}-A\hat{x}=r_0-A\hat{x}$，所以投影方法描述为：
+$$
+find\ \hat{x} \in K,\quad r_0 - A\hat{x} \perp L
+$$
+考虑这个问题的求解，设K和L的基分别为$V=[v_1, v_2, \dots, v_m]$和$W=[w_1, w_2, \dots, w_m]$，则方程的近似解为$\tilde{x}=x^{(0)}+Vy$，其中$y \in R^m$。&lt;/p&gt;
+&lt;p&gt;由正交条件得
+$$
+r_0 - AVy \perp w_i\quad for\ i = 1,2,\dots,m
+$$
+所以
+$$
+\begin{aligned}
+&amp; W^T (r_0-AVy) = 0 \\
+\Longrightarrow \quad &amp; W^TAVy=W^Tr_0 \\
+\Longrightarrow \quad &amp; y=(W^TAV)^{-1}W^Tr_0 \\
+\Longrightarrow \quad &amp; \tilde{x}=x^{(0)}+V(W^TAV)^{-1}W^Tr_0
+\end{aligned}
+$$
+其中$(W^TAV)^{-1}$不需要直接计算，一般在迭代过程中求出y，然后由$\tilde{x}=x^{(0)}+Vy$求出近似解。&lt;/p&gt;
+&lt;h2 id=&#34;krylov子空间与正交基求解&#34;&gt;Krylov子空间与正交基求解&lt;/h2&gt;
+&lt;p&gt;设$A \in R^{n \times n}, r \in R^n$，称
+$$
+K_m(A,r)=span\{ r, Ar, \dots, A^{m-1}r \} \subseteq R^n
+$$
+为A和r生成的m阶Krylov子空间，简记为$K_m$。Krylov子空间方法就是搜索空间为Krylov子空间的投影方法。&lt;/p&gt;
+&lt;p&gt;以下为基于Gram-Schmidt正交化方法求解Krylov子空间$K_m(A,r)$的一组标准正交基的算法，称为Arnoldi算法：
+$$
+\begin{aligned}
+&amp; v_1 = r/\|r\|_2 \\
+&amp; for\ j=1,2,\dots,m-1 \\
+&amp; \qquad w_j = Av_j \\
+&amp; \qquad for\ i=1,2,\dots,j \\
+&amp; \qquad\qquad h_{ij}=(w_j, v_i) \\
+&amp; \qquad\qquad w_j=w_j - h_{ij}v_i \\
+&amp; \qquad end \\
+&amp; \qquad h_{j+1, j} = \|w_j\|_2 \\
+&amp; \qquad if\ h_{j+1,j}=0 \\
+&amp; \qquad\qquad break \\
+&amp; \qquad end \\
+&amp; \qquad v_{j+1}=w_j/h_{j+1,j} \\
+&amp; end
+\end{aligned}
+$$
+如果计算到第j步时有$h_{j+1,j}=0$，则$Av_j$可以由$v_1,v_2,\dots,v_j$线性表出， 方法提前终止。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;定理一&lt;/strong&gt;：如果算法不提前终止，则$V=[v_1, v_2, \dots, v_m]$构成$K_m(A,r)$的一组标准正交基。&lt;/p&gt;
+&lt;p&gt;证明：由Gram-Schmidt正交化方法可知V是正交向量组，如果可以证明$v_j \in K_j$对于$j=1,2,\dots,m$成立，又$dim(K_j) \le j$，则可以证明结论。以下证明$v_j \in K_j$对于$j=1,2,\dots,m$成立。&lt;/p&gt;
+&lt;p&gt;首先证明$Av_j \in K_{j+1}$对于$j=1,2,\dots,m-1$成立：使用数学归纳法：1、$Av_1=Ar/\|r\|_2 \in K_2$。2、假设$Av_j \in K_{j+1}$对于$j=1,2,\dots,k$成立，则
+$$
+Av_{k+1}=A(\cfrac{1}{h_{k+1,k}}(Av_k-\sum_{i=1}^k h_{ik}v_i))=\cfrac{1}{h_{k+1,k}}(A^2 v_k-\sum_{i=1}^k h_{ik}Av_i)
+$$&lt;/p&gt;
+&lt;p&gt;其中$A^2v_k=A(Av_k) \in K_{k+2}$，$Av_i \in K_{i+1} \subseteq K_{i+2} \subseteq \cdots \subseteq K_{k+2}$，所以$Av_{k+1} \in K_{k+2}$。所以$Av_j \in K_{j+1}$对于$j=1,2,\dots,m-1$成立。&lt;/p&gt;
+&lt;p&gt;再由数学归纳法：1、由$v_1=r/\|r\|_2$可知$v_1 \in K_1$。2、假定$v_j \in K_j$对于$j=1,2,\dots,k$成立，又$Av_k \in K_{k+1}$，所以
+$$
+v_{k+1}=\cfrac{1}{h_{k+1,k}}(Av_k-\sum_{i=1}^k h_{ik}v_i) \in K_{k+1}
+$$
+所以$v_j \in K_j$对于$j=1,2,\dots,m$成立。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;矩阵表示&lt;/strong&gt;：因为$h_{j+1,j}v_{j+1}=Av_j-\sum_{i=1}^{j}h_{ij}v_i$，所以
+$$
+\begin{aligned}
+Av_j &amp;= h_{j+1,j}v_{j+1}+\sum_{i=1}^{j}h_{ij}v_i \\
+&amp;=[v_1,v_2,\dots,v_{j+1}]\begin{bmatrix}
+    h_{1j} \\ h_{2j} \\ \vdots \\ h_{j+1,j}
+\end{bmatrix}
+&amp;= [v_1,v_2,\dots,v_m]\begin{bmatrix}
+    h_{1j} \\ \vdots \\ h_{j+1,j} \\ 0 \\ \vdots \\ 0
+\end{bmatrix}\\
+&amp;= V_m H_{m,m-1}(:,j)
+\end{aligned}
+$$
+其中，$V_m=[v_1,v_2,\dots,v_m]$，
+$$
+H_{m,m-1}=\begin{bmatrix}
+    h_{11} &amp; h_{12} &amp; h_{13} &amp; \cdots &amp; h_{1,m-2} &amp; h_{1,m-1} \\
+    h_{21} &amp; h_{22} &amp; h_{23} &amp; \cdots &amp; h_{2,m-2} &amp; h_{2,m-1} \\
+    0      &amp; h_{32} &amp; h_{33} &amp; \cdots &amp; h_{3,m-2} &amp; h_{3,m-1} \\
+    0      &amp; 0      &amp; h_{43} &amp; \cdots &amp; h_{4,m-2} &amp; h_{4,m-1} \\
+    \vdots &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots &amp; \vdots \\
+    0      &amp; 0      &amp; 0      &amp; \cdots &amp; h_{1,m-2} &amp; h_{m-1,m-1} \\
+    0      &amp; 0      &amp; 0      &amp; \cdots &amp; 0         &amp; h_{m,m-1}
+\end{bmatrix}
+\in R^{m \times (m-1)}
+$$
+设$H_m=H_{m+1,m}(1:m,1:m)$是$H_{m+1,m}$前m行组成的Hessenberg矩阵，$e_m=[0,0,\dots,0,1]^T$，容易得到
+$$
+AV_m=V_{m+1}H_{m+1,m}=V_mH_m+h_{m+1,m}v_{m+1}e_m^T
+$$
+所以
+$$
+V_m^TAV_m=H_m+h_{m+1,m} V_m^T v_{m+1}e_m^T = H_m
+$$&lt;/p&gt;
+&lt;h2 id=&#34;lanczos算法&#34;&gt;Lanczos算法&lt;/h2&gt;
+&lt;p&gt;如果A是对称矩阵，则$H_m=V_m^TAV_m$也是一个对称矩阵，再由H的形状可知$H_m$是一个对称三对角矩阵，将其记为：
+$$
+T_k=
+\begin{bmatrix}
+    \alpha_1 &amp; \beta_1 &amp;        &amp; \\
+    \beta_1  &amp; \ddots  &amp; \ddots &amp; \\
+             &amp; \ddots  &amp; \ddots &amp; \beta_{k-1} \\
+             &amp;         &amp; \beta_{k-1} &amp; \alpha_{k}
+\end{bmatrix}
+$$
+与Arnoldi算法类似，有
+$$
+AV_k=V_kT_k+\beta_k v_{k+1}e_k^T
+$$
+和
+$$
+V_k^TAV_k=T_k
+$$&lt;/p&gt;
+&lt;p&gt;考察第一个式子的第j列，令$v_0=0,\beta_0=0$，对$j=1,2,\dots,k-1$，有
+$$
+Av_j=\alpha_j v_j + \beta_j v_{j+1} + \beta_{j-1}v_{j-1}
+$$
+所以
+$$
+\beta_j v_{j+1} = Av_j - \alpha_j v_j - \beta_{j-1}v_{j-1}
+$$
+因此Gram Schmidt正交化过程可以简化为上述三项递推过程，Arnoldi算法简化为Lanczos算法：
+$$
+\begin{aligned}
+&amp; v_0=0,\beta_0=0 \\
+&amp; v_1=r/\|r\|_2 \\
+&amp; for\ j=1,2,\cdots,k-1 \\
+&amp; \qquad w_j=Av_j-\beta_{j-1}v_{j-1} \\
+&amp; \qquad \alpha_j=(w_j, v_j) \\
+&amp; \qquad w_j=w_j-\alpha_j v_j \\
+&amp; \qquad \beta_j=\|w_j\|_2 \\
+&amp; \qquad if\ \beta_j=0 \\
+&amp; \qquad\qquad break \\
+&amp; \qquad end \\
+&amp; \qquad v_{j+1}=w_j / \beta_j \\
+&amp; end
+\end{aligned}
+$$&lt;/p&gt;
+&lt;h2 id=&#34;共轭梯度法-1&#34;&gt;共轭梯度法&lt;/h2&gt;
+&lt;p&gt;此节假定$A \in R^{n \times n}$是对称正定矩阵。&lt;/p&gt;
+&lt;p&gt;设$x^{(0)}$是迭代初始值，在仿射空间$x^{(0)}+K_k$中寻找近似解$x^{(k)}$，满足$b-Ax^{(k)} \perp K_k$。&lt;/p&gt;
+&lt;p&gt;令$x^{(k)}=x^{(0)}+V_ky_k,r_0=b-Ax^{(0)},\beta=\|r_0\|_2$，其中$V_k$是$K_k(A,r_0)$在基组成的矩阵，则
+$$
+V_k^TAV_k=T_k, \quad V_k^Tr_0=V_k^T(\beta v_1)=\beta e_1^{(k)}
+$$
+所以由正交性条件可得
+$$
+V_k^T(b-Ax^{(k)})=V_k^T(r_0-AV_ky_k)=V_k^T r_0-V_k^TAV_ky_k=\beta e_1^{(k)} - T_k y_k = 0
+$$
+所以
+$$
+T_ky_k=\beta e_1^{(k)}, \quad y_k=T_k^{-1}(\beta e_1^{(k)})
+$$
+设$T_k$的Cholesky分解为$T_k=L_kD_kL_k^T$，则
+$$
+x^{(k)}=x^{(0)}+V_ky_k=x^{(0)}+V_kT_k^{-1}(\beta e_1^{(k)})=x^{(0)}+(V_kL_k^{-T})(\beta D_k^{-1}L_k^{-1}e_1^{(k)})
+$$
+下面考虑如何利用递推来计算$x^{(k)}$。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;定理二&lt;/strong&gt;：设$Q_k=V_kL_k^{-T}=[q_1, q_2, \dots, q_k] \in R^{n \times k}$，$z_k=\beta D_k^{-1}L_k^{-1}e_1^{(k)}$，则有递推公式：$Q_{k+1}=V_{k+1}L_{k+1}^{-T}=[Q_k, q_{k+1}],z_{k+1}=\beta D_{k+1}^{-1}L_{k+1}^{-1}e_1^{(k+1)}=[z_k,\eta_{k+1}]^T$，其中$q_{k+1}=-l_k q_k + v_{k+1}$。&lt;/p&gt;
+&lt;p&gt;证明：设$T_k$的Cholesky分解为
+$$
+T_k = L_kD_kL_k^T =
+\begin{bmatrix}
+1 \\
+l_1 &amp; 1 \\
+ &amp; \ddots &amp; \ddots \\
+ &amp; &amp; l_{k-1} &amp; 1
+\end{bmatrix}
+\begin{bmatrix}
+d_1 \\
+&amp; d_2 \\
+&amp; &amp; \ddots \\
+&amp; &amp; &amp; d_k
+\end{bmatrix}
+\begin{bmatrix}
+1 &amp; l_1 \\
+&amp; \ddots &amp; \ddots \\
+&amp; &amp; 1 &amp; l_{k-1} \\
+&amp; &amp; &amp; 1
+\end{bmatrix}
+$$&lt;/p&gt;
+&lt;p&gt;由待定系数法可解出：
+$$
+d_1=\alpha_1,l_i=\beta_i / d_i, d_{i+1}=\alpha_{i+1}-l_i \beta_i, \quad i=1,2,\dots,k-1
+$$
+记$\gamma_k=[0,\dots,0,\beta_k]^T \in R^k, \tilde{\gamma}_k=[0,\dots,0,l_k]^T \in R^k$，则
+$$
+\begin{aligned}
+T_{k+1}&amp;=
+\begin{bmatrix}
+T_k &amp; \gamma_k \\
+\gamma_k^T &amp; \alpha_{k+1}
+\end{bmatrix}=L_{k+1}D_{k+1}L_{k+1}^T
+\end{aligned}
+$$
+且
+$$
+L_{k+1}=\begin{bmatrix}
+L_k &amp; 0 \\
+\tilde{\gamma}_k^T &amp; 1
+\end{bmatrix},
+\qquad
+L_{k+1}^{-1}=\begin{bmatrix}
+L_k^{-1} &amp; 0 \\
+-\tilde{\gamma}_k^T L_k^{-1} &amp; 1
+\end{bmatrix}
+$$
+所以
+$$
+Q_{k+1}=V_{k+1}L_{k+1}^{-T}=[V_k, v_{k+1}]\begin{bmatrix}
+L_k^{-T} &amp; -L_k^{-T}\tilde{\gamma}_k \\
+0 &amp; 1
+\end{bmatrix}
+=[V_kL_k^{-T}, -V_k L_k^{-T}\tilde{\gamma}_k + v_{k+1}]
+$$
+又$V_k L_k^{-T}\tilde{\gamma}_k=Q_k\tilde{\gamma}_k=l_k q_k$，所以$Q_{k+1}=[Q_k,q_{k+1}]$，其中
+$$
+q_{k+1}=-l_k q_k + v_{k+1}
+$$
+另外
+$$
+\begin{aligned}
+z_{k+1}&amp;=\beta D_{k+1}^{-1}L_{k+1}^{-1}e_1^{(k+1)}=\beta \begin{bmatrix}
+D_k^{-1} &amp; 0 \\
+0 &amp; d_{k+1}^{-1}
+\end{bmatrix}
+\begin{bmatrix}
+L_k^{-1} &amp; 0 \\
+-\tilde{\gamma}_k^T L_k^{-1} &amp; 1
+\end{bmatrix}
+\begin{bmatrix}
+e_1^{(k)} \\ 0
+\end{bmatrix} \\
+&amp;= \begin{bmatrix}
+\beta D_k^{-1}L_k^{-1}e_1^{(k)} \\
+-\beta d_{k+1}^{-1}\tilde{\gamma}_k L_k^{-1}e_1^{k}
+\end{bmatrix}
+=
+\begin{bmatrix}
+z_k \\
+\eta_{k+1}
+\end{bmatrix}
+\end{aligned}
+$$
+由定理二可得
+$$
+\begin{equation}
+\begin{aligned}
+x^{(k+1)}&amp;=x^{(0)}+Q_{k+1}z_{k+1} \\
+&amp;=x^{(0)}+[Q_k,q_{k+1}]\begin{bmatrix}
+z_k \\
+\eta_{k+1}
+\end{bmatrix} \\
+&amp;=x^{(0)}+Q_kz_k+\eta_{k+1}q_{k+1} \\
+&amp;=x^{(k)}+\eta_{k+1}q_{k+1}
+\end{aligned}
+\end{equation}
+$$&lt;/p&gt;
+&lt;p&gt;为判断近似解是否满足精度要求，需要计算残量：
+$$
+r_{k+1}=b-Ax^{(k+1)}=b-A(x^{(k)}+\eta_{k+1}q_{k+1})=r_k-\eta_{k+1}Aq_{k+1}
+$$
+另外
+$$
+\begin{aligned}
+r_k = b-Ax^{(k)} &amp;= b-A(x^{(0)}+V_ky_k) \\
+&amp;= r_0 - AV_ky_k \\
+&amp;= \beta v_1 - V_kT_ky_k - \beta_k v_{k+1}e_k^Ty_k \\
+&amp;= - \beta_k (e_k^Ty_k) v_{k+1}
+\end{aligned}
+$$
+因此$r_k$与$v_{k+1}$平行，记
+$$
+r_k = t_k v_{k+1}
+$$
+其中$t_0=\beta=\|r_0\|_2$，$t_k=-\beta_k (e_k^Ty_k)$。&lt;/p&gt;
+&lt;p&gt;令$p_k=t_{k-1}q_k$，则
+$$
+p_{k+1}=t_k q_{k+1}=t_k(-l_k q_k + v_{k+1})=r_k+u_kp_k
+$$
+其中$u_k=-l_kt_k/t_{k-1}$。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;定理三&lt;/strong&gt;：1、$r_0,r_2,\dots,r_k$相互正交；2、$p_1,p_2,\dots,p_k$相互A共轭，即当$i \ne j$时有$p_i^TAp_j=0$。&lt;/p&gt;
+&lt;p&gt;证明：1、$r_i=t_iv_{i+1}$与$v_{i+1}$平行，所以正交。2、因为$p_i=t_{k-1}q_i$，所以$p_i^TAp_j=0$等价于$q_i^TAq_j=0$，所以证明$Q_k^TAQ_k$是一个对角阵即可：
+$$
+Q_k^TAQ_k=(V_kL_k^{-T})^TAV_kL_k^{-T}=L_k^{-1}V_k^TAV_kL_k^{-T}=L_k^{-1}T_kL^{-T}=D_k
+$$&lt;/p&gt;
+&lt;p&gt;将前述$x^{(k+1)}$和残量$r_{k+1}$的迭代公式由$p_i$可表示为
+$$
+\begin{aligned}
+x^{(k+1)}&amp;=x^{(k)}+\eta_{k+1}q_{k+1} = x^{(k)}+\xi_{k+1}p_{k+1} \\
+r_{k+1}&amp;=r_k-\eta_{k+1}Aq_{k+1} = r_k - \xi_{k+1}Ap_{k+1}
+\end{aligned}
+$$
+在$p_{k+1}=r_k+u_kp_k$两端左乘$p_{k+1}^TA$可得
+$$
+p_{k+1}^TAp_{k+1}=p_{k+1}^TAr_k+u_kp_{k+1}^TAp_k=r_k^TAp_{k+1}
+$$
+在$r_{k+1} = r_k - \xi_{k+1}Ap_{k+1}$两端左乘$r_k^T$可得
+$$
+0=r_k^Tr_{k+1}=r_k^Tr_k- \xi_{k+1}r_k^TAp_{k+1}
+$$
+所以
+$$
+\xi_{k+1}=\frac{r_k^Tr_k}{r_k^TAp_{k+1}}=\frac{r_k^Tr_k}{p_{k+1}^TAp_{k+1}}
+$$
+在$p_{k+1}=r_k+u_kp_k$两边左乘$p_k^TA$可得
+$$
+0=p_k^TAp_{k+1}=p_k^TAr_k+u_kp_k^TAp_k
+$$
+所以
+$$
+u_k=-\frac{p_k^TAr_k}{p_k^TAp_k}=-\frac{r_k^TAp_k}{p_k^TAp_k}
+$$
+还可以进一步减小计算量，在$r_{k+1} = r_k - \xi_{k+1}Ap_{k+1}$两边左乘$r_{k+1}^T$，可得
+$$
+r_{k+1}^Tr_{k+1}=-\xi_{k+1}r_{k+1}^TAp_{k+1}
+$$
+所以$r_k^TAp_k=-r_k^Tr_k/\xi_k$，所以
+$$
+u_k=-\frac{r_k^TAp_k}{p_k^TAp_k}=\frac{r_k^Tr_k}{\xi_kp_k^TAp_k}=\frac{r_k^Tr_k}{r_{k-1}^Tr_{k-1}}
+$$
+综上可得CG方法迭代过程：
+$$
+\begin{aligned}
+p_{k+1} &amp;= r_k + u_kp_k,\quad where\ u_k=\frac{r_k^Tr_k}{r_{k-1}^Tr_{k-1}} \\
+x^{(k+1)} &amp;= x^{(k)} + \xi_{k+1}p_{k+1}, \\
+r_{k+1} &amp;= r_k - \xi_{k+1}Ap_{k+1},\quad where\ \xi_{k+1}=\frac{r_k^Tr_k}{p_{k+1}^TAp_{k+1}}
+\end{aligned}
+$$&lt;/p&gt;
+&lt;p&gt;其中，$p_{k+1}$的递推必须从k=1开始，k=0时，可以由定义求出$p_1$，即$p_{k+1}$的迭代初值：
+$$
+p_1=t_0q_1=\beta v_1=r_0
+$$&lt;/p&gt;
+&lt;p&gt;因此完整的共轭梯度法为
+$$
+\begin{aligned}
+&amp; r_0=b-Ax^{(0)} \\
+&amp; p_1=r_0 \\
+&amp; \rho_0 = r_0^T r_0 \\
+&amp; for\ k=1,2,\dots,n \\
+&amp; \qquad if\ k&gt;1 \\
+&amp; \qquad\qquad u_{k-1}=\rho_{k-1} / \rho_{k-2}  \\
+&amp; \qquad\qquad p_k = r_{k-1}+u_{k-1}p_{k-1}  \\
+&amp; \qquad end \\
+&amp; \qquad q_k=Ap_k \\
+&amp; \qquad \xi_k=\rho_{k-1} / (p_k^Tq_k) \\
+&amp; \qquad x^{(k)}=x^{(k-1)}+\xi_kp_k \\
+&amp; \qquad r_k=r_{k-1}-\xi_kq_k \\
+&amp; \qquad \rho_k=r_k^Tr_k \\
+&amp; \qquad if\ \sqrt{\rho_k} &lt; error \\
+&amp; \qquad\qquad break  \\
+&amp; \qquad end \\
+&amp; end
+\end{aligned}
+$$&lt;/p&gt;
+</description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://w-jin.github.io/tags/math/">math</category>
+                                
+                            
+                        
+                    
+                
+            </item>
         
             <item>
                 <title>CUDA教程10 -- 多GPU编程</title>
@@ -11511,122 +11903,114 @@ build$ ./vector_add
                 
                     <description>&lt;h2 id=&#34;向量范数&#34;&gt;向量范数&lt;/h2&gt;
 &lt;h3 id=&#34;定义&#34;&gt;定义&lt;/h3&gt;
-&lt;p&gt;设V是数域K(R/C)上的线性空间，对于V中的任一元素(向量)$x \in V$，如果有一个唯一的实函数$N(x)$与之对应，记为$|x|$，它满足：&lt;/p&gt;
-&lt;p&gt;1、非负性：$|x| \ge 0$，且当且仅当$x=0$时，$N(x)=|x|=0$；&lt;/p&gt;
-&lt;p&gt;2、齐次性：$|ax| = |a||x|$，其中$a \in K, x \in V$；&lt;/p&gt;
-&lt;p&gt;3、三角不等式：$|x+y| \le |x| + |y|$；&lt;/p&gt;
-&lt;p&gt;则称实函数$N(x)=|x|$为线性空间V上的范数。如果线性空间V上规定了范数，则称V为赋范线性空间。&lt;/p&gt;
+&lt;p&gt;设V是数域K(R/C)上的线性空间，对于V中的任一元素(向量)$x \in V$，如果有一个唯一的实函数$N(x)$与之对应，记为$\|x\|$，它满足：&lt;/p&gt;
+&lt;p&gt;1、非负性：$\|x\| \ge 0$，且当且仅当$x=0$时，$N(x)=\|x\|=0$；&lt;/p&gt;
+&lt;p&gt;2、齐次性：$\|ax\| = |a|\|x\|$，其中$a \in K, x \in V$；&lt;/p&gt;
+&lt;p&gt;3、三角不等式：$\|x+y\| \le \|x\| + \|y\|$；&lt;/p&gt;
+&lt;p&gt;则称实函数$N(x)=\|x\|$为线性空间V上的范数。如果线性空间V上规定了范数，则称V为赋范线性空间。&lt;/p&gt;
 &lt;h3 id=&#34;几个常用的范数&#34;&gt;几个常用的范数&lt;/h3&gt;
 &lt;p&gt;1、$l_1$-范数(1-范数)：$\|x\|_1=\sum_{i=1}^n |x_i|$；&lt;/p&gt;
-&lt;p&gt;2、$l_2$-范数(2-范数)：$|x|_2=(\sum_{i=1}^n |x_i|^2)^{1/2}$；&lt;/p&gt;
-&lt;p&gt;3、$l_\infty$-范数($\infty$-范数)：$|x|_\infty=\max_{i=1,2,\dots,n} |x_i|$；&lt;/p&gt;
-&lt;p&gt;4、更一般的$l_p$范数($p \ge 1$)：$|x|_p=(\sum_{i=1}^n |x_i|^p)^\frac{1}{p}$；&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;定理一&lt;/strong&gt;：$|x|_\infty=\lim_{p \rightarrow \infty} |x|_p$。&lt;/p&gt;
-&lt;p&gt;证明：设$|x_m| = \max_{i=1,2,\dots,n} |x_i|$，则&lt;/p&gt;
-&lt;div&gt;$$
+&lt;p&gt;2、$l_2$-范数(2-范数)：$\|x\|_2=(\sum_{i=1}^n |x_i|^2)^{1/2}$；&lt;/p&gt;
+&lt;p&gt;3、$l_\infty$-范数($\infty$-范数)：$\|x\|_\infty=\max_{i=1,2,\dots,n} |x_i|$；&lt;/p&gt;
+&lt;p&gt;4、更一般的$l_p$范数($p \ge 1$)：$\|x\|_p=(\sum_{i=1}^n |x_i|^p)^\frac{1}{p}$；&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;定理一&lt;/strong&gt;：$\|x\|_\infty=\lim_{p \rightarrow \infty} \|x\|_p$。&lt;/p&gt;
+&lt;p&gt;证明：设$|x_m| = \max_{i=1,2,\dots,n} |x_i|$，则
+$$
 |x_m|^p \le \|x\|_p^p = \sum_{i=1}^n |x_i|^p \le n|x_m|^p
-$$&lt;/div&gt;
+$$
 所以
-&lt;div&gt;$$
+$$
 |x_m| \le \|x\|_p \le n^{1/p}|x_m|
-$$&lt;/div&gt;
+$$
 又
-&lt;div&gt;$$
+$$
 \lim_{p \rightarrow \infty} n^{1/p}=1
-$$&lt;/div&gt;
-&lt;p&gt;由夹逼定理：&lt;/p&gt;
-&lt;div&gt;$$
+$$
+由夹逼定理：
+$$
 \lim_{p \rightarrow \infty} \|x\|_p = |x_m| =\|x\|_\infty
-$$&lt;div&gt;
+$$&lt;/p&gt;
 &lt;h2 id=&#34;矩阵范数&#34;&gt;矩阵范数&lt;/h2&gt;
 &lt;h3 id=&#34;定义-1&#34;&gt;定义&lt;/h3&gt;
-&lt;p&gt;设$A \in C^{m \times n}$，对于每一个A，如果对应着一个实函数$N(A)$，记为$|A|$，它满足以下条件：&lt;/p&gt;
-&lt;p&gt;1、非负性：$|A| \ge 0$，且$|A|=0$当且仅当A=0；&lt;/p&gt;
-&lt;p&gt;2、齐次性：$|\alpha A|=|\alpha||A|$，$\alpha \in C$；&lt;/p&gt;
-&lt;p&gt;3、三角不等式：$|A+B| \le |A| + |B|$；&lt;/p&gt;
-&lt;p&gt;则称$N(A)=|A|$为A的广义矩阵范数。进一步，如果对$C^{m \times n},C^{n \times l},C^{m \times l}$上的同类广义矩阵范数，有&lt;/p&gt;
-&lt;p&gt;4、相容性：$|AB| \le |A| |B|$；&lt;/p&gt;
-&lt;p&gt;则称$N(A)=|A|$为A的矩阵范数。&lt;/p&gt;
+&lt;p&gt;设$A \in C^{m \times n}$，对于每一个A，如果对应着一个实函数$N(A)$，记为$\|A\|$，它满足以下条件：&lt;/p&gt;
+&lt;p&gt;1、非负性：$\|A\| \ge 0$，且$\|A\|=0$当且仅当A=0；&lt;/p&gt;
+&lt;p&gt;2、齐次性：$\|\alpha A\|=|\alpha|\|A\|$，$\alpha \in C$；&lt;/p&gt;
+&lt;p&gt;3、三角不等式：$\|A+B\| \le \|A\| + \|B\|$；&lt;/p&gt;
+&lt;p&gt;则称$N(A)=\|A\|$为A的广义矩阵范数。进一步，如果对$C^{m \times n},C^{n \times l},C^{m \times l}$上的同类广义矩阵范数，有&lt;/p&gt;
+&lt;p&gt;4、相容性：$\|AB\| \le \|A\| \|B\|$；&lt;/p&gt;
+&lt;p&gt;则称$N(A)=\|A\|$为A的矩阵范数。&lt;/p&gt;
 &lt;h3 id=&#34;矩阵算子范数&#34;&gt;矩阵算子范数&lt;/h3&gt;
-&lt;p&gt;设$C^m,C^n$上同类向量范数为$|*|$，$A \in C^{m \times n}$，定义在$C^{m \times n}$上由向量范数诱导给出的矩阵范数为
+&lt;p&gt;设$C^m,C^n$上同类向量范数为$\|*\|$，$A \in C^{m \times n}$，定义在$C^{m \times n}$上由向量范数诱导给出的矩阵范数为
 $$
-|A|=\max_{x \ne 0} \frac{|Ax|}{|x|}=\max_{|x| = 1}|Ax|
+\|A\|=\max_{x \ne 0} \frac{\|Ax\|}{\|x\|}=\max_{\|x\| = 1}\|Ax\|
 $$
 容易验证它满足矩阵范数定义的第1到3个条件，对于第4个：
 $$
-|AB|=\max_{|x|=1}|ABx|
+\|AB\|=\max_{\|x\|=1}\|ABx\|
 $$
-当$Bx=0$时，$|ABx|=0=|A||Bx|$；当$Bx \ne 0$时，
+当$Bx=0$时，$\|ABx\|=0=\|A\|\|Bx\|$；当$Bx \ne 0$时，
 $$
-|AB|=\max_{|x|=1}|ABx| \le \max_{|x|=1} \max_{|Bx| \ne 0}\frac{|A(Bx)|}{|Bx|}|Bx|=\max_{|x|=1} |A||Bx|=|A||B|
+\|AB\|=\max_{\|x\|=1}\|ABx\| \le \max_{\|x\|=1} \max_{\|Bx\| \ne 0}\frac{\|A(Bx)\|}{\|Bx\|}\|Bx\|=\max_{\|x\|=1} \|A\|\|Bx\|=\|A\|\|B\|
 $$
 这一类矩阵范数称为诱导范数或者算子范数。&lt;/p&gt;
 &lt;h3 id=&#34;常用诱导矩阵范数&#34;&gt;常用诱导矩阵范数&lt;/h3&gt;
 &lt;p&gt;设$A \in C^{m \times n}$，则常用的诱导矩阵范数有：&lt;/p&gt;
 &lt;h4 id=&#34;1范数&#34;&gt;1范数&lt;/h4&gt;
-&lt;p&gt;矩阵的1范数由向量的1范数诱导而来，结果为$|A| = \max_{1 \le j \le n} \sum_{i=1}^m |a_{ij}|$。&lt;/p&gt;
-&lt;p&gt;证明：将A列分块：$A=[a_1,a_2,\dots,a_n]$。设$x=(x_1,x_2,\dots,x_n) \in C^n$，且$|x|_1=1$，则&lt;/p&gt;
-&lt;div&gt;
+&lt;p&gt;矩阵的1范数由向量的1范数诱导而来，结果为$\|A\| = \max_{1 \le j \le n} \sum_{i=1}^m |a_{ij}|$。&lt;/p&gt;
+&lt;p&gt;证明：将A列分块：$A=[a_1,a_2,\dots,a_n]$。设$x=(x_1,x_2,\dots,x_n) \in C^n$，且$\|x\|_1=1$，则
 $$
 \begin{aligned}
 \|Ax\|_1 &amp;= \sum_{i=1}^m \left|\sum_{j=1}^n a_{ij}x_j \right| \le \sum_{i=1}^m\sum_{j=1}^n |a_{ij}||x_j| = \sum_{j=1}^n |x_j|(\sum_{i=1}^m |a_{ij}|) \\
 &amp; \le \sum_{j=1}^n |x_j|(\max_j \sum_{i=1}^m |a_{ij}|) = (\max_j \sum_{i=1}^m |a_{ij}|) \sum_{j=1}^n |x_j| = \max_j \sum_{i=1}^m |a_{ij}|
 \end{aligned}
 $$
-&lt;div&gt;
-&lt;p&gt;所以$\|A\|_1=\max_{\|x\|_1=1} \|Ax\|_1 \le \max_j \sum_{i=1}^m |a_{ij}|$。&lt;/p&gt;
-&lt;p&gt;另外，选取k使得&lt;/p&gt;
-&lt;div&gt;$$
+所以$\|A\|_1=\max_{\|x\|_1=1} \|Ax\|_1 \le \max_j \sum_{i=1}^m |a_{ij}|$。&lt;/p&gt;
+&lt;p&gt;另外，选取k使得
+$$
 \sum_{i=1}^m |a_{ik}|=\max_j \sum_{i=1}^m |a_{ij}|
-$$&lt;div&gt;
-令$e_k=[0,\dots,0,1,0,\dots,0]^T \in R^n$，则$Ae_k=[a_{1k},a_{2k},\dots,a_{mk}]^T$，
-&lt;p&gt;所以&lt;/p&gt;
-&lt;div&gt;$$
+$$
+令$e_k=[0,\dots,0,1,0,\dots,0]^T \in R^n$，则$Ae_k=[a_{1k},a_{2k},\dots,a_{mk}]^T$，&lt;/p&gt;
+&lt;p&gt;所以
+$$
 \|A\|_1 = \max_{\|x\|_1=1} \|Ax\|_1 \ge \|Ae_k\|_1 = \sum_{i=1}^m |a_{ik}|=\max_j \sum_{i=1}^m |a_{ij}|
-$$&lt;div&gt;
-所以$\|A\|_1==\max_j \sum_{i=1}^m |a_{ij}|$。
-&lt;h4 id=&#34;infty范数&#34;&gt;$\infty$范数&lt;/h4&gt;
-&lt;p&gt;$\infty$范数由向量的$\infty$范数诱导而来，结果为$|A|_\infty=\max_{1 \le i \le m} \sum_{j=1}^n |a_{ij}|$。&lt;/p&gt;
-&lt;p&gt;证明：设&lt;span&gt;$x=(x_1,x_2,\dots,x_n)^T$&lt;span&gt;，且$|x|_\infty=1$，即$\max_i |x_i|=1$。则&lt;/p&gt;
-&lt;div&gt;
+$$
+所以$\|A\|_1==\max_j \sum_{i=1}^m |a_{ij}|$。&lt;/p&gt;
+&lt;h4 id=&#34;无穷范数&#34;&gt;无穷范数&lt;/h4&gt;
+&lt;p&gt;$\infty$范数由向量的$\infty$范数诱导而来，结果为$\|A\|_\infty=\max_{1 \le i \le m} \sum_{j=1}^n |a_{ij}|$。&lt;/p&gt;
+&lt;p&gt;证明：设$x=(x_1,x_2,\dots,x_n)^T$，且$\|x\|_\infty=1$，即$\max_i |x_i|=1$。则
 $$
 \begin{aligned}
 \|Ax\|_\infty &amp;= \max_{1 \le i \le m} \left| \sum_{j=1}^n a_{ij}x_j \right| \le \max_i\sum_{j=1}^n |a_{ij}||x_j| \\
 &amp; \le \max_i \sum_{j=1}^n |a_{ij}| \max_j |x_j| \le \max_i \sum_{j=1}^n |a_{ij}|
 \end{aligned}
 $$
-&lt;div&gt;
-&lt;p&gt;所以&lt;/p&gt;
-&lt;div&gt;$$
+所以
+$$
 \|A\|_\infty = \max_{\|x\|_\infty = 1} \|Ax\|_\infty \le \max_i \sum_{j=1}^n |a_{ij}|
-$$&lt;div&gt;
-&lt;p&gt;另外，选取k使得&lt;/p&gt;
-&lt;div&gt;$$
+$$
+另外，选取k使得
+$$
 \sum_{j=1}^n |a_{kj}|=\max_i \sum_{j=1}^n |a_{ij}|
-$$&lt;div&gt;
-&lt;p&gt;令$y=[y_1,y_2,\dots,y_n]^T$，其中&lt;/p&gt;
-&lt;div&gt;
+$$
+令$y=[y_1,y_2,\dots,y_n]^T$，其中
 $$
 y_i = \begin{cases}
 1, \qquad a_{kj}=0 \\
 \cfrac{|a_{kj}|}{a_{kj}}, \qquad a_{kj} \ne 0
 \end{cases}
 $$
-&lt;div&gt;
-&lt;p&gt;则$|y|_\infty=1$，所以&lt;/p&gt;
-&lt;div&gt;
+则$\|y\|_\infty=1$，所以
 $$
 Ay=[*,\dots,*,\sum_{j=1}^n |a_{kj}|,*,\dots,*]^T
 $$
-&lt;div&gt;
-&lt;p&gt;所以&lt;/p&gt;
-&lt;div&gt;$$
+所以
+$$
 \|A\|_\infty=\max_{\|x\|_\infty=1}\|Ax\|_\infty \ge \|Ay\| \ge \sum_{j=1}^n |a_{kj}|=\max_i \sum_{j=1}^n |a_{ij}|
-$$&lt;div&gt;
-&lt;p&gt;所以&lt;/p&gt;
-&lt;div&gt;$$
+$$
+所以
+$$
 \|A\|_\infty=\max_i \sum_{j=1}^n |a_{ij}|
-$$&lt;div&gt;
+$$&lt;/p&gt;
 </description>
                 
                 

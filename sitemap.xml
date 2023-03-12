@@ -2,11 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://w-jin.github.io/article/</loc>
-    <lastmod>2021-10-17T22:00:30+08:00</lastmod>
+    <loc>https://w-jin.github.io/tags/math/</loc>
+    <lastmod>2023-03-12T16:27:43+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tags/</loc>
+    <lastmod>2023-03-12T16:27:43+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/</loc>
+    <lastmod>2023-03-12T16:27:43+08:00</lastmod>
   </url><url>
     <loc>https://w-jin.github.io/</loc>
-    <lastmod>2023-03-12T14:19:33+08:00</lastmod>
+    <lastmod>2023-03-12T16:27:43+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/tech/cg/</loc>
+    <lastmod>2023-03-12T16:22:41+08:00</lastmod>
+  </url><url>
+    <loc>https://w-jin.github.io/article/</loc>
+    <lastmod>2021-10-17T22:00:30+08:00</lastmod>
   </url><url>
     <loc>https://w-jin.github.io/article/%E9%81%A3%E6%82%B2%E6%80%80%E4%B8%89%E9%A6%96-%E5%85%B6%E4%B8%89/</loc>
     <lastmod>2021-10-17T22:00:30+08:00</lastmod>
@@ -19,12 +31,6 @@
   </url><url>
     <loc>https://w-jin.github.io/tech/cuda10/</loc>
     <lastmod>2020-12-20T20:29:46+08:00</lastmod>
-  </url><url>
-    <loc>https://w-jin.github.io/tags/</loc>
-    <lastmod>2023-03-12T14:19:33+08:00</lastmod>
-  </url><url>
-    <loc>https://w-jin.github.io/tech/</loc>
-    <lastmod>2023-03-12T14:19:33+08:00</lastmod>
   </url><url>
     <loc>https://w-jin.github.io/tags/amg/</loc>
     <lastmod>2020-12-10T15:48:58+08:00</lastmod>
@@ -74,11 +80,8 @@
     <loc>https://w-jin.github.io/tech/cuda1/</loc>
     <lastmod>2020-08-20T21:56:49+08:00</lastmod>
   </url><url>
-    <loc>https://w-jin.github.io/tags/math/</loc>
-    <lastmod>2023-03-12T14:19:33+08:00</lastmod>
-  </url><url>
     <loc>https://w-jin.github.io/tech/norm/</loc>
-    <lastmod>2023-03-12T14:19:33+08:00</lastmod>
+    <lastmod>2023-03-12T16:27:43+08:00</lastmod>
   </url><url>
     <loc>https://w-jin.github.io/about/</loc>
     <lastmod>2020-08-16T11:14:14+08:00</lastmod>

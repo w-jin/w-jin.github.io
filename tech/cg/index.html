@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+    <meta charset="UTF-8" />
+
+    <meta name="generator" content="Hugo 0.111.2"><meta name="theme-color" content="#fff" />
+    <meta name="color-scheme" content="light dark">
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+    
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>共轭梯度法 | wjin</title>
+
+    <link rel="stylesheet" href="/css/meme.min.af7333bfd64891c910fa2d9ad1905cb5289d87665f6fcc49d13183ed852abf3f.css"/>
+
+    
+    
+        <script src="/js/meme.min.b42cc6cc17aac11800d2bb8a71cf39db1f17f54d7f60cf3c1320970b00f1147e.js"></script>
+
+    
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" media="print" onload="this.media='all'" />
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" /></noscript>
+
+    <meta name="author" content="wjin" /><meta name="description" content="共轭梯度法 投影方法 设K是$R^n$的一个子空间，维度$dim(K) \ll n$，目标为在K……" />
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="wjin" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="wjin" />
+    <meta name="msapplication-starturl" content="../../" />
+    <meta name="msapplication-TileColor" content="#fff" />
+    <meta name="msapplication-TileImage" content="../../icons/mstile-150x150.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    
+    
+
+    
+    <link rel="canonical" href="https://w-jin.github.io/tech/cg/" />
+    
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "datePublished": "2023-03-12T16:18:00+08:00",
+        "dateModified": "2023-03-12T16:22:41+08:00",
+        "url": "https://w-jin.github.io/tech/cg/",
+        "headline": "共轭梯度法",
+        "description": "共轭梯度法 投影方法 设K是$R^n$的一个子空间，维度$dim(K) \\ll n$，目标为在K……",
+        "inLanguage" : "zh-CN",
+        "articleSection": "tech",
+        "wordCount":  3645 ,
+        "image": "https://w-jin.github.io/favicon.ico",
+        "author": {
+            "@type": "Person",
+            "description": "我空空如也",
+            "email": "wjiner@outlook.com",
+            "image": "https://w-jin.github.io/icons/logo.png",
+            "url": "https://w-jin.github.io/",
+            "name": "wjin"
+        },
+        "license": "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)",
+        "publisher": {
+            "@type": "Organization",
+            "name": "wjin",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://w-jin.github.io/favicon.ico"
+            },
+            "url": "https://w-jin.github.io/"
+        },
+        "mainEntityOfPage": {
+            "@type": "WebSite",
+            "@id": "https://w-jin.github.io/"
+        }
+    }
+</script>
+
+    
+
+<meta name="twitter:card" content="summary" />
+
+
+    
+
+
+
+<meta property="og:title" content="共轭梯度法" />
+<meta property="og:description" content="共轭梯度法 投影方法 设K是$R^n$的一个子空间，维度$dim(K) \ll n$，目标为在K……" />
+<meta property="og:url" content="https://w-jin.github.io/tech/cg/" />
+<meta property="og:site_name" content="wjin" />
+<meta property="og:locale" content="zh" /><meta property="og:image" content="https://w-jin.github.io/favicon.ico" />
+    <meta property="og:type" content="article" />
+    <meta property="article:published_time" content="2023-03-12T16:18:00&#43;08:00" />
+    <meta property="article:modified_time" content="2023-03-12T16:22:41&#43;08:00" />
+    
+    <meta property="article:section" content="tech" />
+
+
+
+    
+    
+
+    
+</head>
+
+    <body>
+        <div class="container">
+            
+    <header class="header">
+        
+            <div class="header-wrapper">
+                <div class="header-inner single">
+                    
+    <div class="site-brand">
+        
+            <a href="/" class="brand">wjin</a>
+        
+    </div>
+
+                    <nav class="nav">
+    <ul class="menu" id="menu">
+        
+            
+        
+        
+        
+        
+            
+                <li class="menu-item"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="icon home"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></svg><span class="menu-item-name">首页</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tech/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">技术</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/article/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">文青</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tags/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="icon tags"><path d="M497.941 225.941L286.059 14.059A48 48 0 0 0 252.118 0H48C21.49 0 0 21.49 0 48v204.118a48 48 0 0 0 14.059 33.941l211.882 211.882c18.744 18.745 49.136 18.746 67.882 0l204.118-204.118c18.745-18.745 18.745-49.137 0-67.882zM112 160c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm513.941 133.823L421.823 497.941c-18.745 18.745-49.137 18.745-67.882 0l-.36-.36L527.64 323.522c16.999-16.999 26.36-39.6 26.36-63.64s-9.362-46.641-26.36-63.64L331.397 0h48.721a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882z"/></svg><span class="menu-item-name">标签</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/about/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="icon user-circle"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 96c48.6 0 88 39.4 88 88s-39.4 88-88 88-88-39.4-88-88 39.4-88 88-88zm0 344c-58.7 0-111.3-26.6-146.5-68.2 18.8-35.4 55.6-59.8 98.5-59.8 2.4 0 4.8.4 7.1 1.1 13 4.2 26.6 6.9 40.9 6.9 14.3 0 28-2.7 40.9-6.9 2.3-.7 4.7-1.1 7.1-1.1 42.9 0 79.7 24.4 98.5 59.8C359.3 421.4 306.7 448 248 448z"/></svg><span class="menu-item-name">关于</span></a>
+                </li>
+            
+        
+            
+                
+                    
+                    
+                        <li class="menu-item">
+                            <a id="theme-switcher" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-light"><path d="M193.2 104.5l48.8-97.5a18 18 0 0128 0l48.8 97.5 103.4 -34.5a18 18 0 0119.8 19.8l-34.5 103.4l97.5 48.8a18 18 0 010 28l-97.5 48.8 34.5 103.4a18 18 0 01-19.8 19.8l-103.4-34.5-48.8 97.5a18 18 0 01-28 0l-48.8-97.5l-103.4 34.5a18 18 0 01-19.8-19.8l34.5-103.4-97.5-48.8a18 18 0 010-28l97.5-48.8-34.5-103.4a18 18 0 0119.8-19.8zM256 128a128 128 0 10.01 0M256 160a96 96 0 10.01 0"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-dark"><path d="M27 412a256 256 0 10154-407a11.5 11.5 0 00-5 20a201.5 201.5 0 01-134 374a11.5 11.5 0 00-15 13"/></svg></a>
+                        </li>
+                    
+                
+            
+        
+            
+                
+            
+        
+    </ul>
+</nav>
+
+                    
+                </div>
+            </div>
+            
+    <input type="checkbox" id="nav-toggle" aria-hidden="true" />
+    <label for="nav-toggle" class="nav-toggle"></label>
+    <label for="nav-toggle" class="nav-curtain"></label>
+
+
+        
+    </header>
+
+
+
+
+            
+            
+    <main class="main single" id="main">
+    <div class="main-inner">
+
+        
+
+        <article class="content post h-entry" data-align="justify" data-type="tech" data-toc-num="true">
+
+            <h1 class="post-title p-name">共轭梯度法</h1>
+
+            
+
+            
+                
+            
+
+            
+                
+
+<div class="post-meta">
+    
+        
+        <time datetime="2023-03-12T16:18:00&#43;08:00" class="post-meta-item published dt-published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2023.3.12</time>
+    
+    
+        
+        <time datetime="2023-03-12T16:22:41&#43;08:00" class="post-meta-item modified dt-updated"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2023.3.12</time>
+    
+    
+    
+        
+        
+        
+            
+        
+    
+    
+        
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;3645</span>
+    
+    
+        
+        <span class="post-meta-item reading-time"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></svg>&nbsp;8&nbsp;分钟</span>
+    
+    
+    
+</div>
+
+            
+
+            <nav class="contents">
+  <h2 id="contents" class="contents-title">目录</h2><ol class="toc">
+    <li><a id="contents:投影方法" href="#投影方法">投影方法</a></li>
+    <li><a id="contents:krylov子空间与正交基求解" href="#krylov子空间与正交基求解">Krylov子空间与正交基求解</a></li>
+    <li><a id="contents:lanczos算法" href="#lanczos算法">Lanczos算法</a></li>
+    <li><a id="contents:共轭梯度法-1" href="#共轭梯度法-1">共轭梯度法</a></li>
+  </ol>
+</nav><div class="post-body e-content">
+                <h1 id="共轭梯度法"><a href="#共轭梯度法" class="anchor-link">§</a><a href="#contents:共轭梯度法" class="headings">共轭梯度法</a></h1>
+<h2 id="投影方法"><a href="#投影方法" class="anchor-link">§</a><a href="#contents:投影方法" class="headings">投影方法</a></h2>
+<p>设K是$R^n$的一个子空间，维度$dim(K)  \ll n$，目标为在K中寻找精确解的一个最佳近似，定解条件一般使残量与某个m维空间正交，即投影方法为：
+$$
+find\ \tilde{x} \in K,\quad r=b-A\tilde{x} \perp L
+$$
+其中$\tilde{x}$是精确解在子空间中的投影，L称为约束空间，K称为搜索空间。当L=K时，称为正交投影法，否则称为斜投影法。</p>
+<p>如果给定一个初值$x^{(0)} \in R^n$，为了充分利用这个初值的相关信息，改为在仿射空间$x^{(0)}+K$中寻找精确解的最佳近似，此时投影方法描述为：
+$$
+find\ \tilde{x} \in x^{(0)}+K, \quad b-A\tilde{x} \perp L
+$$
+令$\tilde{x}=x^{(0)}+\hat{x}$，其中$\hat{x} \in K$，则$b-A\tilde{x}=b-Ax^{(0)}-A\hat{x}=r_0-A\hat{x}$，所以投影方法描述为：
+$$
+find\ \hat{x} \in K,\quad r_0 - A\hat{x} \perp L
+$$
+考虑这个问题的求解，设K和L的基分别为$V=[v_1, v_2, \dots, v_m]$和$W=[w_1, w_2, \dots, w_m]$，则方程的近似解为$\tilde{x}=x^{(0)}+Vy$，其中$y \in R^m$。</p>
+<p>由正交条件得
+$$
+r_0 - AVy \perp w_i\quad for\ i = 1,2,\dots,m
+$$
+所以
+$$
+\begin{aligned}
+& W^T (r_0-AVy) = 0 \\
+\Longrightarrow \quad & W^TAVy=W^Tr_0 \\
+\Longrightarrow \quad & y=(W^TAV)^{-1}W^Tr_0 \\
+\Longrightarrow \quad & \tilde{x}=x^{(0)}+V(W^TAV)^{-1}W^Tr_0
+\end{aligned}
+$$
+其中$(W^TAV)^{-1}$不需要直接计算，一般在迭代过程中求出y，然后由$\tilde{x}=x^{(0)}+Vy$求出近似解。</p>
+<h2 id="krylov子空间与正交基求解"><a href="#krylov子空间与正交基求解" class="anchor-link">§</a><a href="#contents:krylov子空间与正交基求解" class="headings">Krylov子空间与正交基求解</a></h2>
+<p>设$A \in R^{n \times n}, r \in R^n$，称
+$$
+K_m(A,r)=span\{ r, Ar, \dots, A^{m-1}r \} \subseteq R^n
+$$
+为A和r生成的m阶Krylov子空间，简记为$K_m$。Krylov子空间方法就是搜索空间为Krylov子空间的投影方法。</p>
+<p>以下为基于Gram-Schmidt正交化方法求解Krylov子空间$K_m(A,r)$的一组标准正交基的算法，称为Arnoldi算法：
+$$
+\begin{aligned}
+& v_1 = r/\|r\|_2 \\
+& for\ j=1,2,\dots,m-1 \\
+& \qquad w_j = Av_j \\
+& \qquad for\ i=1,2,\dots,j \\
+& \qquad\qquad h_{ij}=(w_j, v_i) \\
+& \qquad\qquad w_j=w_j - h_{ij}v_i \\
+& \qquad end \\
+& \qquad h_{j+1, j} = \|w_j\|_2 \\
+& \qquad if\ h_{j+1,j}=0 \\
+& \qquad\qquad break \\
+& \qquad end \\
+& \qquad v_{j+1}=w_j/h_{j+1,j} \\
+& end
+\end{aligned}
+$$
+如果计算到第j步时有$h_{j+1,j}=0$，则$Av_j$可以由$v_1,v_2,\dots,v_j$线性表出， 方法提前终止。</p>
+<p><strong>定理一</strong>：如果算法不提前终止，则$V=[v_1, v_2, \dots, v_m]$构成$K_m(A,r)$的一组标准正交基。</p>
+<p>证明：由Gram-Schmidt正交化方法可知V是正交向量组，如果可以证明$v_j \in K_j$对于$j=1,2,\dots,m$成立，又$dim(K_j) \le j$，则可以证明结论。以下证明$v_j \in K_j$对于$j=1,2,\dots,m$成立。</p>
+<p>首先证明$Av_j \in K_{j+1}$对于$j=1,2,\dots,m-1$成立：使用数学归纳法：1、$Av_1=Ar/\|r\|_2 \in K_2$。2、假设$Av_j \in K_{j+1}$对于$j=1,2,\dots,k$成立，则
+$$
+Av_{k+1}=A(\cfrac{1}{h_{k+1,k}}(Av_k-\sum_{i=1}^k h_{ik}v_i))=\cfrac{1}{h_{k+1,k}}(A^2 v_k-\sum_{i=1}^k h_{ik}Av_i)
+$$</p>
+<p>其中$A^2v_k=A(Av_k) \in K_{k+2}$，$Av_i \in K_{i+1} \subseteq K_{i+2} \subseteq \cdots \subseteq K_{k+2}$，所以$Av_{k+1} \in K_{k+2}$。所以$Av_j \in K_{j+1}$对于$j=1,2,\dots,m-1$成立。</p>
+<p>再由数学归纳法：1、由$v_1=r/\|r\|_2$可知$v_1 \in K_1$。2、假定$v_j \in K_j$对于$j=1,2,\dots,k$成立，又$Av_k \in K_{k+1}$，所以
+$$
+v_{k+1}=\cfrac{1}{h_{k+1,k}}(Av_k-\sum_{i=1}^k h_{ik}v_i) \in K_{k+1}
+$$
+所以$v_j \in K_j$对于$j=1,2,\dots,m$成立。</p>
+<p><strong>矩阵表示</strong>：因为$h_{j+1,j}v_{j+1}=Av_j-\sum_{i=1}^{j}h_{ij}v_i$，所以
+$$
+\begin{aligned}
+Av_j &= h_{j+1,j}v_{j+1}+\sum_{i=1}^{j}h_{ij}v_i \\
+&=[v_1,v_2,\dots,v_{j+1}]\begin{bmatrix}
+    h_{1j} \\ h_{2j} \\ \vdots \\ h_{j+1,j}
+\end{bmatrix}
+&= [v_1,v_2,\dots,v_m]\begin{bmatrix}
+    h_{1j} \\ \vdots \\ h_{j+1,j} \\ 0 \\ \vdots \\ 0
+\end{bmatrix}\\
+&= V_m H_{m,m-1}(:,j)
+\end{aligned}
+$$
+其中，$V_m=[v_1,v_2,\dots,v_m]$，
+$$
+H_{m,m-1}=\begin{bmatrix}
+    h_{11} & h_{12} & h_{13} & \cdots & h_{1,m-2} & h_{1,m-1} \\
+    h_{21} & h_{22} & h_{23} & \cdots & h_{2,m-2} & h_{2,m-1} \\
+    0      & h_{32} & h_{33} & \cdots & h_{3,m-2} & h_{3,m-1} \\
+    0      & 0      & h_{43} & \cdots & h_{4,m-2} & h_{4,m-1} \\
+    \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
+    0      & 0      & 0      & \cdots & h_{1,m-2} & h_{m-1,m-1} \\
+    0      & 0      & 0      & \cdots & 0         & h_{m,m-1}
+\end{bmatrix}
+\in R^{m \times (m-1)}
+$$
+设$H_m=H_{m+1,m}(1:m,1:m)$是$H_{m+1,m}$前m行组成的Hessenberg矩阵，$e_m=[0,0,\dots,0,1]^T$，容易得到
+$$
+AV_m=V_{m+1}H_{m+1,m}=V_mH_m+h_{m+1,m}v_{m+1}e_m^T
+$$
+所以
+$$
+V_m^TAV_m=H_m+h_{m+1,m} V_m^T v_{m+1}e_m^T = H_m
+$$</p>
+<h2 id="lanczos算法"><a href="#lanczos算法" class="anchor-link">§</a><a href="#contents:lanczos算法" class="headings">Lanczos算法</a></h2>
+<p>如果A是对称矩阵，则$H_m=V_m^TAV_m$也是一个对称矩阵，再由H的形状可知$H_m$是一个对称三对角矩阵，将其记为：
+$$
+T_k=
+\begin{bmatrix}
+    \alpha_1 & \beta_1 &        & \\
+    \beta_1  & \ddots  & \ddots & \\
+             & \ddots  & \ddots & \beta_{k-1} \\
+             &         & \beta_{k-1} & \alpha_{k}
+\end{bmatrix}
+$$
+与Arnoldi算法类似，有
+$$
+AV_k=V_kT_k+\beta_k v_{k+1}e_k^T
+$$
+和
+$$
+V_k^TAV_k=T_k
+$$</p>
+<p>考察第一个式子的第j列，令$v_0=0,\beta_0=0$，对$j=1,2,\dots,k-1$，有
+$$
+Av_j=\alpha_j v_j + \beta_j v_{j+1} + \beta_{j-1}v_{j-1}
+$$
+所以
+$$
+\beta_j v_{j+1} = Av_j - \alpha_j v_j - \beta_{j-1}v_{j-1}
+$$
+因此Gram Schmidt正交化过程可以简化为上述三项递推过程，Arnoldi算法简化为Lanczos算法：
+$$
+\begin{aligned}
+& v_0=0,\beta_0=0 \\
+& v_1=r/\|r\|_2 \\
+& for\ j=1,2,\cdots,k-1 \\
+& \qquad w_j=Av_j-\beta_{j-1}v_{j-1} \\
+& \qquad \alpha_j=(w_j, v_j) \\
+& \qquad w_j=w_j-\alpha_j v_j \\
+& \qquad \beta_j=\|w_j\|_2 \\
+& \qquad if\ \beta_j=0 \\
+& \qquad\qquad break \\
+& \qquad end \\
+& \qquad v_{j+1}=w_j / \beta_j \\
+& end
+\end{aligned}
+$$</p>
+<h2 id="共轭梯度法-1"><a href="#共轭梯度法-1" class="anchor-link">§</a><a href="#contents:共轭梯度法-1" class="headings">共轭梯度法</a></h2>
+<p>此节假定$A \in R^{n \times n}$是对称正定矩阵。</p>
+<p>设$x^{(0)}$是迭代初始值，在仿射空间$x^{(0)}+K_k$中寻找近似解$x^{(k)}$，满足$b-Ax^{(k)} \perp K_k$。</p>
+<p>令$x^{(k)}=x^{(0)}+V_ky_k,r_0=b-Ax^{(0)},\beta=\|r_0\|_2$，其中$V_k$是$K_k(A,r_0)$在基组成的矩阵，则
+$$
+V_k^TAV_k=T_k, \quad V_k^Tr_0=V_k^T(\beta v_1)=\beta e_1^{(k)}
+$$
+所以由正交性条件可得
+$$
+V_k^T(b-Ax^{(k)})=V_k^T(r_0-AV_ky_k)=V_k^T r_0-V_k^TAV_ky_k=\beta e_1^{(k)} - T_k y_k = 0
+$$
+所以
+$$
+T_ky_k=\beta e_1^{(k)}, \quad y_k=T_k^{-1}(\beta e_1^{(k)})
+$$
+设$T_k$的Cholesky分解为$T_k=L_kD_kL_k^T$，则
+$$
+x^{(k)}=x^{(0)}+V_ky_k=x^{(0)}+V_kT_k^{-1}(\beta e_1^{(k)})=x^{(0)}+(V_kL_k^{-T})(\beta D_k^{-1}L_k^{-1}e_1^{(k)})
+$$
+下面考虑如何利用递推来计算$x^{(k)}$。</p>
+<p><strong>定理二</strong>：设$Q_k=V_kL_k^{-T}=[q_1, q_2, \dots, q_k] \in R^{n \times k}$，$z_k=\beta D_k^{-1}L_k^{-1}e_1^{(k)}$，则有递推公式：$Q_{k+1}=V_{k+1}L_{k+1}^{-T}=[Q_k, q_{k+1}],z_{k+1}=\beta D_{k+1}^{-1}L_{k+1}^{-1}e_1^{(k+1)}=[z_k,\eta_{k+1}]^T$，其中$q_{k+1}=-l_k q_k + v_{k+1}$。</p>
+<p>证明：设$T_k$的Cholesky分解为
+$$
+T_k = L_kD_kL_k^T =
+\begin{bmatrix}
+1 \\
+l_1 & 1 \\
+ & \ddots & \ddots \\
+ & & l_{k-1} & 1
+\end{bmatrix}
+\begin{bmatrix}
+d_1 \\
+& d_2 \\
+& & \ddots \\
+& & & d_k
+\end{bmatrix}
+\begin{bmatrix}
+1 & l_1 \\
+& \ddots & \ddots \\
+& & 1 & l_{k-1} \\
+& & & 1
+\end{bmatrix}
+$$</p>
+<p>由待定系数法可解出：
+$$
+d_1=\alpha_1,l_i=\beta_i / d_i, d_{i+1}=\alpha_{i+1}-l_i \beta_i, \quad i=1,2,\dots,k-1
+$$
+记$\gamma_k=[0,\dots,0,\beta_k]^T \in R^k, \tilde{\gamma}_k=[0,\dots,0,l_k]^T \in R^k$，则
+$$
+\begin{aligned}
+T_{k+1}&=
+\begin{bmatrix}
+T_k & \gamma_k \\
+\gamma_k^T & \alpha_{k+1}
+\end{bmatrix}=L_{k+1}D_{k+1}L_{k+1}^T
+\end{aligned}
+$$
+且
+$$
+L_{k+1}=\begin{bmatrix}
+L_k & 0 \\
+\tilde{\gamma}_k^T & 1
+\end{bmatrix},
+\qquad
+L_{k+1}^{-1}=\begin{bmatrix}
+L_k^{-1} & 0 \\
+-\tilde{\gamma}_k^T L_k^{-1} & 1
+\end{bmatrix}
+$$
+所以
+$$
+Q_{k+1}=V_{k+1}L_{k+1}^{-T}=[V_k, v_{k+1}]\begin{bmatrix}
+L_k^{-T} & -L_k^{-T}\tilde{\gamma}_k \\
+0 & 1
+\end{bmatrix}
+=[V_kL_k^{-T}, -V_k L_k^{-T}\tilde{\gamma}_k + v_{k+1}]
+$$
+又$V_k L_k^{-T}\tilde{\gamma}_k=Q_k\tilde{\gamma}_k=l_k q_k$，所以$Q_{k+1}=[Q_k,q_{k+1}]$，其中
+$$
+q_{k+1}=-l_k q_k + v_{k+1}
+$$
+另外
+$$
+\begin{aligned}
+z_{k+1}&=\beta D_{k+1}^{-1}L_{k+1}^{-1}e_1^{(k+1)}=\beta \begin{bmatrix}
+D_k^{-1} & 0 \\
+0 & d_{k+1}^{-1}
+\end{bmatrix}
+\begin{bmatrix}
+L_k^{-1} & 0 \\
+-\tilde{\gamma}_k^T L_k^{-1} & 1
+\end{bmatrix}
+\begin{bmatrix}
+e_1^{(k)} \\ 0
+\end{bmatrix} \\
+&= \begin{bmatrix}
+\beta D_k^{-1}L_k^{-1}e_1^{(k)} \\
+-\beta d_{k+1}^{-1}\tilde{\gamma}_k L_k^{-1}e_1^{k}
+\end{bmatrix}
+=
+\begin{bmatrix}
+z_k \\
+\eta_{k+1}
+\end{bmatrix}
+\end{aligned}
+$$
+由定理二可得
+$$
+\begin{equation}
+\begin{aligned}
+x^{(k+1)}&=x^{(0)}+Q_{k+1}z_{k+1} \\
+&=x^{(0)}+[Q_k,q_{k+1}]\begin{bmatrix}
+z_k \\
+\eta_{k+1}
+\end{bmatrix} \\
+&=x^{(0)}+Q_kz_k+\eta_{k+1}q_{k+1} \\
+&=x^{(k)}+\eta_{k+1}q_{k+1}
+\end{aligned}
+\end{equation}
+$$</p>
+<p>为判断近似解是否满足精度要求，需要计算残量：
+$$
+r_{k+1}=b-Ax^{(k+1)}=b-A(x^{(k)}+\eta_{k+1}q_{k+1})=r_k-\eta_{k+1}Aq_{k+1}
+$$
+另外
+$$
+\begin{aligned}
+r_k = b-Ax^{(k)} &= b-A(x^{(0)}+V_ky_k) \\
+&= r_0 - AV_ky_k \\
+&= \beta v_1 - V_kT_ky_k - \beta_k v_{k+1}e_k^Ty_k \\
+&= - \beta_k (e_k^Ty_k) v_{k+1}
+\end{aligned}
+$$
+因此$r_k$与$v_{k+1}$平行，记
+$$
+r_k = t_k v_{k+1}
+$$
+其中$t_0=\beta=\|r_0\|_2$，$t_k=-\beta_k (e_k^Ty_k)$。</p>
+<p>令$p_k=t_{k-1}q_k$，则
+$$
+p_{k+1}=t_k q_{k+1}=t_k(-l_k q_k + v_{k+1})=r_k+u_kp_k
+$$
+其中$u_k=-l_kt_k/t_{k-1}$。</p>
+<p><strong>定理三</strong>：1、$r_0,r_2,\dots,r_k$相互正交；2、$p_1,p_2,\dots,p_k$相互A共轭，即当$i \ne j$时有$p_i^TAp_j=0$。</p>
+<p>证明：1、$r_i=t_iv_{i+1}$与$v_{i+1}$平行，所以正交。2、因为$p_i=t_{k-1}q_i$，所以$p_i^TAp_j=0$等价于$q_i^TAq_j=0$，所以证明$Q_k^TAQ_k$是一个对角阵即可：
+$$
+Q_k^TAQ_k=(V_kL_k^{-T})^TAV_kL_k^{-T}=L_k^{-1}V_k^TAV_kL_k^{-T}=L_k^{-1}T_kL^{-T}=D_k
+$$</p>
+<p>将前述$x^{(k+1)}$和残量$r_{k+1}$的迭代公式由$p_i$可表示为
+$$
+\begin{aligned}
+x^{(k+1)}&=x^{(k)}+\eta_{k+1}q_{k+1} = x^{(k)}+\xi_{k+1}p_{k+1} \\
+r_{k+1}&=r_k-\eta_{k+1}Aq_{k+1} = r_k - \xi_{k+1}Ap_{k+1}
+\end{aligned}
+$$
+在$p_{k+1}=r_k+u_kp_k$两端左乘$p_{k+1}^TA$可得
+$$
+p_{k+1}^TAp_{k+1}=p_{k+1}^TAr_k+u_kp_{k+1}^TAp_k=r_k^TAp_{k+1}
+$$
+在$r_{k+1} = r_k - \xi_{k+1}Ap_{k+1}$两端左乘$r_k^T$可得
+$$
+0=r_k^Tr_{k+1}=r_k^Tr_k- \xi_{k+1}r_k^TAp_{k+1}
+$$
+所以
+$$
+\xi_{k+1}=\frac{r_k^Tr_k}{r_k^TAp_{k+1}}=\frac{r_k^Tr_k}{p_{k+1}^TAp_{k+1}}
+$$
+在$p_{k+1}=r_k+u_kp_k$两边左乘$p_k^TA$可得
+$$
+0=p_k^TAp_{k+1}=p_k^TAr_k+u_kp_k^TAp_k
+$$
+所以
+$$
+u_k=-\frac{p_k^TAr_k}{p_k^TAp_k}=-\frac{r_k^TAp_k}{p_k^TAp_k}
+$$
+还可以进一步减小计算量，在$r_{k+1} = r_k - \xi_{k+1}Ap_{k+1}$两边左乘$r_{k+1}^T$，可得
+$$
+r_{k+1}^Tr_{k+1}=-\xi_{k+1}r_{k+1}^TAp_{k+1}
+$$
+所以$r_k^TAp_k=-r_k^Tr_k/\xi_k$，所以
+$$
+u_k=-\frac{r_k^TAp_k}{p_k^TAp_k}=\frac{r_k^Tr_k}{\xi_kp_k^TAp_k}=\frac{r_k^Tr_k}{r_{k-1}^Tr_{k-1}}
+$$
+综上可得CG方法迭代过程：
+$$
+\begin{aligned}
+p_{k+1} &= r_k + u_kp_k,\quad where\ u_k=\frac{r_k^Tr_k}{r_{k-1}^Tr_{k-1}} \\
+x^{(k+1)} &= x^{(k)} + \xi_{k+1}p_{k+1}, \\
+r_{k+1} &= r_k - \xi_{k+1}Ap_{k+1},\quad where\ \xi_{k+1}=\frac{r_k^Tr_k}{p_{k+1}^TAp_{k+1}}
+\end{aligned}
+$$</p>
+<p>其中，$p_{k+1}$的递推必须从k=1开始，k=0时，可以由定义求出$p_1$，即$p_{k+1}$的迭代初值：
+$$
+p_1=t_0q_1=\beta v_1=r_0
+$$</p>
+<p>因此完整的共轭梯度法为
+$$
+\begin{aligned}
+& r_0=b-Ax^{(0)} \\
+& p_1=r_0 \\
+& \rho_0 = r_0^T r_0 \\
+& for\ k=1,2,\dots,n \\
+& \qquad if\ k>1 \\
+& \qquad\qquad u_{k-1}=\rho_{k-1} / \rho_{k-2}  \\
+& \qquad\qquad p_k = r_{k-1}+u_{k-1}p_{k-1}  \\
+& \qquad end \\
+& \qquad q_k=Ap_k \\
+& \qquad \xi_k=\rho_{k-1} / (p_k^Tq_k) \\
+& \qquad x^{(k)}=x^{(k-1)}+\xi_kp_k \\
+& \qquad r_k=r_{k-1}-\xi_kq_k \\
+& \qquad \rho_k=r_k^Tr_k \\
+& \qquad if\ \sqrt{\rho_k} < error \\
+& \qquad\qquad break  \\
+& \qquad end \\
+& end
+\end{aligned}
+$$</p>
+
+            </div>
+
+            
+    
+    
+        <ul class="post-copyright">
+            <li class="copyright-item author"><span class="copyright-item-text">作者</span>：<a href="https://w-jin.github.io/" class="p-author h-card" target="_blank" rel="noopener">wjin</a></li>
+            
+                
+                
+                
+                
+                <li class="copyright-item link"><span class="copyright-item-text">链接</span>：<a href="/tech/cg/" target="_blank" rel="noopener">https://w-jin.github.io/tech/cg/</a></li>
+            
+            <li class="copyright-item license"><span class="copyright-item-text">许可</span>：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></li>
+            
+        </ul>
+    
+
+
+
+        </article>
+
+        
+
+        
+
+
+        
+
+
+        
+
+
+        
+    
+    
+        <div class="related-posts">
+            <h2 class="related-title">相关文章：<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon related-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm144 276c0 6.6-5.4 12-12 12h-92v92c0 6.6-5.4 12-12 12h-56c-6.6 0-12-5.4-12-12v-92h-92c-6.6 0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h92v-92c0-6.6 5.4-12 12-12h56c6.6 0 12 5.4 12 12v92h92c6.6 0 12 5.4 12 12v56z"/></svg></h2>
+            <ul class="related-list">
+                
+                    <li class="related-item">
+                        <a href="/tech/norm/" class="related-link">向量和矩阵范数</a>
+                    </li>
+                
+            </ul>
+        </div>
+    
+
+
+
+        
+    
+        <div class="post-tags">
+            
+                
+                
+                
+                
+                    
+                    <a href="/tags/math/" rel="tag" class="post-tags-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49 0 48 0h204.118a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882 0L14.059 286.059A48 48 0 0 1 0 252.118zM112 64c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>math</a>
+                
+            
+        </div>
+    
+
+
+
+        
+
+
+        
+
+
+        
+    
+        
+        
+    
+    
+    
+    
+        <ul class="post-nav">
+            
+            
+                <li class="post-nav-next">
+                    <a href="/tech/cuda10/" rel="next">CUDA教程10 -- 多GPU编程 &gt;</a>
+                </li>
+            
+        </ul>
+    
+
+
+
+        
+    
+
+        
+            <div class="load-comments">
+                <div id="load-comments">加载评论</div>
+            </div>
+        
+
+        
+
+        
+            <div id="vcomments"></div>
+        
+
+        
+
+        
+    
+
+
+
+    </div>
+</main>
+
+
+            
+    <div id="back-to-top" class="back-to-top">
+        <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon arrow-up"><path d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z"/></svg></a>
+    </div>
+
+
+            
+    <footer id="footer" class="footer">
+        <div class="footer-inner">
+            <div class="site-info">©&nbsp;1999–2023&nbsp;<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon footer-icon"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>&nbsp;wjin</div><div class="powered-by">Powered by <a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo</a> | Theme is <a href="https://github.com/reuixiy/hugo-theme-meme" target="_blank" rel="noopener">MemE</a></div><div class="site-copyright"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></div>
+
+            
+
+
+            
+        </div>
+    </footer>
+
+
+        </div>
+        
+
+        
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
+<script>
+    if (typeof renderMathInElement === 'undefined') {
+        const getScript = (options) => {
+            const script = document.createElement('script');
+            script.defer = true;
+            script.crossOrigin = 'anonymous';
+            Object.keys(options).forEach((key) => {
+                script[key] = options[key];
+            });
+            document.body.appendChild(script);
+        };
+        getScript({
+            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/katex.min.js',
+            onload: () => {
+                getScript({
+                    src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/mhchem.min.js',
+                    onload: () => {
+                        getScript({
+                            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/auto-render.min.js',
+                            onload: () => {
+                                renderKaTex();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    } else {
+        renderKaTex();
+    }
+    function renderKaTex() {
+        renderMathInElement(
+            document.body,
+            {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ]
+            }
+        );
+    }
+</script>
+
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.8.3/dist/mermaid.min.js"></script>
+<script>
+    const mermaidConfig = {
+        startOnLoad: true,
+        flowchart: {
+            useMaxWidth: false,
+            htmlLabels: true
+        },
+        theme: 'default'
+    };
+    mermaid.initialize(mermaidConfig);
+</script>
+
+
+
+    
+
+        
+
+        
+            <script>
+    function loadComments() {
+        if (!document.getElementById('vcomments')) {
+            return;
+        }
+        if (typeof Valine === 'undefined') {
+            const getScript = (options) => {
+                const script = document.createElement('script');
+                script.defer = true;
+                script.crossOrigin = 'anonymous';
+                Object.keys(options).forEach((key) => {
+                    script[key] = options[key];
+                });
+                document.body.appendChild(script);
+            };
+            getScript({
+                src: 'https:\/\/cdn.jsdelivr.net\/npm\/valine@1.4.14\/dist\/Valine.min.js',
+                onload: () => {
+                    newValine();
+                }
+            });
+        } else {
+            newValine();
+        }
+    }
+    function newValine() {
+        new Valine({
+            el: '#vcomments',
+            appId: 'oJ3I57xnJeHrSYxtwPqE3uFy-gzGzoHsz',
+            appKey: '3IfvJOtcQchX3DRs4zMGxuqv',
+            placeholder: 'Just go go',
+            path: location.pathname,
+            avatar: 'mm',
+            meta: ["nick","mail","link"],
+            pageSize:  10 ,
+            lang: 'zh-cn',
+            visitor:  false ,
+            highlight:  true ,
+            avatarForce:  false ,
+            recordIP:  false ,
+            serverURLs: '',
+            emojiCDN: '',
+            emojiMaps: {},
+            enableQQ:  true ,
+            requiredFields: []
+        });
+    }
+</script>
+
+        
+
+        
+
+        
+
+    
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/medium-zoom@latest/dist/medium-zoom.min.js"></script>
+
+<script>
+    let imgNodes = document.querySelectorAll('div.post-body img');
+    imgNodes = Array.from(imgNodes).filter(node => node.parentNode.tagName !== "A");
+
+    mediumZoom(imgNodes, {
+        background: 'hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.95)'
+    })
+</script>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/instant.page@5.1.0/instantpage.min.js" type="module" defer></script>
+
+
+
+
+
+
+    </body>
+</html>
