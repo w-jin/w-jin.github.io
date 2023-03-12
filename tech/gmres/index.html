@@ -15,7 +15,7 @@
     
     <meta http-equiv="Cache-Control" content="no-siteapp" />
 
-    <title>向量和矩阵范数 | wjin</title>
+    <title>广义极小残量法 | wjin</title>
 
     <link rel="stylesheet" href="/css/meme.min.af7333bfd64891c910fa2d9ad1905cb5289d87665f6fcc49d13183ed852abf3f.css"/>
 
@@ -30,7 +30,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" media="print" onload="this.media='all'" />
         <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" /></noscript>
 
-    <meta name="author" content="wjin" /><meta name="description" content="向量范数 定义 设V是数域K(R/C)上的线性空间，对于V中的任一元素(向量)$x \in V$……" />
+    <meta name="author" content="wjin" /><meta name="description" content="定义 广义极小残量法(Generalized Minimum Residual, GMRES)是一种投影方法，它的搜索空……" />
 
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
@@ -49,21 +49,21 @@
     
 
     
-    <link rel="canonical" href="https://w-jin.github.io/tech/norm/" />
+    <link rel="canonical" href="https://w-jin.github.io/tech/gmres/" />
     
 
 <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
-        "datePublished": "2020-08-16T11:37:08+08:00",
-        "dateModified": "2023-03-12T16:27:43+08:00",
-        "url": "https://w-jin.github.io/tech/norm/",
-        "headline": "向量和矩阵范数",
-        "description": "向量范数 定义 设V是数域K(R/C)上的线性空间，对于V中的任一元素(向量)$x \\in V$……",
+        "datePublished": "2023-03-12T17:23:00+08:00",
+        "dateModified": "2023-03-12T17:24:10+08:00",
+        "url": "https://w-jin.github.io/tech/gmres/",
+        "headline": "广义极小残量法",
+        "description": "定义 广义极小残量法(Generalized Minimum Residual, GMRES)是一种投影方法，它的搜索空……",
         "inLanguage" : "zh-CN",
         "articleSection": "tech",
-        "wordCount":  1662 ,
+        "wordCount":  2945 ,
         "image": "https://w-jin.github.io/favicon.ico",
         "author": {
             "@type": "Person",
@@ -99,14 +99,14 @@
 
 
 
-<meta property="og:title" content="向量和矩阵范数" />
-<meta property="og:description" content="向量范数 定义 设V是数域K(R/C)上的线性空间，对于V中的任一元素(向量)$x \in V$……" />
-<meta property="og:url" content="https://w-jin.github.io/tech/norm/" />
+<meta property="og:title" content="广义极小残量法" />
+<meta property="og:description" content="定义 广义极小残量法(Generalized Minimum Residual, GMRES)是一种投影方法，它的搜索空……" />
+<meta property="og:url" content="https://w-jin.github.io/tech/gmres/" />
 <meta property="og:site_name" content="wjin" />
 <meta property="og:locale" content="zh" /><meta property="og:image" content="https://w-jin.github.io/favicon.ico" />
     <meta property="og:type" content="article" />
-    <meta property="article:published_time" content="2020-08-16T11:37:08&#43;08:00" />
-    <meta property="article:modified_time" content="2023-03-12T16:27:43&#43;08:00" />
+    <meta property="article:published_time" content="2023-03-12T17:23:00&#43;08:00" />
+    <meta property="article:modified_time" content="2023-03-12T17:24:10&#43;08:00" />
     
     <meta property="article:section" content="tech" />
 
@@ -207,7 +207,7 @@
 
         <article class="content post h-entry" data-align="justify" data-type="tech" data-toc-num="true">
 
-            <h1 class="post-title p-name">向量和矩阵范数</h1>
+            <h1 class="post-title p-name">广义极小残量法</h1>
 
             
 
@@ -221,11 +221,11 @@
 <div class="post-meta">
     
         
-        <time datetime="2020-08-16T11:37:08&#43;08:00" class="post-meta-item published dt-published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2020.8.16</time>
+        <time datetime="2023-03-12T17:23:00&#43;08:00" class="post-meta-item published dt-published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2023.3.12</time>
     
     
         
-        <time datetime="2023-03-12T16:27:43&#43;08:00" class="post-meta-item modified dt-updated"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2023.3.12</time>
+        <time datetime="2023-03-12T17:24:10&#43;08:00" class="post-meta-item modified dt-updated"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2023.3.12</time>
     
     
     
@@ -237,11 +237,11 @@
     
     
         
-        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;1662</span>
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;2945</span>
     
     
         
-        <span class="post-meta-item reading-time"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></svg>&nbsp;4&nbsp;分钟</span>
+        <span class="post-meta-item reading-time"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></svg>&nbsp;6&nbsp;分钟</span>
     
     
     
@@ -251,135 +251,166 @@
 
             <nav class="contents">
   <h2 id="contents" class="contents-title">目录</h2><ol class="toc">
-    <li><a id="contents:向量范数" href="#向量范数">向量范数</a>
-      <ol>
-        <li><a id="contents:定义" href="#定义">定义</a></li>
-        <li><a id="contents:几个常用的范数" href="#几个常用的范数">几个常用的范数</a></li>
-      </ol>
-    </li>
-    <li><a id="contents:矩阵范数" href="#矩阵范数">矩阵范数</a>
-      <ol>
-        <li><a id="contents:定义-1" href="#定义-1">定义</a></li>
-        <li><a id="contents:矩阵算子范数" href="#矩阵算子范数">矩阵算子范数</a></li>
-        <li><a id="contents:常用诱导矩阵范数" href="#常用诱导矩阵范数">常用诱导矩阵范数</a>
-          <ol>
-            <li><a id="contents:1范数" href="#1范数">1范数</a></li>
-            <li><a id="contents:无穷范数" href="#无穷范数">无穷范数</a></li>
-          </ol>
-        </li>
-      </ol>
-    </li>
+    <li><a id="contents:定义" href="#定义">定义</a></li>
+    <li><a id="contents:求解最小值问题" href="#求解最小值问题">求解最小值问题</a></li>
+    <li><a id="contents:残量" href="#残量">残量</a></li>
+    <li><a id="contents:qr分解细节" href="#qr分解细节">QR分解细节</a></li>
+    <li><a id="contents:提前中止" href="#提前中止">提前中止</a></li>
+    <li><a id="contents:gmres完整过程" href="#gmres完整过程">GMRES完整过程</a></li>
   </ol>
 </nav><div class="post-body e-content">
-                <h2 id="向量范数"><a href="#向量范数" class="anchor-link">§</a><a href="#contents:向量范数" class="headings">向量范数</a></h2>
-<h3 id="定义"><a href="#定义" class="anchor-link">§</a><a href="#contents:定义" class="headings">定义</a></h3>
-<p>设V是数域K(R/C)上的线性空间，对于V中的任一元素(向量)$x \in V$，如果有一个唯一的实函数$N(x)$与之对应，记为$\|x\|$，它满足：</p>
-<p>1、非负性：$\|x\| \ge 0$，且当且仅当$x=0$时，$N(x)=\|x\|=0$；</p>
-<p>2、齐次性：$\|ax\| = |a|\|x\|$，其中$a \in K, x \in V$；</p>
-<p>3、三角不等式：$\|x+y\| \le \|x\| + \|y\|$；</p>
-<p>则称实函数$N(x)=\|x\|$为线性空间V上的范数。如果线性空间V上规定了范数，则称V为赋范线性空间。</p>
-<h3 id="几个常用的范数"><a href="#几个常用的范数" class="anchor-link">§</a><a href="#contents:几个常用的范数" class="headings">几个常用的范数</a></h3>
-<p>1、$l_1$-范数(1-范数)：$\|x\|_1=\sum_{i=1}^n |x_i|$；</p>
-<p>2、$l_2$-范数(2-范数)：$\|x\|_2=(\sum_{i=1}^n |x_i|^2)^{1/2}$；</p>
-<p>3、$l_\infty$-范数($\infty$-范数)：$\|x\|_\infty=\max_{i=1,2,\dots,n} |x_i|$；</p>
-<p>4、更一般的$l_p$范数($p \ge 1$)：$\|x\|_p=(\sum_{i=1}^n |x_i|^p)^\frac{1}{p}$；</p>
-<p><strong>定理一</strong>：$\|x\|_\infty=\lim_{p \rightarrow \infty} \|x\|_p$。</p>
-<p>证明：设$|x_m| = \max_{i=1,2,\dots,n} |x_i|$，则
+                <h2 id="定义"><a href="#定义" class="anchor-link">§</a><a href="#contents:定义" class="headings">定义</a></h2>
+<p>广义极小残量法(Generalized Minimum Residual, GMRES)是一种投影方法，它的搜索空间$K=K_m$，约束空间$L=AK_m$，其中$A \in \textbf{R}^{n \times n}$为方程系数矩阵，$K_m$为m阶Krylov子空间。因此，GMRES方法可以描述为：
 $$
-|x_m|^p \le \|x\|_p^p = \sum_{i=1}^n |x_i|^p \le n|x_m|^p
+find\ x \in x^{(0)}+K, \quad b-Ax \perp AK \label{description}
 $$
-所以
+<strong>引理一</strong>：假设$P \in \textbf{R}^{n \times n}$是正交投影矩阵，将任意$x \in \textbf{R}^n$投影到子空间M上，则对于任意$x \in R^n$，$\min_{y \in M} \|x-y\|_2=\|x-Px\|_2$，且在$y=Px$时取得最小值。</p>
+<p>证明：
 $$
-|x_m| \le \|x\|_p \le n^{1/p}|x_m|
+\begin{aligned}
+\|x-y\|_2^2 &= (x-y)^T(x-y)=(x-Px+Px-y)^T(x-Px+Px-y) \\
+&=(x-Px)^T(x-Px)+(Px-y)^T(Px-y)+2(x-Px)^T(Px-y) \\
+&=\|x-Px\|_2^2+\|Px-y\|_2^2 \quad (because\ x-Px \perp Px-y)
+\end{aligned}
 $$
-又
+所以当$y=Px$时$\|x-y\|_2$取得最小值，最小值为$\|x-Px\|_2$。</p>
+<p><strong>定理一</strong>：设$A \in \textbf{R}^{n \times n}, K=K(A,r_0)$，则$\bar{x}$是问题$\eqref{description}$的解当且仅当它是下面的最小值问题的解：
 $$
-\lim_{p \rightarrow \infty} n^{1/p}=1
+\min_{x \in x^{(0)}+K} \|b-Ax\|_2 \label{minb_Ax}
 $$
-由夹逼定理：
+即在仿射空间$x^{(0)}+K$中，$\bar{x}$所对应的残量范数最小。</p>
+<p>证明：对任意$x \in x^{(0)}+K$，可以写成$x=x^{(0)}+y$，其中$y \in K$，所以
 $$
-\lim_{p \rightarrow \infty} \|x\|_p = |x_m| =\|x\|_\infty
+\min_{x \in x^{(0)}+K}\|b-Ax\|_2=\min_{y \in K}\|b-A(x^{(0)}+y)\|_2=\min_{z \in AK}\|r_0-z\|_2 \label{minr_z}
+$$
+其中$z=Ay$。由引理一，$\bar{z}$是$\eqref{minr_z}$的解当且仅当$\bar{z}$是$r_0$在$AK$中的正交投影，即$r_0-\bar{z} \perp AK$。</p>
+<p>必要性：设$\bar{x}$是问题$\eqref{description}$的解，则$b-A\bar{x} \perp AK$，令$\bar{z}=A(\bar{x}-x^{(0)})$，则$r_0-\bar{z}=b-A\bar{x} \perp AK$且$\bar{z} \in AK$，所以$\bar{z}$是问题$\eqref{minr_z}$的解，$\bar{x}$是问题$\eqref{minb_Ax}$的解。</p>
+<p>充分性：设$\bar{x}$是问题$\eqref{minb_Ax}$的解，则$\bar{z}=A(\bar{x}-x^{(0)})$是问题$\eqref{minr_z}$的解，所以$r_0-\bar{z} = b-A\bar{x} \perp AK$，所以$\bar{x}$是问题$\eqref{description}$的解。</p>
+<h2 id="求解最小值问题"><a href="#求解最小值问题" class="anchor-link">§</a><a href="#contents:求解最小值问题" class="headings">求解最小值问题</a></h2>
+<p>对于任意向量$x \in x^{(0)}+K_m$，存在向量$y \in R^m$使得$x=x^{(0)}+V_my$，其中$V_m=[v_1,v_2,\dots,v_m]$是$K_m$的标准正交基构成的矩阵，则
+$$
+\begin{aligned}
+b-Ax&=b-A(x^{(0)}+V_my)=r_0-AV_my \\
+&=\beta v_1-V_{m+1}H_{m+1,m}y \\
+&=V_{m+1}(\beta e_1-H_{m+1,m}y)
+\end{aligned}
+$$
+因为$V_{m+1}$是正交矩阵，所以
+$$
+\|b-Ax\|_2=\|\beta e_1-H_{m+1,m}y\|_2 \label{b_Ax1}
+$$
+其中$\beta=\|r_0\|_2,e_1=[1,0,\dots,0] ^T\in \textbf{R}^{m+1}$。因此，最小化问题$\eqref{minb_Ax}$的解为
+$$
+\bar{x}=x^{(0)}+V_m\bar{y} \label{x}
+$$
+其中$\bar{y}$是下面最小化问题的解：
+$$
+\min_{y \in R^m} \|\beta e_1 - H_{m+1,m}y\|_2
+$$
+对$H_{m+1,m}$作QR分解：
+$$
+H_{m+1,m}=Q_{m+1}^TR_{m+1,m}
+$$
+其中$Q_{m+1} \in \textbf{R}^{(m+1) \times (m+1)}$是正交矩阵，$R_{m+1,m} \in \textbf{R}^{(m+1) \times m}$是上三角矩阵，则
+$$
+\begin{equation}\begin{aligned}
+\|\beta e_1 - H_{m+1,m}y\|_2 &= \|\beta e_1 - Q_{m+1}^TR_{m+1,m}y\|_2 \\
+&= \|\beta Q_{m+1} e_1 - R_{m+1,m}y\|_2 \\
+&= \left\|\beta q_1 - \begin{bmatrix} R_m \\ 0 \end{bmatrix}y\right\|_2 \\
+&= \left\|\begin{bmatrix} \beta q_1(1:m)-R_my \\ \beta q_1(m+1) \end{bmatrix}\right\|_2
+\end{aligned}\end{equation} \label{b_Ax2}
+$$
+其中$q_1$是$Q_{m+1}$的第一列，$q_1(1:m)$为$q_1$的前m个元素组成的向量，$q_1(m+1)$为$q_1$的第m+1个元素，$R_m=R_{m+1,m}(1:m,:)$为$R_{m+1,m}$的前m行。</p>
+<p>因此，$\bar{y}$可以通过求解下面的上三角方程得到：
+$$
+R_m\bar{y}=\beta q_1(1:m) \label{eqy}
 $$</p>
-<h2 id="矩阵范数"><a href="#矩阵范数" class="anchor-link">§</a><a href="#contents:矩阵范数" class="headings">矩阵范数</a></h2>
-<h3 id="定义-1"><a href="#定义-1" class="anchor-link">§</a><a href="#contents:定义-1" class="headings">定义</a></h3>
-<p>设$A \in C^{m \times n}$，对于每一个A，如果对应着一个实函数$N(A)$，记为$\|A\|$，它满足以下条件：</p>
-<p>1、非负性：$\|A\| \ge 0$，且$\|A\|=0$当且仅当A=0；</p>
-<p>2、齐次性：$\|\alpha A\|=|\alpha|\|A\|$，$\alpha \in C$；</p>
-<p>3、三角不等式：$\|A+B\| \le \|A\| + \|B\|$；</p>
-<p>则称$N(A)=\|A\|$为A的广义矩阵范数。进一步，如果对$C^{m \times n},C^{n \times l},C^{m \times l}$上的同类广义矩阵范数，有</p>
-<p>4、相容性：$\|AB\| \le \|A\| \|B\|$；</p>
-<p>则称$N(A)=\|A\|$为A的矩阵范数。</p>
-<h3 id="矩阵算子范数"><a href="#矩阵算子范数" class="anchor-link">§</a><a href="#contents:矩阵算子范数" class="headings">矩阵算子范数</a></h3>
-<p>设$C^m,C^n$上同类向量范数为$\|*\|$，$A \in C^{m \times n}$，定义在$C^{m \times n}$上由向量范数诱导给出的矩阵范数为
+<h2 id="残量"><a href="#残量" class="anchor-link">§</a><a href="#contents:残量" class="headings">残量</a></h2>
+<p>在迭代过程中，需要根据误差决定是否结束迭代，因此需要计算残量的范数。设$\bar{x} \in x^{(0)}+K_m$是GMRES方法所得到的近似解，由$\eqref{b_Ax1}$和$\eqref{b_Ax2}$可得对应的残量的范数为
 $$
-\|A\|=\max_{x \ne 0} \frac{\|Ax\|}{\|x\|}=\max_{\|x\| = 1}\|Ax\|
+\|\bar{r}\|_2=\|b-A\bar{x}\|_2=\|\beta e_1-H_{m+1,m}\bar{y}\|_2=\left\|\begin{bmatrix} \beta q_1(1:m)-R_m\bar{y} \\ \beta q_1(m+1) \end{bmatrix}\right\|_2=\beta|q_1(m+1)|
 $$
-容易验证它满足矩阵范数定义的第1到3个条件，对于第4个：
+所以迭代过程中不需要每步都求解一次方程$\eqref{eqy}$，只需要根据残量的范数判断误差，当误差满足要求时结束迭代，求解方程$\eqref{eqy}$，再由$\eqref{x}$得到近似解。</p>
+<h2 id="qr分解细节"><a href="#qr分解细节" class="anchor-link">§</a><a href="#contents:qr分解细节" class="headings">QR分解细节</a></h2>
+<p>对矩阵做QR分解有Schmidt正交化方法、householder变换和Givens变换等方法，由于$H_{m+1,m}$是一个Hessenberg矩阵，因此Givens变换性能最好。假定$H_{j,j-1}$的QR分解已经求出，只需要在它的基础上通过一次Givens变换就可以得到$H_{j+1,j}$的QR分解。</p>
+<p>当j=1时，只需对$H_{2,1} \in \textbf{R}^{2 \times 1}$做一次Givens变换即可得到它的QR分解。</p>
+<p>假定$H_{j,j-1}$的QR分解为
 $$
-\|AB\|=\max_{\|x\|=1}\|ABx\|
+H_{j,j-1}=(G_{j-1}G_{j-2} \cdots G_{1})^TR_{j,j-1}=Q_j^T\begin{bmatrix} R_{j-1} \\ 0 \end{bmatrix}
 $$
-当$Bx=0$时，$\|ABx\|=0=\|A\|\|Bx\|$；当$Bx \ne 0$时，
+其中$R_{j-1}$中上三角矩阵，$G_i$为Givens变换矩阵，方便起见，假定$G_i$的维度自动增大，对角线补1，其余位置补0。考虑$H_{j+1,j}$的QR分解：
 $$
-\|AB\|=\max_{\|x\|=1}\|ABx\| \le \max_{\|x\|=1} \max_{\|Bx\| \ne 0}\frac{\|A(Bx)\|}{\|Bx\|}\|Bx\|=\max_{\|x\|=1} \|A\|\|Bx\|=\|A\|\|B\|
+\begin{bmatrix} Q_j & 0 \\ 0 & 1 \end{bmatrix}H_{j+1,j}=\begin{bmatrix} Q_j & 0 \\ 0 & 1 \end{bmatrix}\begin{bmatrix} H_{j,j-1} & h_j \\ 0 & h_{j+1,j} \end{bmatrix}=\begin{bmatrix} R_{j,j-1} & Q_jh_j \\ 0 & h_{j+1,j} \end{bmatrix}=\begin{bmatrix} R_{j-1} & \hat{h}_{j-1} \\ 0 & \bar{h}_{j,j} \\ 0 & h_{j+1,j} \end{bmatrix}
 $$
-这一类矩阵范数称为诱导范数或者算子范数。</p>
-<h3 id="常用诱导矩阵范数"><a href="#常用诱导矩阵范数" class="anchor-link">§</a><a href="#contents:常用诱导矩阵范数" class="headings">常用诱导矩阵范数</a></h3>
-<p>设$A \in C^{m \times n}$，则常用的诱导矩阵范数有：</p>
-<h4 id="1范数"><a href="#1范数" class="anchor-link">§</a><a href="#contents:1范数" class="headings">1范数</a></h4>
-<p>矩阵的1范数由向量的1范数诱导而来，结果为$\|A\| = \max_{1 \le j \le n} \sum_{i=1}^m |a_{ij}|$。</p>
-<p>证明：将A列分块：$A=[a_1,a_2,\dots,a_n]$。设$x=(x_1,x_2,\dots,x_n) \in C^n$，且$\|x\|_1=1$，则
+其中$h_j$是$H_{j+1,j}$最后一列前j个元素构成的向量，$\hat{h}_{j-1}$为$Q_jh_j$前j-1个元素构成的向量，$\bar{h}_{j,j}$是$Q_jh_j$的最后一个元素。下面利用Givens变换将$h_{j+1,j}$化为0。</p>
+<p>令
+$$
+c_j=\frac{\bar{h}_{j,j}}{\sqrt{\bar{h}_{j,j}^2+h_{j+1,j}^2}}, \quad s_j=\frac{h_{j+1,j}}{\sqrt{\bar{h}_{j,j}^2+h_{j+1,j}^2}}
+$$
+构造Givens变换
+$$
+G_j=\begin{bmatrix}
+I & 0 & 0 \\
+0 & c_j & s_j \\
+0 & -s_j & c_j
+\end{bmatrix} \in R^{(j+1) \times (j+1)}
+$$
+则
+$$
+G_j\begin{bmatrix} Q_j & 0 \\ 0 & 1 \end{bmatrix}H_{j+1,j}=G_j\begin{bmatrix} R_{j-1} & \hat{h}_{j-1} \\ 0 & \bar{h}_{j,j} \\ 0 & h_{j+1,j} \end{bmatrix}=\begin{bmatrix} R_{j-1} & \hat{h}_{j-1} \\ 0 & \hat{h}_{j,j} \\ 0 & 0 \end{bmatrix}=R_{j+1,j}
+$$
+所以，每步迭代只需要将Givens变换$G_1,G_2,\dots,G_j$依次作用到$H_{j+1,j}$的最后一列上，就可以得到$R_j$的最后一列。计算过程中不需要完整的Q，但需要它的第一列$q_1$，由$Q_{m+1}=G_mG_{m-1} \cdots G_1$可知$\beta q_1=Q_{m+1}(\beta e_1)$可以通过将$G_1,G_2,\dots,G_m$依次作用到$\beta e_1$上来得到。</p>
+<h2 id="提前中止"><a href="#提前中止" class="anchor-link">§</a><a href="#contents:提前中止" class="headings">提前中止</a></h2>
+<p>Arnoldi过程中如果某次迭代计算出的$h_{j+1,j}=0$，则$Av_j$可由$v_1,v_2,\dots,v_j$线性表出，$K_{j+1}=K_j$，迭代提前中止，此时有
+$$
+AV_j=V_jH_j
+$$
+所以
+$$
+\|b-Ax\|_2=\|b-A(x^{(0)}+V_jy)\|_2=\|r_0-AV_jy\|_2=\|\beta v_1-V_jH_jy\|_2=\|\beta e_1-H_jy\|_2
+$$
+此时取$y=H_j^{-1}(\beta e_1)$，则$x=x^{(0)}+V_jy$为精确解。因此当某次迭代的$h_{j+1,j}=0$时，将$G_1,G_2,\dots,G_{j-1}$依次施加到$H_{*,j}$上得到$H_{j+1,j}$的QR分解，然后解上三角方程$\eqref{eqy}$即可。</p>
+<h2 id="gmres完整过程"><a href="#gmres完整过程" class="anchor-link">§</a><a href="#contents:gmres完整过程" class="headings">GMRES完整过程</a></h2>
+<p>为了节省存储空间，将$R_m$存储在$H_{m+1,m}$中，则GMRES的完整过程为：
 $$
 \begin{aligned}
-\|Ax\|_1 &= \sum_{i=1}^m \left|\sum_{j=1}^n a_{ij}x_j \right| \le \sum_{i=1}^m\sum_{j=1}^n |a_{ij}||x_j| = \sum_{j=1}^n |x_j|(\sum_{i=1}^m |a_{ij}|) \\
-& \le \sum_{j=1}^n |x_j|(\max_j \sum_{i=1}^m |a_{ij}|) = (\max_j \sum_{i=1}^m |a_{ij}|) \sum_{j=1}^n |x_j| = \max_j \sum_{i=1}^m |a_{ij}|
+& r_0 = b-Ax^{(0)} \\
+& \beta = \|r_0\|_2 \\
+& v_1 = r_0 / \beta \\
+& \xi = \beta e_1 \\
+& for\ j = 1,2,\dots \\
+& \qquad \% Arnoldi\ process \\
+& \qquad w_j = Av_j \\
+& \qquad for\ i=1,2,\dots,j \\
+& \qquad\qquad h_{ij}=(w_j,v_i) \\
+& \qquad\qquad w_j=w_j-h_{ij}v_i \\
+& \qquad end \\
+& \qquad h_{j+1,j}=\|w_j\|_2 \\
+& \qquad \% Apply\ G_i\ to\ H_{*j} \\
+& \qquad for\ i=1,2,\dots,j-1 \\
+& \qquad\qquad \begin{bmatrix} h_{i,j} \\ h_{i+1,j} \end{bmatrix}=\begin{bmatrix} c_i & s_i \\ -s_i & c_i \end{bmatrix}\begin{bmatrix} h_{i,j} \\ h_{i+1,j} \end{bmatrix} \\
+& \qquad end \\
+& \qquad if\ h_{j+1,j}=0 \\
+& \qquad\qquad m=j\ and\ break \\
+& \qquad end \\
+& \qquad v_{j+1}=w_j/h_{j+1,j} \\
+& \qquad \% Form\ G_j \\
+& \qquad c_j=\frac{h_{j,j}}{\sqrt{h_{j,j}^2+h_{j+1,j}^2}} \\
+& \qquad s_j=\frac{h_{j+1,j}}{\sqrt{h_{j,j}^2+h_{j+1,j}^2}} \\
+& \qquad \% Apply\ G_j\ to\ H_{*j} \\
+& \qquad h_{j,j}=c_jh_{j,j}+s_jh_{j+1,j} \\
+& \qquad h_{j+1,j}=0 \\
+& \qquad \% Apply\ G_j\ to\ \beta e_1 \\
+& \qquad \begin{bmatrix} \xi_j \\ \xi_{j+1} \end{bmatrix}=\begin{bmatrix} c_i & s_i \\ -s_i & c_i \end{bmatrix}\begin{bmatrix} \xi_j \\ 0 \end{bmatrix} \\
+& \qquad if\ |\xi_{j+1}| < error \\
+& \qquad\qquad m=j\ and\ break  \\
+& \qquad end \\
+& end \\
+& R_m=H(1:m,1:m) \\
+& \xi^{(m)}=\xi(1:m) \\
+& solve\ R_my=\xi^{(m)} \\
+& x=x^{(0)}+V_my
 \end{aligned}
-$$
-所以$\|A\|_1=\max_{\|x\|_1=1} \|Ax\|_1 \le \max_j \sum_{i=1}^m |a_{ij}|$。</p>
-<p>另外，选取k使得
-$$
-\sum_{i=1}^m |a_{ik}|=\max_j \sum_{i=1}^m |a_{ij}|
-$$
-令$e_k=[0,\dots,0,1,0,\dots,0]^T \in R^n$，则$Ae_k=[a_{1k},a_{2k},\dots,a_{mk}]^T$，</p>
-<p>所以
-$$
-\|A\|_1 = \max_{\|x\|_1=1} \|Ax\|_1 \ge \|Ae_k\|_1 = \sum_{i=1}^m |a_{ik}|=\max_j \sum_{i=1}^m |a_{ij}|
-$$
-所以$\|A\|_1==\max_j \sum_{i=1}^m |a_{ij}|$。</p>
-<h4 id="无穷范数"><a href="#无穷范数" class="anchor-link">§</a><a href="#contents:无穷范数" class="headings">无穷范数</a></h4>
-<p>$\infty$范数由向量的$\infty$范数诱导而来，结果为$\|A\|_\infty=\max_{1 \le i \le m} \sum_{j=1}^n |a_{ij}|$。</p>
-<p>证明：设$x=(x_1,x_2,\dots,x_n)^T$，且$\|x\|_\infty=1$，即$\max_i |x_i|=1$。则
-$$
-\begin{aligned}
-\|Ax\|_\infty &= \max_{1 \le i \le m} \left| \sum_{j=1}^n a_{ij}x_j \right| \le \max_i\sum_{j=1}^n |a_{ij}||x_j| \\
-& \le \max_i \sum_{j=1}^n |a_{ij}| \max_j |x_j| \le \max_i \sum_{j=1}^n |a_{ij}|
-\end{aligned}
-$$
-所以
-$$
-\|A\|_\infty = \max_{\|x\|_\infty = 1} \|Ax\|_\infty \le \max_i \sum_{j=1}^n |a_{ij}|
-$$
-另外，选取k使得
-$$
-\sum_{j=1}^n |a_{kj}|=\max_i \sum_{j=1}^n |a_{ij}|
-$$
-令$y=[y_1,y_2,\dots,y_n]^T$，其中
-$$
-y_i = \begin{cases}
-1, \qquad a_{kj}=0 \\
-\cfrac{|a_{kj}|}{a_{kj}}, \qquad a_{kj} \ne 0
-\end{cases}
-$$
-则$\|y\|_\infty=1$，所以
-$$
-Ay=[*,\dots,*,\sum_{j=1}^n |a_{kj}|,*,\dots,*]^T
-$$
-所以
-$$
-\|A\|_\infty=\max_{\|x\|_\infty=1}\|Ax\|_\infty \ge \|Ay\| \ge \sum_{j=1}^n |a_{kj}|=\max_i \sum_{j=1}^n |a_{ij}|
-$$
-所以
-$$
-\|A\|_\infty=\max_i \sum_{j=1}^n |a_{ij}|
 $$</p>
 
             </div>
@@ -394,7 +425,7 @@ $$</p>
                 
                 
                 
-                <li class="copyright-item link"><span class="copyright-item-text">链接</span>：<a href="/tech/norm/" target="_blank" rel="noopener">https://w-jin.github.io/tech/norm/</a></li>
+                <li class="copyright-item link"><span class="copyright-item-text">链接</span>：<a href="/tech/gmres/" target="_blank" rel="noopener">https://w-jin.github.io/tech/gmres/</a></li>
             
             <li class="copyright-item license"><span class="copyright-item-text">许可</span>：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></li>
             
@@ -424,10 +455,6 @@ $$</p>
             <ul class="related-list">
                 
                     <li class="related-item">
-                        <a href="/tech/gmres/" class="related-link">广义极小残量法</a>
-                    </li>
-                
-                    <li class="related-item">
                         <a href="/tech/bicg/" class="related-link">双共轭梯度法</a>
                     </li>
                 
@@ -436,11 +463,7 @@ $$</p>
                     </li>
                 
                     <li class="related-item">
-                        <a href="/tech/cuda10/" class="related-link">CUDA教程10 -- 多GPU编程</a>
-                    </li>
-                
-                    <li class="related-item">
-                        <a href="/tech/cuda9/" class="related-link">CUDA教程9 -- 代数多重网格</a>
+                        <a href="/tech/norm/" class="related-link">向量和矩阵范数</a>
                     </li>
                 
             </ul>
@@ -482,13 +505,9 @@ $$</p>
     
         <ul class="post-nav">
             
-                <li class="post-nav-prev">
-                    <a href="/tech/cuda1/" rel="prev">&lt; CUDA教程1</a>
-                </li>
-            
             
                 <li class="post-nav-next">
-                    <a href="/tech/mpi4/" rel="next">MPI教程4 &gt;</a>
+                    <a href="/tech/bicg/" rel="next">双共轭梯度法 &gt;</a>
                 </li>
             
         </ul>

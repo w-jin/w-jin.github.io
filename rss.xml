@@ -23,10 +23,193 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Sun, 12 Mar 2023 17:22:06 &#43;0800</lastBuildDate>
+        <lastBuildDate>Sun, 12 Mar 2023 17:24:54 &#43;0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss&#43;xml" href="https://w-jin.github.io/rss.xml" />
         
+        
+            <item>
+                <title>广义极小残量法</title>
+                <link>https://w-jin.github.io/tech/gmres/</link>
+                <guid isPermaLink="true">https://w-jin.github.io/tech/gmres/</guid>
+                <pubDate>Sun, 12 Mar 2023 17:23:00 &#43;0800</pubDate>
+                
+                    <author>wjiner@outlook.com (wjin)</author>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description>&lt;h2 id=&#34;定义&#34;&gt;定义&lt;/h2&gt;
+&lt;p&gt;广义极小残量法(Generalized Minimum Residual, GMRES)是一种投影方法，它的搜索空间$K=K_m$，约束空间$L=AK_m$，其中$A \in \textbf{R}^{n \times n}$为方程系数矩阵，$K_m$为m阶Krylov子空间。因此，GMRES方法可以描述为：
+$$
+find\ x \in x^{(0)}+K, \quad b-Ax \perp AK \label{description}
+$$
+&lt;strong&gt;引理一&lt;/strong&gt;：假设$P \in \textbf{R}^{n \times n}$是正交投影矩阵，将任意$x \in \textbf{R}^n$投影到子空间M上，则对于任意$x \in R^n$，$\min_{y \in M} \|x-y\|_2=\|x-Px\|_2$，且在$y=Px$时取得最小值。&lt;/p&gt;
+&lt;p&gt;证明：
+$$
+\begin{aligned}
+\|x-y\|_2^2 &amp;= (x-y)^T(x-y)=(x-Px+Px-y)^T(x-Px+Px-y) \\
+&amp;=(x-Px)^T(x-Px)+(Px-y)^T(Px-y)+2(x-Px)^T(Px-y) \\
+&amp;=\|x-Px\|_2^2+\|Px-y\|_2^2 \quad (because\ x-Px \perp Px-y)
+\end{aligned}
+$$
+所以当$y=Px$时$\|x-y\|_2$取得最小值，最小值为$\|x-Px\|_2$。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;定理一&lt;/strong&gt;：设$A \in \textbf{R}^{n \times n}, K=K(A,r_0)$，则$\bar{x}$是问题$\eqref{description}$的解当且仅当它是下面的最小值问题的解：
+$$
+\min_{x \in x^{(0)}+K} \|b-Ax\|_2 \label{minb_Ax}
+$$
+即在仿射空间$x^{(0)}+K$中，$\bar{x}$所对应的残量范数最小。&lt;/p&gt;
+&lt;p&gt;证明：对任意$x \in x^{(0)}+K$，可以写成$x=x^{(0)}+y$，其中$y \in K$，所以
+$$
+\min_{x \in x^{(0)}+K}\|b-Ax\|_2=\min_{y \in K}\|b-A(x^{(0)}+y)\|_2=\min_{z \in AK}\|r_0-z\|_2 \label{minr_z}
+$$
+其中$z=Ay$。由引理一，$\bar{z}$是$\eqref{minr_z}$的解当且仅当$\bar{z}$是$r_0$在$AK$中的正交投影，即$r_0-\bar{z} \perp AK$。&lt;/p&gt;
+&lt;p&gt;必要性：设$\bar{x}$是问题$\eqref{description}$的解，则$b-A\bar{x} \perp AK$，令$\bar{z}=A(\bar{x}-x^{(0)})$，则$r_0-\bar{z}=b-A\bar{x} \perp AK$且$\bar{z} \in AK$，所以$\bar{z}$是问题$\eqref{minr_z}$的解，$\bar{x}$是问题$\eqref{minb_Ax}$的解。&lt;/p&gt;
+&lt;p&gt;充分性：设$\bar{x}$是问题$\eqref{minb_Ax}$的解，则$\bar{z}=A(\bar{x}-x^{(0)})$是问题$\eqref{minr_z}$的解，所以$r_0-\bar{z} = b-A\bar{x} \perp AK$，所以$\bar{x}$是问题$\eqref{description}$的解。&lt;/p&gt;
+&lt;h2 id=&#34;求解最小值问题&#34;&gt;求解最小值问题&lt;/h2&gt;
+&lt;p&gt;对于任意向量$x \in x^{(0)}+K_m$，存在向量$y \in R^m$使得$x=x^{(0)}+V_my$，其中$V_m=[v_1,v_2,\dots,v_m]$是$K_m$的标准正交基构成的矩阵，则
+$$
+\begin{aligned}
+b-Ax&amp;=b-A(x^{(0)}+V_my)=r_0-AV_my \\
+&amp;=\beta v_1-V_{m+1}H_{m+1,m}y \\
+&amp;=V_{m+1}(\beta e_1-H_{m+1,m}y)
+\end{aligned}
+$$
+因为$V_{m+1}$是正交矩阵，所以
+$$
+\|b-Ax\|_2=\|\beta e_1-H_{m+1,m}y\|_2 \label{b_Ax1}
+$$
+其中$\beta=\|r_0\|_2,e_1=[1,0,\dots,0] ^T\in \textbf{R}^{m+1}$。因此，最小化问题$\eqref{minb_Ax}$的解为
+$$
+\bar{x}=x^{(0)}+V_m\bar{y} \label{x}
+$$
+其中$\bar{y}$是下面最小化问题的解：
+$$
+\min_{y \in R^m} \|\beta e_1 - H_{m+1,m}y\|_2
+$$
+对$H_{m+1,m}$作QR分解：
+$$
+H_{m+1,m}=Q_{m+1}^TR_{m+1,m}
+$$
+其中$Q_{m+1} \in \textbf{R}^{(m+1) \times (m+1)}$是正交矩阵，$R_{m+1,m} \in \textbf{R}^{(m+1) \times m}$是上三角矩阵，则
+$$
+\begin{equation}\begin{aligned}
+\|\beta e_1 - H_{m+1,m}y\|_2 &amp;= \|\beta e_1 - Q_{m+1}^TR_{m+1,m}y\|_2 \\
+&amp;= \|\beta Q_{m+1} e_1 - R_{m+1,m}y\|_2 \\
+&amp;= \left\|\beta q_1 - \begin{bmatrix} R_m \\ 0 \end{bmatrix}y\right\|_2 \\
+&amp;= \left\|\begin{bmatrix} \beta q_1(1:m)-R_my \\ \beta q_1(m+1) \end{bmatrix}\right\|_2
+\end{aligned}\end{equation} \label{b_Ax2}
+$$
+其中$q_1$是$Q_{m+1}$的第一列，$q_1(1:m)$为$q_1$的前m个元素组成的向量，$q_1(m+1)$为$q_1$的第m+1个元素，$R_m=R_{m+1,m}(1:m,:)$为$R_{m+1,m}$的前m行。&lt;/p&gt;
+&lt;p&gt;因此，$\bar{y}$可以通过求解下面的上三角方程得到：
+$$
+R_m\bar{y}=\beta q_1(1:m) \label{eqy}
+$$&lt;/p&gt;
+&lt;h2 id=&#34;残量&#34;&gt;残量&lt;/h2&gt;
+&lt;p&gt;在迭代过程中，需要根据误差决定是否结束迭代，因此需要计算残量的范数。设$\bar{x} \in x^{(0)}+K_m$是GMRES方法所得到的近似解，由$\eqref{b_Ax1}$和$\eqref{b_Ax2}$可得对应的残量的范数为
+$$
+\|\bar{r}\|_2=\|b-A\bar{x}\|_2=\|\beta e_1-H_{m+1,m}\bar{y}\|_2=\left\|\begin{bmatrix} \beta q_1(1:m)-R_m\bar{y} \\ \beta q_1(m+1) \end{bmatrix}\right\|_2=\beta|q_1(m+1)|
+$$
+所以迭代过程中不需要每步都求解一次方程$\eqref{eqy}$，只需要根据残量的范数判断误差，当误差满足要求时结束迭代，求解方程$\eqref{eqy}$，再由$\eqref{x}$得到近似解。&lt;/p&gt;
+&lt;h2 id=&#34;qr分解细节&#34;&gt;QR分解细节&lt;/h2&gt;
+&lt;p&gt;对矩阵做QR分解有Schmidt正交化方法、householder变换和Givens变换等方法，由于$H_{m+1,m}$是一个Hessenberg矩阵，因此Givens变换性能最好。假定$H_{j,j-1}$的QR分解已经求出，只需要在它的基础上通过一次Givens变换就可以得到$H_{j+1,j}$的QR分解。&lt;/p&gt;
+&lt;p&gt;当j=1时，只需对$H_{2,1} \in \textbf{R}^{2 \times 1}$做一次Givens变换即可得到它的QR分解。&lt;/p&gt;
+&lt;p&gt;假定$H_{j,j-1}$的QR分解为
+$$
+H_{j,j-1}=(G_{j-1}G_{j-2} \cdots G_{1})^TR_{j,j-1}=Q_j^T\begin{bmatrix} R_{j-1} \\ 0 \end{bmatrix}
+$$
+其中$R_{j-1}$中上三角矩阵，$G_i$为Givens变换矩阵，方便起见，假定$G_i$的维度自动增大，对角线补1，其余位置补0。考虑$H_{j+1,j}$的QR分解：
+$$
+\begin{bmatrix} Q_j &amp; 0 \\ 0 &amp; 1 \end{bmatrix}H_{j+1,j}=\begin{bmatrix} Q_j &amp; 0 \\ 0 &amp; 1 \end{bmatrix}\begin{bmatrix} H_{j,j-1} &amp; h_j \\ 0 &amp; h_{j+1,j} \end{bmatrix}=\begin{bmatrix} R_{j,j-1} &amp; Q_jh_j \\ 0 &amp; h_{j+1,j} \end{bmatrix}=\begin{bmatrix} R_{j-1} &amp; \hat{h}_{j-1} \\ 0 &amp; \bar{h}_{j,j} \\ 0 &amp; h_{j+1,j} \end{bmatrix}
+$$
+其中$h_j$是$H_{j+1,j}$最后一列前j个元素构成的向量，$\hat{h}_{j-1}$为$Q_jh_j$前j-1个元素构成的向量，$\bar{h}_{j,j}$是$Q_jh_j$的最后一个元素。下面利用Givens变换将$h_{j+1,j}$化为0。&lt;/p&gt;
+&lt;p&gt;令
+$$
+c_j=\frac{\bar{h}_{j,j}}{\sqrt{\bar{h}_{j,j}^2+h_{j+1,j}^2}}, \quad s_j=\frac{h_{j+1,j}}{\sqrt{\bar{h}_{j,j}^2+h_{j+1,j}^2}}
+$$
+构造Givens变换
+$$
+G_j=\begin{bmatrix}
+I &amp; 0 &amp; 0 \\
+0 &amp; c_j &amp; s_j \\
+0 &amp; -s_j &amp; c_j
+\end{bmatrix} \in R^{(j+1) \times (j+1)}
+$$
+则
+$$
+G_j\begin{bmatrix} Q_j &amp; 0 \\ 0 &amp; 1 \end{bmatrix}H_{j+1,j}=G_j\begin{bmatrix} R_{j-1} &amp; \hat{h}_{j-1} \\ 0 &amp; \bar{h}_{j,j} \\ 0 &amp; h_{j+1,j} \end{bmatrix}=\begin{bmatrix} R_{j-1} &amp; \hat{h}_{j-1} \\ 0 &amp; \hat{h}_{j,j} \\ 0 &amp; 0 \end{bmatrix}=R_{j+1,j}
+$$
+所以，每步迭代只需要将Givens变换$G_1,G_2,\dots,G_j$依次作用到$H_{j+1,j}$的最后一列上，就可以得到$R_j$的最后一列。计算过程中不需要完整的Q，但需要它的第一列$q_1$，由$Q_{m+1}=G_mG_{m-1} \cdots G_1$可知$\beta q_1=Q_{m+1}(\beta e_1)$可以通过将$G_1,G_2,\dots,G_m$依次作用到$\beta e_1$上来得到。&lt;/p&gt;
+&lt;h2 id=&#34;提前中止&#34;&gt;提前中止&lt;/h2&gt;
+&lt;p&gt;Arnoldi过程中如果某次迭代计算出的$h_{j+1,j}=0$，则$Av_j$可由$v_1,v_2,\dots,v_j$线性表出，$K_{j+1}=K_j$，迭代提前中止，此时有
+$$
+AV_j=V_jH_j
+$$
+所以
+$$
+\|b-Ax\|_2=\|b-A(x^{(0)}+V_jy)\|_2=\|r_0-AV_jy\|_2=\|\beta v_1-V_jH_jy\|_2=\|\beta e_1-H_jy\|_2
+$$
+此时取$y=H_j^{-1}(\beta e_1)$，则$x=x^{(0)}+V_jy$为精确解。因此当某次迭代的$h_{j+1,j}=0$时，将$G_1,G_2,\dots,G_{j-1}$依次施加到$H_{*,j}$上得到$H_{j+1,j}$的QR分解，然后解上三角方程$\eqref{eqy}$即可。&lt;/p&gt;
+&lt;h2 id=&#34;gmres完整过程&#34;&gt;GMRES完整过程&lt;/h2&gt;
+&lt;p&gt;为了节省存储空间，将$R_m$存储在$H_{m+1,m}$中，则GMRES的完整过程为：
+$$
+\begin{aligned}
+&amp; r_0 = b-Ax^{(0)} \\
+&amp; \beta = \|r_0\|_2 \\
+&amp; v_1 = r_0 / \beta \\
+&amp; \xi = \beta e_1 \\
+&amp; for\ j = 1,2,\dots \\
+&amp; \qquad \% Arnoldi\ process \\
+&amp; \qquad w_j = Av_j \\
+&amp; \qquad for\ i=1,2,\dots,j \\
+&amp; \qquad\qquad h_{ij}=(w_j,v_i) \\
+&amp; \qquad\qquad w_j=w_j-h_{ij}v_i \\
+&amp; \qquad end \\
+&amp; \qquad h_{j+1,j}=\|w_j\|_2 \\
+&amp; \qquad \% Apply\ G_i\ to\ H_{*j} \\
+&amp; \qquad for\ i=1,2,\dots,j-1 \\
+&amp; \qquad\qquad \begin{bmatrix} h_{i,j} \\ h_{i+1,j} \end{bmatrix}=\begin{bmatrix} c_i &amp; s_i \\ -s_i &amp; c_i \end{bmatrix}\begin{bmatrix} h_{i,j} \\ h_{i+1,j} \end{bmatrix} \\
+&amp; \qquad end \\
+&amp; \qquad if\ h_{j+1,j}=0 \\
+&amp; \qquad\qquad m=j\ and\ break \\
+&amp; \qquad end \\
+&amp; \qquad v_{j+1}=w_j/h_{j+1,j} \\
+&amp; \qquad \% Form\ G_j \\
+&amp; \qquad c_j=\frac{h_{j,j}}{\sqrt{h_{j,j}^2+h_{j+1,j}^2}} \\
+&amp; \qquad s_j=\frac{h_{j+1,j}}{\sqrt{h_{j,j}^2+h_{j+1,j}^2}} \\
+&amp; \qquad \% Apply\ G_j\ to\ H_{*j} \\
+&amp; \qquad h_{j,j}=c_jh_{j,j}+s_jh_{j+1,j} \\
+&amp; \qquad h_{j+1,j}=0 \\
+&amp; \qquad \% Apply\ G_j\ to\ \beta e_1 \\
+&amp; \qquad \begin{bmatrix} \xi_j \\ \xi_{j+1} \end{bmatrix}=\begin{bmatrix} c_i &amp; s_i \\ -s_i &amp; c_i \end{bmatrix}\begin{bmatrix} \xi_j \\ 0 \end{bmatrix} \\
+&amp; \qquad if\ |\xi_{j+1}| &lt; error \\
+&amp; \qquad\qquad m=j\ and\ break  \\
+&amp; \qquad end \\
+&amp; end \\
+&amp; R_m=H(1:m,1:m) \\
+&amp; \xi^{(m)}=\xi(1:m) \\
+&amp; solve\ R_my=\xi^{(m)} \\
+&amp; x=x^{(0)}+V_my
+\end{aligned}
+$$&lt;/p&gt;
+</description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://w-jin.github.io/tags/math/">math</category>
+                                
+                            
+                        
+                    
+                
+            </item>
         
             <item>
                 <title>双共轭梯度法</title>
