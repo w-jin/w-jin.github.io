@@ -23,7 +23,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Sun, 12 Mar 2023 17:24:54 &#43;0800</lastBuildDate>
+        <lastBuildDate>Sun, 12 Mar 2023 17:29:15 &#43;0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss&#43;xml" href="https://w-jin.github.io/rss.xml" />
         
@@ -313,10 +313,12 @@ $$
 &lt;p&gt;所以等式$\eqref{wivj_0}$对$k=2,3,\dots,m$成立，所以$(v_i,w_j)=0,i \ne j$，所以定理一成立。&lt;/p&gt;
 &lt;p&gt;将递推式$\eqref{vw_k1}$写成矩阵形式为：
 $$
-\begin{equation}\begin{aligned}
+\begin{equation} \label{AVAW}
+\begin{aligned}
 AV_k&amp;=V_{k+1}T_{k+1,k}=V_kT_k+\gamma_kv_{k+1}e_k^T \\
 A^TW_k&amp;=W_{k+1}T_{k+1,k}^T=W_kT_k^T+\beta_kw_{k+1}e_k^T
-\end{aligned}\end{equation} \label{AVAW}
+\end{aligned}
+\end{equation}
 $$
 其中$e_k^T=[0,\dots,0,1]^T \in R^k$，
 $$
