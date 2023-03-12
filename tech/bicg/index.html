@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+    <meta charset="UTF-8" />
+
+    <meta name="generator" content="Hugo 0.111.2"><meta name="theme-color" content="#fff" />
+    <meta name="color-scheme" content="light dark">
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+    
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+
+    <title>双共轭梯度法 | wjin</title>
+
+    <link rel="stylesheet" href="/css/meme.min.af7333bfd64891c910fa2d9ad1905cb5289d87665f6fcc49d13183ed852abf3f.css"/>
+
+    
+    
+        <script src="/js/meme.min.b42cc6cc17aac11800d2bb8a71cf39db1f17f54d7f60cf3c1320970b00f1147e.js"></script>
+
+    
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" media="print" onload="this.media='all'" />
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira&#43;Code:wght@300;400;500;600;700&amp;family=Noto&#43;Serif&#43;SC:wght@400;500;700&amp;display=swap" /></noscript>
+
+    <meta name="author" content="wjin" /><meta name="description" content="BiCG 定义 BiCG(Bi-Conjugate Gradient)方法也是投影方法，分别选取$K(A,r_0)$和$K(A^……" />
+
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="wjin" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="wjin" />
+    <meta name="msapplication-starturl" content="../../" />
+    <meta name="msapplication-TileColor" content="#fff" />
+    <meta name="msapplication-TileImage" content="../../icons/mstile-150x150.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    
+    
+
+    
+    <link rel="canonical" href="https://w-jin.github.io/tech/bicg/" />
+    
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "datePublished": "2023-03-12T16:31:00+08:00",
+        "dateModified": "2023-03-12T17:01:59+08:00",
+        "url": "https://w-jin.github.io/tech/bicg/",
+        "headline": "双共轭梯度法",
+        "description": "BiCG 定义 BiCG(Bi-Conjugate Gradient)方法也是投影方法，分别选取$K(A,r_0)$和$K(A^……",
+        "inLanguage" : "zh-CN",
+        "articleSection": "tech",
+        "wordCount":  4060 ,
+        "image": "https://w-jin.github.io/favicon.ico",
+        "author": {
+            "@type": "Person",
+            "description": "我空空如也",
+            "email": "wjiner@outlook.com",
+            "image": "https://w-jin.github.io/icons/logo.png",
+            "url": "https://w-jin.github.io/",
+            "name": "wjin"
+        },
+        "license": "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)",
+        "publisher": {
+            "@type": "Organization",
+            "name": "wjin",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://w-jin.github.io/favicon.ico"
+            },
+            "url": "https://w-jin.github.io/"
+        },
+        "mainEntityOfPage": {
+            "@type": "WebSite",
+            "@id": "https://w-jin.github.io/"
+        }
+    }
+</script>
+
+    
+
+<meta name="twitter:card" content="summary" />
+
+
+    
+
+
+
+<meta property="og:title" content="双共轭梯度法" />
+<meta property="og:description" content="BiCG 定义 BiCG(Bi-Conjugate Gradient)方法也是投影方法，分别选取$K(A,r_0)$和$K(A^……" />
+<meta property="og:url" content="https://w-jin.github.io/tech/bicg/" />
+<meta property="og:site_name" content="wjin" />
+<meta property="og:locale" content="zh" /><meta property="og:image" content="https://w-jin.github.io/favicon.ico" />
+    <meta property="og:type" content="article" />
+    <meta property="article:published_time" content="2023-03-12T16:31:00&#43;08:00" />
+    <meta property="article:modified_time" content="2023-03-12T17:01:59&#43;08:00" />
+    
+    <meta property="article:section" content="tech" />
+
+
+
+    
+    
+
+    
+</head>
+
+    <body>
+        <div class="container">
+            
+    <header class="header">
+        
+            <div class="header-wrapper">
+                <div class="header-inner single">
+                    
+    <div class="site-brand">
+        
+            <a href="/" class="brand">wjin</a>
+        
+    </div>
+
+                    <nav class="nav">
+    <ul class="menu" id="menu">
+        
+            
+        
+        
+        
+        
+            
+                <li class="menu-item"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="icon home"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></svg><span class="menu-item-name">首页</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tech/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">技术</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/article/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon archive"><path d="M32 448c0 17.7 14.3 32 32 32h384c17.7 0 32-14.3 32-32V160H32v288zm160-212c0-6.6 5.4-12 12-12h104c6.6 0 12 5.4 12 12v8c0 6.6-5.4 12-12 12H204c-6.6 0-12-5.4-12-12v-8zM480 32H32C14.3 32 0 46.3 0 64v48c0 8.8 7.2 16 16 16h480c8.8 0 16-7.2 16-16V64c0-17.7-14.3-32-32-32z"/></svg><span class="menu-item-name">文青</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/tags/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" class="icon tags"><path d="M497.941 225.941L286.059 14.059A48 48 0 0 0 252.118 0H48C21.49 0 0 21.49 0 48v204.118a48 48 0 0 0 14.059 33.941l211.882 211.882c18.744 18.745 49.136 18.746 67.882 0l204.118-204.118c18.745-18.745 18.745-49.137 0-67.882zM112 160c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm513.941 133.823L421.823 497.941c-18.745 18.745-49.137 18.745-67.882 0l-.36-.36L527.64 323.522c16.999-16.999 26.36-39.6 26.36-63.64s-9.362-46.641-26.36-63.64L331.397 0h48.721a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882z"/></svg><span class="menu-item-name">标签</span></a>
+                </li>
+            
+        
+            
+                <li class="menu-item"><a href="/about/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512" class="icon user-circle"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm0 96c48.6 0 88 39.4 88 88s-39.4 88-88 88-88-39.4-88-88 39.4-88 88-88zm0 344c-58.7 0-111.3-26.6-146.5-68.2 18.8-35.4 55.6-59.8 98.5-59.8 2.4 0 4.8.4 7.1 1.1 13 4.2 26.6 6.9 40.9 6.9 14.3 0 28-2.7 40.9-6.9 2.3-.7 4.7-1.1 7.1-1.1 42.9 0 79.7 24.4 98.5 59.8C359.3 421.4 306.7 448 248 448z"/></svg><span class="menu-item-name">关于</span></a>
+                </li>
+            
+        
+            
+                
+                    
+                    
+                        <li class="menu-item">
+                            <a id="theme-switcher" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-light"><path d="M193.2 104.5l48.8-97.5a18 18 0 0128 0l48.8 97.5 103.4 -34.5a18 18 0 0119.8 19.8l-34.5 103.4l97.5 48.8a18 18 0 010 28l-97.5 48.8 34.5 103.4a18 18 0 01-19.8 19.8l-103.4-34.5-48.8 97.5a18 18 0 01-28 0l-48.8-97.5l-103.4 34.5a18 18 0 01-19.8-19.8l34.5-103.4-97.5-48.8a18 18 0 010-28l97.5-48.8-34.5-103.4a18 18 0 0119.8-19.8zM256 128a128 128 0 10.01 0M256 160a96 96 0 10.01 0"/></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon theme-icon-dark"><path d="M27 412a256 256 0 10154-407a11.5 11.5 0 00-5 20a201.5 201.5 0 01-134 374a11.5 11.5 0 00-15 13"/></svg></a>
+                        </li>
+                    
+                
+            
+        
+            
+                
+            
+        
+    </ul>
+</nav>
+
+                    
+                </div>
+            </div>
+            
+    <input type="checkbox" id="nav-toggle" aria-hidden="true" />
+    <label for="nav-toggle" class="nav-toggle"></label>
+    <label for="nav-toggle" class="nav-curtain"></label>
+
+
+        
+    </header>
+
+
+
+
+            
+            
+    <main class="main single" id="main">
+    <div class="main-inner">
+
+        
+
+        <article class="content post h-entry" data-align="justify" data-type="tech" data-toc-num="true">
+
+            <h1 class="post-title p-name">双共轭梯度法</h1>
+
+            
+
+            
+                
+            
+
+            
+                
+
+<div class="post-meta">
+    
+        
+        <time datetime="2023-03-12T16:31:00&#43;08:00" class="post-meta-item published dt-published"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M148 288h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12zm108-12v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 96v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm-96 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm192 0v-40c0-6.6-5.4-12-12-12h-40c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12zm96-260v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V112c0-26.5 21.5-48 48-48h48V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h128V12c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v52h48c26.5 0 48 21.5 48 48zm-48 346V160H48v298c0 3.3 2.7 6 6 6h340c3.3 0 6-2.7 6-6z"/></svg>&nbsp;2023.3.12</time>
+    
+    
+        
+        <time datetime="2023-03-12T17:01:59&#43;08:00" class="post-meta-item modified dt-updated"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2023.3.12</time>
+    
+    
+    
+        
+        
+        
+            
+        
+    
+    
+        
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;4060</span>
+    
+    
+        
+        <span class="post-meta-item reading-time"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z"/></svg>&nbsp;9&nbsp;分钟</span>
+    
+    
+    
+</div>
+
+            
+
+            <nav class="contents">
+  <h2 id="contents" class="contents-title">目录</h2><ol class="toc">
+    <li><a id="contents:定义" href="#定义">定义</a></li>
+    <li><a id="contents:双正交化过程" href="#双正交化过程">双正交化过程</a></li>
+    <li><a id="contents:bicg方法推导" href="#bicg方法推导">BiCG方法推导</a></li>
+  </ol>
+</nav><div class="post-body e-content">
+                <h1 id="bicg"><a href="#bicg" class="anchor-link">§</a><a href="#contents:bicg" class="headings">BiCG</a></h1>
+<h2 id="定义"><a href="#定义" class="anchor-link">§</a><a href="#contents:定义" class="headings">定义</a></h2>
+<p>BiCG(Bi-Conjugate Gradient)方法也是投影方法，分别选取$K(A,r_0)$和$K(A^T,r_0^*)$为搜索空间和约束空间，即
+$$
+find \ x \in x^{(0)}+K(A,r_0), \quad b-Ax \perp K(A^T,r_0^*)
+$$
+设$x^{(k)}=x^{(0)}+V_ky_k$为BiCG方法在找到的近似解，其中$V_k=[v_1, v_2, \dots, v_k] \in R^{n \times k}$为$K(A,r_0)$的基，$y \in R^k$，再设$W_k=[w_1,w_2,\dots,w_k] \in R^{n \times k}$为$K(A^T,r_0^*)$的基，则由$b-Ax \perp K(A^T,r_0^*)$可得：
+$$
+W_k^T(b-Ax^{(k)})=W_k^T(r_0-AV_ky_k)=W_k^Tr_0-W_k^TAV_ky_k=0 \label{bicgy}
+$$
+接下来使用双正交化过程来简化方程$\eqref{bicgy}$。</p>
+<h2 id="双正交化过程"><a href="#双正交化过程" class="anchor-link">§</a><a href="#contents:双正交化过程" class="headings">双正交化过程</a></h2>
+<p>双正交化过程(biorthogonalization)同时寻找Krylov子空间$K(A,r_0)$的基$\{v_1,v_2,\dots,v_k\}$和$K(A^T,r_0^*)$的基$\{w_1,w_2,\dots,w_k\}$，并使这两组基相互正交的算法，其中$\{v_1,v_2,\dots,v_k\}$和$\{w_1,w_2,\dots,w_k\}$相互正交是指：
+$$
+(v_i,w_j)=\begin{cases}
+0, \quad i \ne j \\
+1, \quad i = j
+\end{cases}
+$$
+注意$\{v_1,v_2,\dots,v_k\}$和$\{w_1,w_2,\dots,w_k\}$本身不一定正交。</p>
+<p>双正交化过程是Lanczos过程向非对称情形的推广。给定两个非零向量$r_0$和$r_0^*$，满足$(r_0,r_0^*) \ne 0$，则双正交化过程为：
+$$
+\begin{aligned}
+& \beta = \|r_0\|_2 \\
+& \beta_0 = \gamma_0 = 0 \\
+& v_1 = r_0 / \beta \\
+& w_1=\beta r_0^*/(r_0^*, r_0) \\
+& for \ k = 1,2,\dots,m \\
+& \qquad \alpha_k = (Av_k, w_k) \\
+& \qquad \bar{v}_{k+1}=Av_k - \alpha_k v_k - \beta_{k-1}v_{k-1} \\
+& \qquad \bar{w}_{k+1}=A^T w_k - \alpha_k w_k - \gamma_{k-1}w_{k-1} \\
+& \qquad \gamma_k = \sqrt{|(\bar{v}_{k+1},\bar{w}_{k+1})|} \\
+& \qquad if \ \gamma_k = 0 \\
+& \qquad\qquad break \\
+& \qquad end \\
+& \qquad \beta_k=(\bar{v}_{k+1}, \bar{w}_{k+1})/\gamma_k \\
+& \qquad v_{k+1}=\bar{v}_{k+1}/\gamma_k \\
+& \qquad w_{k+1}=\bar{w}_{k+1}/\beta_k \\
+& end
+\end{aligned}
+$$
+<strong>定理一</strong>：设双正交化过程不提前中断，则向量组$\{v_1,v_2,\dots,v_m\}$和$\{w_1,w_2,\dots,w_m\}$相互正交，即
+$$
+W_m^TV_m=I \label{WVI}
+$$
+其中$V_m=[v_1,v_2,\dots,v_m],W_m=[w_1,w_2,\dots,w_m]$。</p>
+<p>证明：首先由$\beta_k$的构造可知$\beta_k \gamma_k=(\bar{v}_{k+1}, \bar{w}_{k+1})$，所以$(v_{k+1},w_{k+1})=(\bar{v}_{k+1}, \bar{w}_{k+1})/(\beta_k \gamma_k)=1$，$k=1,2,\dots,m-1$，又$(v_1,w_1)=(r_0/\beta, \beta r_0^*/(r_0^*, r_0))=1$，所以$(v_k,w_k)=1,k=1,2,\dots,m$。</p>
+<p>接下来再证明下面的等式对任意正整数$2 \le k \le m$成立：
+$$
+w_k^Tv_i=0, \quad w_i^Tv_k=0, \quad i=1,2,\dots,k-1 \label{wivj_0}
+$$
+通过数学归纳法证明：当k=2时，有$\gamma_1v_2=Av_1-\alpha_1 v_1$和$\beta_1w_2=A^Tw_1-\alpha_1 w_1$，其中$\alpha_1=w_1^TAv_1$，所以
+$$
+\begin{aligned}
+w_2^Tv_1&=(A^Tw_1-\alpha_1w_1)^Tv_1/\beta_1=(w_1^TAv_1-\alpha_1)/\beta_1=0 \\
+w_1^Tv_2&=w_1^T(Av_1-\alpha_1v_1)/\gamma_1=(w_1^TAv_1-\alpha_1)/\gamma_1=0
+\end{aligned}
+$$
+即k=2时$\eqref{wivj_0}$成立。</p>
+<p>假设等式$\eqref{wivj_0}$对k成立，证明k+1时也成立。由双正交化过程算法可知：
+$$
+\begin{equation}\begin{gathered}
+\gamma_kv_{k+1}=Av_k - \alpha_k v_k - \beta_{k-1}v_{k-1} \\
+\beta_kw_{k+1}=A^T w_k - \alpha_k w_k - \gamma_{k-1}w_{k-1} \\
+\alpha_k=(Av_k,w_k) = w_k^TAv_k
+\end{gathered}\end{equation} \label{vw_k1}
+$$
+所以
+$$
+\begin{aligned}
+w_{k+1}^Tv_k&=(A^T w_k - \alpha_k w_k - \gamma_{k-1}w_{k-1})^Tv_k/\beta_k \\
+&=(w_k^TAv_k-\alpha_k)/\beta_k=0 \\
+w_{k+1}^Tv_{k-1}&=(A^T w_k - \alpha_k w_k - \gamma_{k-1}w_{k-1})^Tv_{k-1}/\beta_k \\
+&=(w_k^TAv_{k-1}-\gamma_{k-1})/\beta_k \\
+&=(w_k^T(\gamma_{k-1}v_k + \alpha_{k-1} v_{k-1} + \beta_{k-2}v_{k-2})-\gamma_{k-1})/\beta_k \\
+&=(\gamma_{k-1}w_k^Tv_k-\gamma_{k-1})/\beta_k = 0 \\
+\end{aligned}
+$$
+当$i \le k-2$时，有
+$$
+\begin{aligned}
+w_{k+1}^Tv_i&=(A^T w_k - \alpha_k w_k - \gamma_{k-1}w_{k-1})^Tv_i/\beta_k \\
+&=w_k^TAv_i/\beta \\
+&= w_k^T(\gamma_i v_{i+1}+\alpha_iv_i+\beta_{i-2}v_{i-2})/\beta_k = 0
+\end{aligned}
+$$
+类似地，可以证明$w_i^Tv_{k+1}=0$对所有$i \le k$都成立，所以等式$\eqref{wivj_0}$对k+1也成立。</p>
+<p>所以等式$\eqref{wivj_0}$对$k=2,3,\dots,m$成立，所以$(v_i,w_j)=0,i \ne j$，所以定理一成立。</p>
+<p>将递推式$\eqref{vw_k1}$写成矩阵形式为：
+$$
+\begin{equation}\begin{aligned}
+AV_k&=V_{k+1}T_{k+1,k}=V_kT_k+\gamma_kv_{k+1}e_k^T \\
+A^TW_k&=W_{k+1}T_{k+1,k}^T=W_kT_k^T+\beta_kw_{k+1}e_k^T
+\end{aligned}\end{equation} \label{AVAW}
+$$
+其中$e_k^T=[0,\dots,0,1]^T \in R^k$，
+$$
+\begin{gathered}
+T_{k+1,k}=\begin{bmatrix}
+\alpha_1 & \beta_1 \\
+\gamma_1 & \ddots & \ddots \\
+ & \ddots & \ddots & \beta_{k-1} \\
+ & & \gamma_{k-1} & \alpha_k \\
+ & & & \gamma_k
+\end{bmatrix} \in R^{(k+1) \times k} \\
+T_{k+1,k}^T=\begin{bmatrix}
+\alpha_1 & \gamma_1 \\
+\beta_1 & \ddots & \ddots \\
+ & \ddots & \ddots & \gamma_{k-1} \\
+ & & \beta_{k-1} & \alpha_k \\
+ & & & \beta_k
+\end{bmatrix} \in R^{(k+1) \times k}
+\end{gathered}
+$$
+$T_k \in R^{k \times k}$是$T_{k+1,k}$的前k行组成的矩阵。由$\eqref{WVI}$和$\eqref{AVAW}$可得
+$$
+W_k^TAV_k=W_k^TV_kT_k+\gamma_k(W_k^Tv_{k+1})e_k^T=T_k \label{WAVT}
+$$</p>
+<h2 id="bicg方法推导"><a href="#bicg方法推导" class="anchor-link">§</a><a href="#contents:bicg方法推导" class="headings">BiCG方法推导</a></h2>
+<p>由公式$\eqref{WVI}$和$\eqref{WAVT}$，方程$\eqref{bicgy}$可进行下面的化简：
+$$
+W_k^Tr_0-W_k^TAV_ky_k=\beta W_k^Tv_1-T_ky_k=\beta e_1^{(k)}-T_ky_k=0
+$$
+所以
+$$
+y_k = T_k^{-1}(\beta e_1^{(k)})
+$$
+设$T_k$的LU分解为$T_k=L_kU_k$，则
+$$
+x^{(k)}=x^{(0)}+V_ky_k=x^{(0)}+V_kT_k^{-1}(\beta e_1^{(k)})=x^{(0)}+(V_kU_k^{-1})(\beta L_k^{-1}e_1^{(k)})
+$$
+<strong>定理二</strong>：设$Q_k=V_kU_k^{-1}=[q_1,q_2,\dots, q_k] \in R^{n \times k}$，$z_k=\beta L_k^{-1}e_1^{(k)}$，则有递推公式：$Q_{k+1}=V_{k+1}U_{k+1}^{-1}=[Q_k,q_{k+1}], z_{k+1}=\beta L_{k+1}^{-1}e_1^{(k+1)}=[z_k, \eta_{k+1}]^T$。</p>
+<p>证明：设$T_k$的LU分解为
+$$
+T_k = L_kU_k =
+\begin{bmatrix}
+1 \\
+l_1 & 1 \\
+ & \ddots & \ddots \\
+ & & l_{k-1} & 1
+\end{bmatrix}
+\begin{bmatrix}
+d_1 & u_1 \\
+& \ddots & \ddots \\
+& & d_{k-1} & u_{k-1} \\
+& & & d_k
+\end{bmatrix}
+=
+\begin{bmatrix}
+\alpha_1 & \beta_1 \\
+\gamma_1 & \ddots & \ddots \\
+ & \ddots & \ddots & \beta_{k-1} \\
+ & & \gamma_{k-1} & \alpha_k \\
+\end{bmatrix}
+$$
+$L_k$和$U_k$的元素可由待定系数法可解出：
+$$
+d_1=\alpha_1, l_i=\gamma_i / d_i, u_i=\beta_i,d_{i+1}=\alpha_{i+1}-l_iu_i, i=1,2,\dots,k-1
+$$
+记$\bar{l}_k=[0,\dots,0,l_k]^T \in R^k,\bar{u}_k=[0,\dots,0,u_k]^T \in R^k$，则
+$$
+L_{k+1}=\begin{bmatrix}
+L_k & 0 \\
+\bar{l}_k^T & 1
+\end{bmatrix},
+U_{k+1}=\begin{bmatrix}
+U_k & \bar{u}_k \\
+0 & d_{k+1}
+\end{bmatrix}
+$$
+且
+$$
+L_{k+1}^{-1}=\begin{bmatrix}
+L_k^{-1} & 0 \\
+-\bar{l}_k^TL_k^{-1} & 1
+\end{bmatrix},
+U_{k+1}^{-1}=\begin{bmatrix}
+U_k^{-1} & -d_{k+1}^{-1}U_k^{-1}\bar{u}_k \\
+0 & d_{k+1}^{-1}
+\end{bmatrix}
+$$
+所以
+$$
+\begin{aligned}
+Q_{k+1}&=V_{k+1}U_{k+1}^{-1}=[V_k,v_{k+1}]\begin{bmatrix}
+U_k^{-1} & -d_{k+1}^{-1}U_k^{-1}\bar{u}_k \\
+0 & d_{k+1}^{-1}
+\end{bmatrix} \\
+&=[V_kU_k^{-1}, -d_{k+1}^{-1}V_kU_k^{-1}\bar{u}_k+d_{k+1}^{-1}v_{k+1}] \\
+&=[Q_k, -d_{k+1}^{-1}Q_k\bar{u}_k+d_{k+1}^{-1}v_{k+1}] \\
+&=[Q_k, -d_{k+1}^{-1}u_kq_k+d_{k+1}^{-1}v_{k+1}] \\
+&=[Q_k, q_{k+1}]
+\end{aligned}
+$$
+其中$q_{k+1}=-d_{k+1}^{-1}u_kq_k+d_{k+1}^{-1}v_{k+1}$。</p>
+<p>另外
+$$
+z_{k+1}=\beta L_{k+1}^{-1}e_1^{(k+1)}=\beta
+\begin{bmatrix}
+L_k^{-1} & 0 \\
+-\bar{l}_k^TL_k^{-1} & 1
+\end{bmatrix}
+\begin{bmatrix}
+e_1^{(k)} \\
+0
+\end{bmatrix}
+=\begin{bmatrix}
+\beta L_k^{-1}e_1^{(k)} \\
+-\beta\bar{l}_k^TL_k^{-1}e_1^{(k)}
+\end{bmatrix}
+=\begin{bmatrix}
+z_k \\
+\eta_{k+1}
+\end{bmatrix}
+$$</p>
+<p>其中$\eta_{k+1}=-\beta\bar{l}_k^TL_k^{-1}e_1^{(k)}$。</p>
+<p>由定理二可得近似解递推式：
+$$
+\begin{equation}\begin{aligned}
+x^{(k+1)}&=x^{(0)}+Q_{k+1}z_{k+1}=x^{(0)}+[Q_k,q_{k+1}]\begin{bmatrix} z_k \\ \eta_{n+1} \end{bmatrix} \\
+&=x^{(0)}+Q_kz_k+\eta_{k+1}q_{k+1}=x^{(k)}+\eta_{k+1}q_{k+1}
+\end{aligned}\end{equation} \label{bicgx}
+$$
+所以残量递推式为：
+$$
+r_{k+1}=b-Ax^{(k+1)}=b-A(x^{(k)}+\eta_{k+1}q_{k+1})=r_k-\eta_{k+1}Aq_{k+1} \label{bicgr}
+$$
+另一方面
+$$
+\begin{aligned}
+r_k=b-Ax^{(k)}&=b-A(x^{(0)}+V_ky_k) \\
+&=r_0-AV_ky_k \\
+&=\beta v_1-V_kT_ky_k-\gamma_k v_{k+1}e_k^Ty_k \\
+&=-\gamma_k (e_k^Ty_k)v_{k+1}
+\end{aligned}
+$$
+所以$r_k$与$v_{k+1}$平行。</p>
+<p>考虑方程$A^Tx=b$，对应的BiCG方法为：
+$$
+find\ x_* \in x_*^{(0)}+K(A^T,r_0^*), \quad b-A^Tx_* \perp K(A, r_0)
+$$
+对于此方程，仍然采用方程$Ax=b$的双正交化过程，可设方程的近似解为$x_*^{(k)}=x_*^{(0)}+W_ky_k^*$，则正交条件为：
+$$
+V_k^T(b-A^Tx_*^{(k)})=V_k^T(r_0^*-A^TW_ky_k^*)=V_k^T(\beta^*w_1)-V_k^TA^TW_ky_k^*=\beta^*e_1^{(k)}-T_k^Ty_k^*=0
+$$
+其中$\beta^*=\beta/(r_0,r_0^*)$。</p>
+<p>因此$y_k^*$是方程$T_k^Ty=\beta^*e_1^{(k)}$的解，则
+$$
+x_*^{(k)}=x_*^{(0)}+W_ky_k^*=x_*^{(0)}+W_kT_k^{-T}(\beta^* e_1^{(k)})=x_*^{(0)}+(W_kL_k^{-T})(\beta^* U_k^{-T}e_1^{(k)})
+$$
+令$Q_k^*=W_kL_k^{-T}$，$z_k^*=\beta^*U_k^{-T}e_1^{(k)}$，则有
+$$
+\begin{aligned}
+Q_{k+1}^*&=W_{k+1}L_{k+1}^{-T}=[W_k,w_{k+1}]\begin{bmatrix}
+L_k^{-T} & -L_k^{-T}\bar{l}_k \\
+0 & 1
+\end{bmatrix} \\
+&=[W_kL_k^{-T},-W_kL_k^{-T}\bar{l}_k+w_{k+1}] \\
+&=[Q_k^*, -Q_k^*\bar{l}_k+w_{k+1}] \\
+&=[Q_k^*, -l_kq_k^*+w_{k+1}]=[Q_k^*, q_{k+1}^*] \\
+z_{k+1}^*&=\beta^*U_{k+1}^{-T}e_1^{(k+1)}=\beta^*
+\begin{bmatrix}
+U_k^{-T} & 0 \\
+-d_{k+1}^{-1}\bar{u}_k^TU_k^{-T} & d_{k+1}^{-1}
+\end{bmatrix}
+\begin{bmatrix}
+e_1^{(k)} \\
+0
+\end{bmatrix} \\
+&=[\beta^*U_k^{-T}e_1^{(k)},-\beta^*d_{k+1}^{-1}\bar{u}_k^TU_k^{-T}e_1^{(k)}]^T \\
+&=[z_k^*, \eta_{k+1}^*]^T
+\end{aligned}
+$$
+其中$q_{k+1}^*=-l_kq_k^*+w_{k+1}, \eta_{k+1}^*=-\beta^*d_{k+1}^{-1}\bar{u}_k^TU_k^{-T}e_1^{(k)}$。</p>
+<p>所以
+$$
+\begin{equation}\begin{aligned}
+x_*^{(k+1)}&=x_*^{(0)}+Q_{k+1}^*z_{k+1}^*=x_*^{(0)}+[Q_k^*,q_{k+1}^*]\begin{bmatrix} z_k^* \\ \eta_{n+1}^* \end{bmatrix} \\
+&=x_*^{(0)}+Q_k^* z_k^* + \eta_{k+1}^* q_{k+1}^* = x_*^{(k)}+\eta_{k+1}^*q_{k+1}^*
+\end{aligned}\end{equation}
+$$
+残量的递推式为
+$$
+r_{k+1}^* = b-A^Tx_*^{(k+1)}=b-A^T(x_*^{(k)}+\eta_{k+1}^*q_{k+1}^*)=r_k^*-\eta_{k+1}^*A^Tq_{k+1}^* \label{bicgr_}
+$$
+另外
+$$
+\begin{aligned}
+r_k^*=b-A^Tx_*^{(k)}&=b-A^T(x_*^{(0)}+W_ky_k^*) \\
+&=r_0^*-A^TW_ky_k^* \\
+&=\beta^* w_1 - W_kT_k^Ty_k^*-\beta_k w_{k+1}e_k^Ty_k^* \\
+&=-\beta_k (e_k^Ty_k^*)w_{k+1}
+\end{aligned}
+$$
+所以$r_k^*$与$w_{k+1}$平行。</p>
+<p><strong>定理三</strong>：1、$\{r_0,r_1,\dots,r_k\}$与$\{r_0^*,r_1^*,\dots,r_k^*\}$满足$(r_i,r_j^*)=0, i \ne j$；2、$\{q_1,q_2,\dots,q_k\}$与$\{q_1^*,q_2^*,\dots,q_k^*\}$满足$(Aq_i,q_j^*)=0, i \ne j$。</p>
+<p>证明：1、$r_i$与$v_{i+1}$平行，$r_j^*$与$w_{j+1}$平行，而$\{v_1,v_2,\dots,v_k\}$与$\{w_1,w_2,\dots,w_k\}$相互正交，所以$(r_i,r_j^*)=0,i \ne j$。</p>
+<p>2、证明$(Q_k^*)^TAQ_k=I$即可：
+$$
+(Q_k^*)^TAQ_k=(W_kL_k^{-T})^TA(V_kU_k^{-1})=L_k^{-1}W_k^TAV_kU_k^{-1}=L_k^{-1}T_kU_k^{-1}=I
+$$</p>
+<p>记$r_k=t_kv_{k+1}$，则$t_0=\beta$，$t_k=-\gamma_k (e_k^Ty_k)$。令$p_k=t_{k-1}d_kq_k$，则
+$$
+p_{k+1}=t_kd_{k+1}q_{k+1}=t_kd_{k+1}(-d_{k+1}^{-1}u_kq_k+d_{k+1}^{-1}v_{k+1})=r_k+\theta_k p_k \label{bicgp}
+$$
+其中$\theta_k=-t_ku_k/d_k$。</p>
+<p>记$r_k^*=t_k^*w_{k+1}$，则$t_0^*=\beta^*$，$t_k^*=-\beta_k(e_k^Ty_k^*)$。令$p_k^*=t_{k-1}^*q_k^*$，则
+$$
+p_{k+1}^*=t_k^*q_{k+1}^*=t_k^*(-l_kq_k^*+w_{k+1})=r_k^*-t_k^*l_kq_k^*=r_k^*+\theta_k^*p_k^* \label{bicgp_}
+$$
+其中$\theta_k^*=-t_k^*l_k/t_{k-1}^*$。</p>
+<p>因为$p_k$和$q_k$平行，$p_k^*$和$q_k^*$平行，所以$(Ap_i,p_j^*)=0,i \ne j$。</p>
+<p>将$x$、$r$、$r^*$的递推式$\eqref{bicgx}$、$\eqref{bicgr}$和$\eqref{bicgr_}$都用$p$和$p^*$表示：
+$$
+x^{(k+1)}=x^{(k)}+\eta_{k+1}q_{k+1} =x^{(k)}+\xi_{k+1}p_{k+1} \label{bicgxp}
+$$</p>
+$$
+r_{k+1}=r_k-\eta_{k+1}Aq_{k+1}=r_k-\xi_{k+1}Ap_{k+1} \label{bicgrp}
+$$
+$$
+r_{k+1}^* = r_k^*-\eta_{k+1}^*A^Tq_{k+1}^* = r_k^*-\xi_{k+1}^*A^Tp_{k+1}^* \label{bicgr_p}
+$$
+<p>等式$\eqref{bicgrp}$两端左乘$(r_k^*)^T$得：
+$$
+0=(r_k,r_k^*)-\xi_{k+1}(Ap_{k+1},r_k^*)
+$$
+所以
+$$
+\xi_{k+1}=\frac{(r_k, r_k^*)}{(Ap_{k+1},r_k^*)}
+$$
+等式$\eqref{bicgr_p}$两端左乘$r_k^T$得：
+$$
+0=(r_k,r_k^*)-\xi_{k+1}^*(A^Tp_{k+1}^*,r_k)
+$$
+所以
+$$
+\xi_{k+1}^*=\frac{(r_k,r_k^*)}{(A^Tp_{k+1}^*,r_k)}
+$$
+等式$\eqref{bicgp}$两端左乘$(p_{k+1}^*)^TA$得：
+$$
+(A^Tp_{k+1}^*,p_{k+1})=(A^Tp_{k+1}^*,r_k)=(p_{k+1}^*)^TAp_{k+1}
+$$
+等式$\eqref{bicgp_}$两端左乘$(Ap_{k+1})^T$得：
+$$
+(Ap_{k+1},p_{k+1}^*)=(Ap_{k+1},r_k^*)=(p_{k+1}^*)^TAp_{k+1}
+$$
+所以
+$$
+(A^Tp_{k+1}^*,r_k)=(Ap_{k+1},r_k^*)=(Ap_{k+1},p_{k+1}^*) \label{appapr}
+$$
+所以
+$$
+\xi_{k+1}=\xi_{k+1}^*=\frac{(r_k,r_k^*)}{(Ap_{k+1},p_{k+1}^*)} \label{bicgxi}
+$$
+等式$\eqref{bicgp}$两端左乘$(p_k^*)^TA$得
+$$
+0=(A^Tp_k^*,r_k)+\theta_k (A^Tp_k^*,p_k)
+$$
+所以
+$$
+\theta_k = -\frac{(A^Tp_k^*,r_k)}{(A^Tp_k^*,p_k)} = -\frac{(A^Tp_k^*,r_k)}{(Ap_k,p_k^*)}
+$$
+等式$\eqref{bicgp_}$两端左乘$(Ap_k)^T$得：
+$$
+0=(Ap_k,r_k^*)+\theta_k^* (Ap_k,p_k^*)
+$$
+所以
+$$
+\theta_k^* = -\frac{(Ap_k,r_k^*)}{(Ap_k,p_k^*)}
+$$
+等式$\eqref{bicgrp}$两端左乘$(r_{k+1}^*)^T$得：
+$$
+(r_{k+1},r_{k+1}^*)=-\xi_{k+1}(Ap_{k+1},r_{k+1}^*)
+$$
+等式$\eqref{bicgr_p}$两端左乘$r_{k+1}^T$得：
+$$
+(r_{k+1},r_{k+1}^*)=-\xi_{k+1}^*(A^Tp_{k+1}^*,r_{k+1})
+$$
+所以
+$$
+(A^Tp_k^*,r_k)=(Ap_k,r_k^*)=-(r_k,r_k^*)/\xi_k
+$$
+所以
+$$
+\theta_k=\theta_k^*=\frac{(r_k,r_k^*)}{\xi_k (Ap_k,p_k^*)}=\frac{(r_k,r_k^*)}{(r_{k-1},r_{k-1}^*)}
+$$
+综上所述，BiCG方法迭代过程为：
+$$
+\begin{aligned}
+x^{(k)} &=x^{(k-1)}+\xi_kp_k,\quad where\ \xi_k=\frac{(r_{k-1},r_{k-1}^*)}{(Ap_k,p_k^*)} \\
+r_{k} &=r_{k-1}-\xi_kAp_k \\
+r_{k}^* &=r_{k-1}^*-\xi_kA^Tp_k^* \\
+p_{k+1} &=r_k+\theta_kp_k, \quad where\ \theta_k=\frac{(r_k,r_k^*)}{(r_{k-1},r_{k-1}^*)} \\
+p_{k+1}^* &= r_k^*+\theta_k p_k^*
+\end{aligned}
+$$</p>
+<p>考虑$p$和$p^*$的初值：$p_1=t_0d_1q_1=\beta d_1 d_1^{-1}v_1=r_0$，$p_1^*=t_0^*q_1^*=\beta^* w_1=r_0^*$，所以完整的BiCG方法如下：
+$$
+\begin{aligned}
+& r_0=b-Ax^{(0)} \\
+& choose\ r_0^*:(r_0, r_0^*) \ne 0 \\
+& p_1=r_0 \\
+& p_1^*=r_0^* \\
+& for\ k=1,2,\dots,n \\
+&\qquad \xi_k=(r_{k-1},r_{k-1}^*)/(Ap_k,p_k^*) \\
+&\qquad x^{(k)}=x^{(k-1)}+\xi_k p_k \\
+&\qquad r_k=r_{k-1}-\xi_k Ap_k \\
+&\qquad if\ \|r_k\|_2 < error \\
+&\qquad\qquad break \\
+&\qquad end \\
+&\qquad r_k^*=r_{k-1}^*-\xi_k A^Tp_k^* \\
+&\qquad \theta_k=(r_k,r_k^*)/(r_{k-1},r_{k-1}^*) \\
+&\qquad p_{k+1}=r_{k} + \theta_k p_k \\
+&\qquad p_{k+1}^*=r_k^*+\theta_k p_k^* \\
+& end
+\end{aligned}
+$$</p>
+
+            </div>
+
+            
+    
+    
+        <ul class="post-copyright">
+            <li class="copyright-item author"><span class="copyright-item-text">作者</span>：<a href="https://w-jin.github.io/" class="p-author h-card" target="_blank" rel="noopener">wjin</a></li>
+            
+                
+                
+                
+                
+                <li class="copyright-item link"><span class="copyright-item-text">链接</span>：<a href="/tech/bicg/" target="_blank" rel="noopener">https://w-jin.github.io/tech/bicg/</a></li>
+            
+            <li class="copyright-item license"><span class="copyright-item-text">许可</span>：<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></li>
+            
+        </ul>
+    
+
+
+
+        </article>
+
+        
+
+        
+
+
+        
+
+
+        
+
+
+        
+    
+    
+        <div class="related-posts">
+            <h2 class="related-title">相关文章：<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon related-icon"><path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm144 276c0 6.6-5.4 12-12 12h-92v92c0 6.6-5.4 12-12 12h-56c-6.6 0-12-5.4-12-12v-92h-92c-6.6 0-12-5.4-12-12v-56c0-6.6 5.4-12 12-12h92v-92c0-6.6 5.4-12 12-12h56c6.6 0 12 5.4 12 12v92h92c6.6 0 12 5.4 12 12v56z"/></svg></h2>
+            <ul class="related-list">
+                
+                    <li class="related-item">
+                        <a href="/tech/cg/" class="related-link">共轭梯度法</a>
+                    </li>
+                
+                    <li class="related-item">
+                        <a href="/tech/norm/" class="related-link">向量和矩阵范数</a>
+                    </li>
+                
+            </ul>
+        </div>
+    
+
+
+
+        
+    
+        <div class="post-tags">
+            
+                
+                
+                
+                
+                    
+                    <a href="/tags/math/" rel="tag" class="post-tags-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon tag-icon"><path d="M0 252.118V48C0 21.49 21.49 0 48 0h204.118a48 48 0 0 1 33.941 14.059l211.882 211.882c18.745 18.745 18.745 49.137 0 67.882L293.823 497.941c-18.745 18.745-49.137 18.745-67.882 0L14.059 286.059A48 48 0 0 1 0 252.118zM112 64c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>math</a>
+                
+            
+        </div>
+    
+
+
+
+        
+
+
+        
+
+
+        
+    
+        
+        
+    
+    
+    
+    
+        <ul class="post-nav">
+            
+            
+                <li class="post-nav-next">
+                    <a href="/tech/cg/" rel="next">共轭梯度法 &gt;</a>
+                </li>
+            
+        </ul>
+    
+
+
+
+        
+    
+
+        
+            <div class="load-comments">
+                <div id="load-comments">加载评论</div>
+            </div>
+        
+
+        
+
+        
+
+        
+
+        
+    
+
+
+
+    </div>
+</main>
+
+
+            
+    <div id="back-to-top" class="back-to-top">
+        <a href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon arrow-up"><path d="M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z"/></svg></a>
+    </div>
+
+
+            
+    <footer id="footer" class="footer">
+        <div class="footer-inner">
+            <div class="site-info">©&nbsp;1999–2023&nbsp;<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon footer-icon"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>&nbsp;wjin</div><div class="powered-by">Powered by <a href="https://github.com/gohugoio/hugo" target="_blank" rel="noopener">Hugo</a> | Theme is <a href="https://github.com/reuixiy/hugo-theme-meme" target="_blank" rel="noopener">MemE</a></div><div class="site-copyright"><a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></div>
+
+            
+
+
+            
+        </div>
+    </footer>
+
+
+        </div>
+        
+
+        
+
+
+    <script>
+    if (typeof MathJax === 'undefined') {
+        window.MathJax = {
+            loader: {
+                load: ['[tex]/mhchem']
+            },
+            
+                options: {
+                    renderActions: {
+                        addMenu: [0, '', '']
+                    }
+                },
+            
+            tex: {
+                inlineMath: {'[+]': [['$', '$']]},
+                tags: 'all',
+                packages: {'[+]': ['mhchem']}
+            }
+        };
+        (function() {
+            const script = document.createElement('script');
+            script.src = 'https:\/\/cdn.jsdelivr.net\/npm\/mathjax@3.1.2\/es5\/tex-mml-chtml.js';
+            script.defer = true;
+            document.head.appendChild(script);
+        })();
+    } else {
+        MathJax.texReset();
+        MathJax.typeset();
+    }
+</script>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.8.3/dist/mermaid.min.js"></script>
+<script>
+    const mermaidConfig = {
+        startOnLoad: true,
+        flowchart: {
+            useMaxWidth: false,
+            htmlLabels: true
+        },
+        theme: 'default'
+    };
+    mermaid.initialize(mermaidConfig);
+</script>
+
+
+
+    
+
+        
+
+        
+
+        
+
+        
+
+    
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/medium-zoom@latest/dist/medium-zoom.min.js"></script>
+
+<script>
+    let imgNodes = document.querySelectorAll('div.post-body img');
+    imgNodes = Array.from(imgNodes).filter(node => node.parentNode.tagName !== "A");
+
+    mediumZoom(imgNodes, {
+        background: 'hsla(var(--color-bg-h), var(--color-bg-s), var(--color-bg-l), 0.95)'
+    })
+</script>
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/instant.page@5.1.0/instantpage.min.js" type="module" defer></script>
+
+
+
+
+
+
+    </body>
+</html>

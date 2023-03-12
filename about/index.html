@@ -366,53 +366,38 @@
         
 
         
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.0/dist/katex.min.css">
-<script>
-    if (typeof renderMathInElement === 'undefined') {
-        const getScript = (options) => {
-            const script = document.createElement('script');
-            script.defer = true;
-            script.crossOrigin = 'anonymous';
-            Object.keys(options).forEach((key) => {
-                script[key] = options[key];
-            });
-            document.body.appendChild(script);
-        };
-        getScript({
-            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/katex.min.js',
-            onload: () => {
-                getScript({
-                    src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/mhchem.min.js',
-                    onload: () => {
-                        getScript({
-                            src: 'https:\/\/cdn.jsdelivr.net\/npm\/katex@0.13.0\/dist\/contrib\/auto-render.min.js',
-                            onload: () => {
-                                renderKaTex();
-                            }
-                        });
+
+
+    <script>
+    if (typeof MathJax === 'undefined') {
+        window.MathJax = {
+            loader: {
+                load: ['[tex]/mhchem']
+            },
+            
+                options: {
+                    renderActions: {
+                        addMenu: [0, '', '']
                     }
-                });
+                },
+            
+            tex: {
+                inlineMath: {'[+]': [['$', '$']]},
+                tags: 'all',
+                packages: {'[+]': ['mhchem']}
             }
-        });
+        };
+        (function() {
+            const script = document.createElement('script');
+            script.src = 'https:\/\/cdn.jsdelivr.net\/npm\/mathjax@3.1.2\/es5\/tex-mml-chtml.js';
+            script.defer = true;
+            document.head.appendChild(script);
+        })();
     } else {
-        renderKaTex();
-    }
-    function renderKaTex() {
-        renderMathInElement(
-            document.body,
-            {
-                delimiters: [
-                    {left: "$$", right: "$$", display: true},
-                    {left: "\\[", right: "\\]", display: true},
-                    {left: "$", right: "$", display: false},
-                    {left: "\\(", right: "\\)", display: false}
-                ]
-            }
-        );
+        MathJax.texReset();
+        MathJax.typeset();
     }
 </script>
-
-
 
 
 

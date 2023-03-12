@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">wjin</title>
     <subtitle type="html">这是wjin的个人博客。</subtitle>
-    <updated>2023-03-12T16:28:10&#43;08:00</updated>
+    <updated>2023-03-12T17:02:09&#43;08:00</updated>
     <id>https://w-jin.github.io/</id>
     <link rel="alternate" type="text/html" href="https://w-jin.github.io/" />
     <link rel="self" type="application/atom&#43;xml" href="https://w-jin.github.io/atom.xml" />
@@ -16,6 +16,456 @@
             </author>
     <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     <generator uri="https://gohugo.io/" version="0.111.2">Hugo</generator>
+        <entry>
+            <title type="text">双共轭梯度法</title>
+            <link rel="alternate" type="text/html" href="https://w-jin.github.io/tech/bicg/" />
+            <id>https://w-jin.github.io/tech/bicg/</id>
+            <updated>2023-03-12T17:01:59&#43;08:00</updated>
+            <published>2023-03-12T16:31:00&#43;08:00</published>
+            <author>
+                    <name>wjin</name>
+                    <uri>https://w-jin.github.io/</uri>
+                    <email>wjiner@outlook.com</email>
+                    </author>
+            <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights><summary type="html">BiCG 定义 BiCG(Bi-Conjugate Gradient)方法也是投影方法，分别选取$K(A,r_0)$和$K(A^……</summary>
+            
+                <content type="html">&lt;h1 id=&#34;bicg&#34;&gt;BiCG&lt;/h1&gt;
+&lt;h2 id=&#34;定义&#34;&gt;定义&lt;/h2&gt;
+&lt;p&gt;BiCG(Bi-Conjugate Gradient)方法也是投影方法，分别选取$K(A,r_0)$和$K(A^T,r_0^*)$为搜索空间和约束空间，即
+$$
+find \ x \in x^{(0)}+K(A,r_0), \quad b-Ax \perp K(A^T,r_0^*)
+$$
+设$x^{(k)}=x^{(0)}+V_ky_k$为BiCG方法在找到的近似解，其中$V_k=[v_1, v_2, \dots, v_k] \in R^{n \times k}$为$K(A,r_0)$的基，$y \in R^k$，再设$W_k=[w_1,w_2,\dots,w_k] \in R^{n \times k}$为$K(A^T,r_0^*)$的基，则由$b-Ax \perp K(A^T,r_0^*)$可得：
+$$
+W_k^T(b-Ax^{(k)})=W_k^T(r_0-AV_ky_k)=W_k^Tr_0-W_k^TAV_ky_k=0 \label{bicgy}
+$$
+接下来使用双正交化过程来简化方程$\eqref{bicgy}$。&lt;/p&gt;
+&lt;h2 id=&#34;双正交化过程&#34;&gt;双正交化过程&lt;/h2&gt;
+&lt;p&gt;双正交化过程(biorthogonalization)同时寻找Krylov子空间$K(A,r_0)$的基$\{v_1,v_2,\dots,v_k\}$和$K(A^T,r_0^*)$的基$\{w_1,w_2,\dots,w_k\}$，并使这两组基相互正交的算法，其中$\{v_1,v_2,\dots,v_k\}$和$\{w_1,w_2,\dots,w_k\}$相互正交是指：
+$$
+(v_i,w_j)=\begin{cases}
+0, \quad i \ne j \\
+1, \quad i = j
+\end{cases}
+$$
+注意$\{v_1,v_2,\dots,v_k\}$和$\{w_1,w_2,\dots,w_k\}$本身不一定正交。&lt;/p&gt;
+&lt;p&gt;双正交化过程是Lanczos过程向非对称情形的推广。给定两个非零向量$r_0$和$r_0^*$，满足$(r_0,r_0^*) \ne 0$，则双正交化过程为：
+$$
+\begin{aligned}
+&amp; \beta = \|r_0\|_2 \\
+&amp; \beta_0 = \gamma_0 = 0 \\
+&amp; v_1 = r_0 / \beta \\
+&amp; w_1=\beta r_0^*/(r_0^*, r_0) \\
+&amp; for \ k = 1,2,\dots,m \\
+&amp; \qquad \alpha_k = (Av_k, w_k) \\
+&amp; \qquad \bar{v}_{k+1}=Av_k - \alpha_k v_k - \beta_{k-1}v_{k-1} \\
+&amp; \qquad \bar{w}_{k+1}=A^T w_k - \alpha_k w_k - \gamma_{k-1}w_{k-1} \\
+&amp; \qquad \gamma_k = \sqrt{|(\bar{v}_{k+1},\bar{w}_{k+1})|} \\
+&amp; \qquad if \ \gamma_k = 0 \\
+&amp; \qquad\qquad break \\
+&amp; \qquad end \\
+&amp; \qquad \beta_k=(\bar{v}_{k+1}, \bar{w}_{k+1})/\gamma_k \\
+&amp; \qquad v_{k+1}=\bar{v}_{k+1}/\gamma_k \\
+&amp; \qquad w_{k+1}=\bar{w}_{k+1}/\beta_k \\
+&amp; end
+\end{aligned}
+$$
+&lt;strong&gt;定理一&lt;/strong&gt;：设双正交化过程不提前中断，则向量组$\{v_1,v_2,\dots,v_m\}$和$\{w_1,w_2,\dots,w_m\}$相互正交，即
+$$
+W_m^TV_m=I \label{WVI}
+$$
+其中$V_m=[v_1,v_2,\dots,v_m],W_m=[w_1,w_2,\dots,w_m]$。&lt;/p&gt;
+&lt;p&gt;证明：首先由$\beta_k$的构造可知$\beta_k \gamma_k=(\bar{v}_{k+1}, \bar{w}_{k+1})$，所以$(v_{k+1},w_{k+1})=(\bar{v}_{k+1}, \bar{w}_{k+1})/(\beta_k \gamma_k)=1$，$k=1,2,\dots,m-1$，又$(v_1,w_1)=(r_0/\beta, \beta r_0^*/(r_0^*, r_0))=1$，所以$(v_k,w_k)=1,k=1,2,\dots,m$。&lt;/p&gt;
+&lt;p&gt;接下来再证明下面的等式对任意正整数$2 \le k \le m$成立：
+$$
+w_k^Tv_i=0, \quad w_i^Tv_k=0, \quad i=1,2,\dots,k-1 \label{wivj_0}
+$$
+通过数学归纳法证明：当k=2时，有$\gamma_1v_2=Av_1-\alpha_1 v_1$和$\beta_1w_2=A^Tw_1-\alpha_1 w_1$，其中$\alpha_1=w_1^TAv_1$，所以
+$$
+\begin{aligned}
+w_2^Tv_1&amp;=(A^Tw_1-\alpha_1w_1)^Tv_1/\beta_1=(w_1^TAv_1-\alpha_1)/\beta_1=0 \\
+w_1^Tv_2&amp;=w_1^T(Av_1-\alpha_1v_1)/\gamma_1=(w_1^TAv_1-\alpha_1)/\gamma_1=0
+\end{aligned}
+$$
+即k=2时$\eqref{wivj_0}$成立。&lt;/p&gt;
+&lt;p&gt;假设等式$\eqref{wivj_0}$对k成立，证明k+1时也成立。由双正交化过程算法可知：
+$$
+\begin{equation}\begin{gathered}
+\gamma_kv_{k+1}=Av_k - \alpha_k v_k - \beta_{k-1}v_{k-1} \\
+\beta_kw_{k+1}=A^T w_k - \alpha_k w_k - \gamma_{k-1}w_{k-1} \\
+\alpha_k=(Av_k,w_k) = w_k^TAv_k
+\end{gathered}\end{equation} \label{vw_k1}
+$$
+所以
+$$
+\begin{aligned}
+w_{k+1}^Tv_k&amp;=(A^T w_k - \alpha_k w_k - \gamma_{k-1}w_{k-1})^Tv_k/\beta_k \\
+&amp;=(w_k^TAv_k-\alpha_k)/\beta_k=0 \\
+w_{k+1}^Tv_{k-1}&amp;=(A^T w_k - \alpha_k w_k - \gamma_{k-1}w_{k-1})^Tv_{k-1}/\beta_k \\
+&amp;=(w_k^TAv_{k-1}-\gamma_{k-1})/\beta_k \\
+&amp;=(w_k^T(\gamma_{k-1}v_k + \alpha_{k-1} v_{k-1} + \beta_{k-2}v_{k-2})-\gamma_{k-1})/\beta_k \\
+&amp;=(\gamma_{k-1}w_k^Tv_k-\gamma_{k-1})/\beta_k = 0 \\
+\end{aligned}
+$$
+当$i \le k-2$时，有
+$$
+\begin{aligned}
+w_{k+1}^Tv_i&amp;=(A^T w_k - \alpha_k w_k - \gamma_{k-1}w_{k-1})^Tv_i/\beta_k \\
+&amp;=w_k^TAv_i/\beta \\
+&amp;= w_k^T(\gamma_i v_{i+1}+\alpha_iv_i+\beta_{i-2}v_{i-2})/\beta_k = 0
+\end{aligned}
+$$
+类似地，可以证明$w_i^Tv_{k+1}=0$对所有$i \le k$都成立，所以等式$\eqref{wivj_0}$对k+1也成立。&lt;/p&gt;
+&lt;p&gt;所以等式$\eqref{wivj_0}$对$k=2,3,\dots,m$成立，所以$(v_i,w_j)=0,i \ne j$，所以定理一成立。&lt;/p&gt;
+&lt;p&gt;将递推式$\eqref{vw_k1}$写成矩阵形式为：
+$$
+\begin{equation}\begin{aligned}
+AV_k&amp;=V_{k+1}T_{k+1,k}=V_kT_k+\gamma_kv_{k+1}e_k^T \\
+A^TW_k&amp;=W_{k+1}T_{k+1,k}^T=W_kT_k^T+\beta_kw_{k+1}e_k^T
+\end{aligned}\end{equation} \label{AVAW}
+$$
+其中$e_k^T=[0,\dots,0,1]^T \in R^k$，
+$$
+\begin{gathered}
+T_{k+1,k}=\begin{bmatrix}
+\alpha_1 &amp; \beta_1 \\
+\gamma_1 &amp; \ddots &amp; \ddots \\
+ &amp; \ddots &amp; \ddots &amp; \beta_{k-1} \\
+ &amp; &amp; \gamma_{k-1} &amp; \alpha_k \\
+ &amp; &amp; &amp; \gamma_k
+\end{bmatrix} \in R^{(k+1) \times k} \\
+T_{k+1,k}^T=\begin{bmatrix}
+\alpha_1 &amp; \gamma_1 \\
+\beta_1 &amp; \ddots &amp; \ddots \\
+ &amp; \ddots &amp; \ddots &amp; \gamma_{k-1} \\
+ &amp; &amp; \beta_{k-1} &amp; \alpha_k \\
+ &amp; &amp; &amp; \beta_k
+\end{bmatrix} \in R^{(k+1) \times k}
+\end{gathered}
+$$
+$T_k \in R^{k \times k}$是$T_{k+1,k}$的前k行组成的矩阵。由$\eqref{WVI}$和$\eqref{AVAW}$可得
+$$
+W_k^TAV_k=W_k^TV_kT_k+\gamma_k(W_k^Tv_{k+1})e_k^T=T_k \label{WAVT}
+$$&lt;/p&gt;
+&lt;h2 id=&#34;bicg方法推导&#34;&gt;BiCG方法推导&lt;/h2&gt;
+&lt;p&gt;由公式$\eqref{WVI}$和$\eqref{WAVT}$，方程$\eqref{bicgy}$可进行下面的化简：
+$$
+W_k^Tr_0-W_k^TAV_ky_k=\beta W_k^Tv_1-T_ky_k=\beta e_1^{(k)}-T_ky_k=0
+$$
+所以
+$$
+y_k = T_k^{-1}(\beta e_1^{(k)})
+$$
+设$T_k$的LU分解为$T_k=L_kU_k$，则
+$$
+x^{(k)}=x^{(0)}+V_ky_k=x^{(0)}+V_kT_k^{-1}(\beta e_1^{(k)})=x^{(0)}+(V_kU_k^{-1})(\beta L_k^{-1}e_1^{(k)})
+$$
+&lt;strong&gt;定理二&lt;/strong&gt;：设$Q_k=V_kU_k^{-1}=[q_1,q_2,\dots, q_k] \in R^{n \times k}$，$z_k=\beta L_k^{-1}e_1^{(k)}$，则有递推公式：$Q_{k+1}=V_{k+1}U_{k+1}^{-1}=[Q_k,q_{k+1}], z_{k+1}=\beta L_{k+1}^{-1}e_1^{(k+1)}=[z_k, \eta_{k+1}]^T$。&lt;/p&gt;
+&lt;p&gt;证明：设$T_k$的LU分解为
+$$
+T_k = L_kU_k =
+\begin{bmatrix}
+1 \\
+l_1 &amp; 1 \\
+ &amp; \ddots &amp; \ddots \\
+ &amp; &amp; l_{k-1} &amp; 1
+\end{bmatrix}
+\begin{bmatrix}
+d_1 &amp; u_1 \\
+&amp; \ddots &amp; \ddots \\
+&amp; &amp; d_{k-1} &amp; u_{k-1} \\
+&amp; &amp; &amp; d_k
+\end{bmatrix}
+=
+\begin{bmatrix}
+\alpha_1 &amp; \beta_1 \\
+\gamma_1 &amp; \ddots &amp; \ddots \\
+ &amp; \ddots &amp; \ddots &amp; \beta_{k-1} \\
+ &amp; &amp; \gamma_{k-1} &amp; \alpha_k \\
+\end{bmatrix}
+$$
+$L_k$和$U_k$的元素可由待定系数法可解出：
+$$
+d_1=\alpha_1, l_i=\gamma_i / d_i, u_i=\beta_i,d_{i+1}=\alpha_{i+1}-l_iu_i, i=1,2,\dots,k-1
+$$
+记$\bar{l}_k=[0,\dots,0,l_k]^T \in R^k,\bar{u}_k=[0,\dots,0,u_k]^T \in R^k$，则
+$$
+L_{k+1}=\begin{bmatrix}
+L_k &amp; 0 \\
+\bar{l}_k^T &amp; 1
+\end{bmatrix},
+U_{k+1}=\begin{bmatrix}
+U_k &amp; \bar{u}_k \\
+0 &amp; d_{k+1}
+\end{bmatrix}
+$$
+且
+$$
+L_{k+1}^{-1}=\begin{bmatrix}
+L_k^{-1} &amp; 0 \\
+-\bar{l}_k^TL_k^{-1} &amp; 1
+\end{bmatrix},
+U_{k+1}^{-1}=\begin{bmatrix}
+U_k^{-1} &amp; -d_{k+1}^{-1}U_k^{-1}\bar{u}_k \\
+0 &amp; d_{k+1}^{-1}
+\end{bmatrix}
+$$
+所以
+$$
+\begin{aligned}
+Q_{k+1}&amp;=V_{k+1}U_{k+1}^{-1}=[V_k,v_{k+1}]\begin{bmatrix}
+U_k^{-1} &amp; -d_{k+1}^{-1}U_k^{-1}\bar{u}_k \\
+0 &amp; d_{k+1}^{-1}
+\end{bmatrix} \\
+&amp;=[V_kU_k^{-1}, -d_{k+1}^{-1}V_kU_k^{-1}\bar{u}_k+d_{k+1}^{-1}v_{k+1}] \\
+&amp;=[Q_k, -d_{k+1}^{-1}Q_k\bar{u}_k+d_{k+1}^{-1}v_{k+1}] \\
+&amp;=[Q_k, -d_{k+1}^{-1}u_kq_k+d_{k+1}^{-1}v_{k+1}] \\
+&amp;=[Q_k, q_{k+1}]
+\end{aligned}
+$$
+其中$q_{k+1}=-d_{k+1}^{-1}u_kq_k+d_{k+1}^{-1}v_{k+1}$。&lt;/p&gt;
+&lt;p&gt;另外
+$$
+z_{k+1}=\beta L_{k+1}^{-1}e_1^{(k+1)}=\beta
+\begin{bmatrix}
+L_k^{-1} &amp; 0 \\
+-\bar{l}_k^TL_k^{-1} &amp; 1
+\end{bmatrix}
+\begin{bmatrix}
+e_1^{(k)} \\
+0
+\end{bmatrix}
+=\begin{bmatrix}
+\beta L_k^{-1}e_1^{(k)} \\
+-\beta\bar{l}_k^TL_k^{-1}e_1^{(k)}
+\end{bmatrix}
+=\begin{bmatrix}
+z_k \\
+\eta_{k+1}
+\end{bmatrix}
+$$&lt;/p&gt;
+&lt;p&gt;其中$\eta_{k+1}=-\beta\bar{l}_k^TL_k^{-1}e_1^{(k)}$。&lt;/p&gt;
+&lt;p&gt;由定理二可得近似解递推式：
+$$
+\begin{equation}\begin{aligned}
+x^{(k+1)}&amp;=x^{(0)}+Q_{k+1}z_{k+1}=x^{(0)}+[Q_k,q_{k+1}]\begin{bmatrix} z_k \\ \eta_{n+1} \end{bmatrix} \\
+&amp;=x^{(0)}+Q_kz_k+\eta_{k+1}q_{k+1}=x^{(k)}+\eta_{k+1}q_{k+1}
+\end{aligned}\end{equation} \label{bicgx}
+$$
+所以残量递推式为：
+$$
+r_{k+1}=b-Ax^{(k+1)}=b-A(x^{(k)}+\eta_{k+1}q_{k+1})=r_k-\eta_{k+1}Aq_{k+1} \label{bicgr}
+$$
+另一方面
+$$
+\begin{aligned}
+r_k=b-Ax^{(k)}&amp;=b-A(x^{(0)}+V_ky_k) \\
+&amp;=r_0-AV_ky_k \\
+&amp;=\beta v_1-V_kT_ky_k-\gamma_k v_{k+1}e_k^Ty_k \\
+&amp;=-\gamma_k (e_k^Ty_k)v_{k+1}
+\end{aligned}
+$$
+所以$r_k$与$v_{k+1}$平行。&lt;/p&gt;
+&lt;p&gt;考虑方程$A^Tx=b$，对应的BiCG方法为：
+$$
+find\ x_* \in x_*^{(0)}+K(A^T,r_0^*), \quad b-A^Tx_* \perp K(A, r_0)
+$$
+对于此方程，仍然采用方程$Ax=b$的双正交化过程，可设方程的近似解为$x_*^{(k)}=x_*^{(0)}+W_ky_k^*$，则正交条件为：
+$$
+V_k^T(b-A^Tx_*^{(k)})=V_k^T(r_0^*-A^TW_ky_k^*)=V_k^T(\beta^*w_1)-V_k^TA^TW_ky_k^*=\beta^*e_1^{(k)}-T_k^Ty_k^*=0
+$$
+其中$\beta^*=\beta/(r_0,r_0^*)$。&lt;/p&gt;
+&lt;p&gt;因此$y_k^*$是方程$T_k^Ty=\beta^*e_1^{(k)}$的解，则
+$$
+x_*^{(k)}=x_*^{(0)}+W_ky_k^*=x_*^{(0)}+W_kT_k^{-T}(\beta^* e_1^{(k)})=x_*^{(0)}+(W_kL_k^{-T})(\beta^* U_k^{-T}e_1^{(k)})
+$$
+令$Q_k^*=W_kL_k^{-T}$，$z_k^*=\beta^*U_k^{-T}e_1^{(k)}$，则有
+$$
+\begin{aligned}
+Q_{k+1}^*&amp;=W_{k+1}L_{k+1}^{-T}=[W_k,w_{k+1}]\begin{bmatrix}
+L_k^{-T} &amp; -L_k^{-T}\bar{l}_k \\
+0 &amp; 1
+\end{bmatrix} \\
+&amp;=[W_kL_k^{-T},-W_kL_k^{-T}\bar{l}_k+w_{k+1}] \\
+&amp;=[Q_k^*, -Q_k^*\bar{l}_k+w_{k+1}] \\
+&amp;=[Q_k^*, -l_kq_k^*+w_{k+1}]=[Q_k^*, q_{k+1}^*] \\
+z_{k+1}^*&amp;=\beta^*U_{k+1}^{-T}e_1^{(k+1)}=\beta^*
+\begin{bmatrix}
+U_k^{-T} &amp; 0 \\
+-d_{k+1}^{-1}\bar{u}_k^TU_k^{-T} &amp; d_{k+1}^{-1}
+\end{bmatrix}
+\begin{bmatrix}
+e_1^{(k)} \\
+0
+\end{bmatrix} \\
+&amp;=[\beta^*U_k^{-T}e_1^{(k)},-\beta^*d_{k+1}^{-1}\bar{u}_k^TU_k^{-T}e_1^{(k)}]^T \\
+&amp;=[z_k^*, \eta_{k+1}^*]^T
+\end{aligned}
+$$
+其中$q_{k+1}^*=-l_kq_k^*+w_{k+1}, \eta_{k+1}^*=-\beta^*d_{k+1}^{-1}\bar{u}_k^TU_k^{-T}e_1^{(k)}$。&lt;/p&gt;
+&lt;p&gt;所以
+$$
+\begin{equation}\begin{aligned}
+x_*^{(k+1)}&amp;=x_*^{(0)}+Q_{k+1}^*z_{k+1}^*=x_*^{(0)}+[Q_k^*,q_{k+1}^*]\begin{bmatrix} z_k^* \\ \eta_{n+1}^* \end{bmatrix} \\
+&amp;=x_*^{(0)}+Q_k^* z_k^* + \eta_{k+1}^* q_{k+1}^* = x_*^{(k)}+\eta_{k+1}^*q_{k+1}^*
+\end{aligned}\end{equation}
+$$
+残量的递推式为
+$$
+r_{k+1}^* = b-A^Tx_*^{(k+1)}=b-A^T(x_*^{(k)}+\eta_{k+1}^*q_{k+1}^*)=r_k^*-\eta_{k+1}^*A^Tq_{k+1}^* \label{bicgr_}
+$$
+另外
+$$
+\begin{aligned}
+r_k^*=b-A^Tx_*^{(k)}&amp;=b-A^T(x_*^{(0)}+W_ky_k^*) \\
+&amp;=r_0^*-A^TW_ky_k^* \\
+&amp;=\beta^* w_1 - W_kT_k^Ty_k^*-\beta_k w_{k+1}e_k^Ty_k^* \\
+&amp;=-\beta_k (e_k^Ty_k^*)w_{k+1}
+\end{aligned}
+$$
+所以$r_k^*$与$w_{k+1}$平行。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;定理三&lt;/strong&gt;：1、$\{r_0,r_1,\dots,r_k\}$与$\{r_0^*,r_1^*,\dots,r_k^*\}$满足$(r_i,r_j^*)=0, i \ne j$；2、$\{q_1,q_2,\dots,q_k\}$与$\{q_1^*,q_2^*,\dots,q_k^*\}$满足$(Aq_i,q_j^*)=0, i \ne j$。&lt;/p&gt;
+&lt;p&gt;证明：1、$r_i$与$v_{i+1}$平行，$r_j^*$与$w_{j+1}$平行，而$\{v_1,v_2,\dots,v_k\}$与$\{w_1,w_2,\dots,w_k\}$相互正交，所以$(r_i,r_j^*)=0,i \ne j$。&lt;/p&gt;
+&lt;p&gt;2、证明$(Q_k^*)^TAQ_k=I$即可：
+$$
+(Q_k^*)^TAQ_k=(W_kL_k^{-T})^TA(V_kU_k^{-1})=L_k^{-1}W_k^TAV_kU_k^{-1}=L_k^{-1}T_kU_k^{-1}=I
+$$&lt;/p&gt;
+&lt;p&gt;记$r_k=t_kv_{k+1}$，则$t_0=\beta$，$t_k=-\gamma_k (e_k^Ty_k)$。令$p_k=t_{k-1}d_kq_k$，则
+$$
+p_{k+1}=t_kd_{k+1}q_{k+1}=t_kd_{k+1}(-d_{k+1}^{-1}u_kq_k+d_{k+1}^{-1}v_{k+1})=r_k+\theta_k p_k \label{bicgp}
+$$
+其中$\theta_k=-t_ku_k/d_k$。&lt;/p&gt;
+&lt;p&gt;记$r_k^*=t_k^*w_{k+1}$，则$t_0^*=\beta^*$，$t_k^*=-\beta_k(e_k^Ty_k^*)$。令$p_k^*=t_{k-1}^*q_k^*$，则
+$$
+p_{k+1}^*=t_k^*q_{k+1}^*=t_k^*(-l_kq_k^*+w_{k+1})=r_k^*-t_k^*l_kq_k^*=r_k^*+\theta_k^*p_k^* \label{bicgp_}
+$$
+其中$\theta_k^*=-t_k^*l_k/t_{k-1}^*$。&lt;/p&gt;
+&lt;p&gt;因为$p_k$和$q_k$平行，$p_k^*$和$q_k^*$平行，所以$(Ap_i,p_j^*)=0,i \ne j$。&lt;/p&gt;
+&lt;p&gt;将$x$、$r$、$r^*$的递推式$\eqref{bicgx}$、$\eqref{bicgr}$和$\eqref{bicgr_}$都用$p$和$p^*$表示：
+$$
+x^{(k+1)}=x^{(k)}+\eta_{k+1}q_{k+1} =x^{(k)}+\xi_{k+1}p_{k+1} \label{bicgxp}
+$$&lt;/p&gt;
+$$
+r_{k+1}=r_k-\eta_{k+1}Aq_{k+1}=r_k-\xi_{k+1}Ap_{k+1} \label{bicgrp}
+$$
+$$
+r_{k+1}^* = r_k^*-\eta_{k+1}^*A^Tq_{k+1}^* = r_k^*-\xi_{k+1}^*A^Tp_{k+1}^* \label{bicgr_p}
+$$
+&lt;p&gt;等式$\eqref{bicgrp}$两端左乘$(r_k^*)^T$得：
+$$
+0=(r_k,r_k^*)-\xi_{k+1}(Ap_{k+1},r_k^*)
+$$
+所以
+$$
+\xi_{k+1}=\frac{(r_k, r_k^*)}{(Ap_{k+1},r_k^*)}
+$$
+等式$\eqref{bicgr_p}$两端左乘$r_k^T$得：
+$$
+0=(r_k,r_k^*)-\xi_{k+1}^*(A^Tp_{k+1}^*,r_k)
+$$
+所以
+$$
+\xi_{k+1}^*=\frac{(r_k,r_k^*)}{(A^Tp_{k+1}^*,r_k)}
+$$
+等式$\eqref{bicgp}$两端左乘$(p_{k+1}^*)^TA$得：
+$$
+(A^Tp_{k+1}^*,p_{k+1})=(A^Tp_{k+1}^*,r_k)=(p_{k+1}^*)^TAp_{k+1}
+$$
+等式$\eqref{bicgp_}$两端左乘$(Ap_{k+1})^T$得：
+$$
+(Ap_{k+1},p_{k+1}^*)=(Ap_{k+1},r_k^*)=(p_{k+1}^*)^TAp_{k+1}
+$$
+所以
+$$
+(A^Tp_{k+1}^*,r_k)=(Ap_{k+1},r_k^*)=(Ap_{k+1},p_{k+1}^*) \label{appapr}
+$$
+所以
+$$
+\xi_{k+1}=\xi_{k+1}^*=\frac{(r_k,r_k^*)}{(Ap_{k+1},p_{k+1}^*)} \label{bicgxi}
+$$
+等式$\eqref{bicgp}$两端左乘$(p_k^*)^TA$得
+$$
+0=(A^Tp_k^*,r_k)+\theta_k (A^Tp_k^*,p_k)
+$$
+所以
+$$
+\theta_k = -\frac{(A^Tp_k^*,r_k)}{(A^Tp_k^*,p_k)} = -\frac{(A^Tp_k^*,r_k)}{(Ap_k,p_k^*)}
+$$
+等式$\eqref{bicgp_}$两端左乘$(Ap_k)^T$得：
+$$
+0=(Ap_k,r_k^*)+\theta_k^* (Ap_k,p_k^*)
+$$
+所以
+$$
+\theta_k^* = -\frac{(Ap_k,r_k^*)}{(Ap_k,p_k^*)}
+$$
+等式$\eqref{bicgrp}$两端左乘$(r_{k+1}^*)^T$得：
+$$
+(r_{k+1},r_{k+1}^*)=-\xi_{k+1}(Ap_{k+1},r_{k+1}^*)
+$$
+等式$\eqref{bicgr_p}$两端左乘$r_{k+1}^T$得：
+$$
+(r_{k+1},r_{k+1}^*)=-\xi_{k+1}^*(A^Tp_{k+1}^*,r_{k+1})
+$$
+所以
+$$
+(A^Tp_k^*,r_k)=(Ap_k,r_k^*)=-(r_k,r_k^*)/\xi_k
+$$
+所以
+$$
+\theta_k=\theta_k^*=\frac{(r_k,r_k^*)}{\xi_k (Ap_k,p_k^*)}=\frac{(r_k,r_k^*)}{(r_{k-1},r_{k-1}^*)}
+$$
+综上所述，BiCG方法迭代过程为：
+$$
+\begin{aligned}
+x^{(k)} &amp;=x^{(k-1)}+\xi_kp_k,\quad where\ \xi_k=\frac{(r_{k-1},r_{k-1}^*)}{(Ap_k,p_k^*)} \\
+r_{k} &amp;=r_{k-1}-\xi_kAp_k \\
+r_{k}^* &amp;=r_{k-1}^*-\xi_kA^Tp_k^* \\
+p_{k+1} &amp;=r_k+\theta_kp_k, \quad where\ \theta_k=\frac{(r_k,r_k^*)}{(r_{k-1},r_{k-1}^*)} \\
+p_{k+1}^* &amp;= r_k^*+\theta_k p_k^*
+\end{aligned}
+$$&lt;/p&gt;
+&lt;p&gt;考虑$p$和$p^*$的初值：$p_1=t_0d_1q_1=\beta d_1 d_1^{-1}v_1=r_0$，$p_1^*=t_0^*q_1^*=\beta^* w_1=r_0^*$，所以完整的BiCG方法如下：
+$$
+\begin{aligned}
+&amp; r_0=b-Ax^{(0)} \\
+&amp; choose\ r_0^*:(r_0, r_0^*) \ne 0 \\
+&amp; p_1=r_0 \\
+&amp; p_1^*=r_0^* \\
+&amp; for\ k=1,2,\dots,n \\
+&amp;\qquad \xi_k=(r_{k-1},r_{k-1}^*)/(Ap_k,p_k^*) \\
+&amp;\qquad x^{(k)}=x^{(k-1)}+\xi_k p_k \\
+&amp;\qquad r_k=r_{k-1}-\xi_k Ap_k \\
+&amp;\qquad if\ \|r_k\|_2 &lt; error \\
+&amp;\qquad\qquad break \\
+&amp;\qquad end \\
+&amp;\qquad r_k^*=r_{k-1}^*-\xi_k A^Tp_k^* \\
+&amp;\qquad \theta_k=(r_k,r_k^*)/(r_{k-1},r_{k-1}^*) \\
+&amp;\qquad p_{k+1}=r_{k} + \theta_k p_k \\
+&amp;\qquad p_{k+1}^*=r_k^*+\theta_k p_k^* \\
+&amp; end
+\end{aligned}
+$$&lt;/p&gt;
+</content>
+            
+            
+            
+            
+            
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://w-jin.github.io/tags/math/" term="math" label="math" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
         <entry>
             <title type="text">共轭梯度法</title>
             <link rel="alternate" type="text/html" href="https://w-jin.github.io/tech/cg/" />
