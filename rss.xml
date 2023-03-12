@@ -23,7 +23,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Sun, 12 Mar 2023 17:02:09 &#43;0800</lastBuildDate>
+        <lastBuildDate>Sun, 12 Mar 2023 17:22:06 &#43;0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss&#43;xml" href="https://w-jin.github.io/rss.xml" />
         
@@ -99,11 +99,13 @@ $$
 即k=2时$\eqref{wivj_0}$成立。&lt;/p&gt;
 &lt;p&gt;假设等式$\eqref{wivj_0}$对k成立，证明k+1时也成立。由双正交化过程算法可知：
 $$
-\begin{equation}\begin{gathered}
+\begin{equation} \label{vw_k1}
+\begin{gathered}
 \gamma_kv_{k+1}=Av_k - \alpha_k v_k - \beta_{k-1}v_{k-1} \\
 \beta_kw_{k+1}=A^T w_k - \alpha_k w_k - \gamma_{k-1}w_{k-1} \\
 \alpha_k=(Av_k,w_k) = w_k^TAv_k
-\end{gathered}\end{equation} \label{vw_k1}
+\end{gathered}
+\end{equation}
 $$
 所以
 $$

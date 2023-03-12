@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">wjin</title>
     <subtitle type="html">这是wjin的个人博客。</subtitle>
-    <updated>2023-03-12T17:02:09&#43;08:00</updated>
+    <updated>2023-03-12T17:22:06&#43;08:00</updated>
     <id>https://w-jin.github.io/</id>
     <link rel="alternate" type="text/html" href="https://w-jin.github.io/" />
     <link rel="self" type="application/atom&#43;xml" href="https://w-jin.github.io/atom.xml" />
@@ -20,7 +20,7 @@
             <title type="text">双共轭梯度法</title>
             <link rel="alternate" type="text/html" href="https://w-jin.github.io/tech/bicg/" />
             <id>https://w-jin.github.io/tech/bicg/</id>
-            <updated>2023-03-12T17:01:59&#43;08:00</updated>
+            <updated>2023-03-12T17:22:03&#43;08:00</updated>
             <published>2023-03-12T16:31:00&#43;08:00</published>
             <author>
                     <name>wjin</name>
@@ -90,11 +90,13 @@ $$
 即k=2时$\eqref{wivj_0}$成立。&lt;/p&gt;
 &lt;p&gt;假设等式$\eqref{wivj_0}$对k成立，证明k+1时也成立。由双正交化过程算法可知：
 $$
-\begin{equation}\begin{gathered}
+\begin{equation} \label{vw_k1}
+\begin{gathered}
 \gamma_kv_{k+1}=Av_k - \alpha_k v_k - \beta_{k-1}v_{k-1} \\
 \beta_kw_{k+1}=A^T w_k - \alpha_k w_k - \gamma_{k-1}w_{k-1} \\
 \alpha_k=(Av_k,w_k) = w_k^TAv_k
-\end{gathered}\end{equation} \label{vw_k1}
+\end{gathered}
+\end{equation}
 $$
 所以
 $$
